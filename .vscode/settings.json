@@ -1,0 +1,27 @@
+{
+  "editor.tabSize": 2,
+  "eslint.enable": true,
+  "eslint.format.enable": true,
+  "eslint.options": {
+    "overrideConfigFile": "./utils/lint/.eslintrc.yml"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.exclude": {
+    "bin": true,
+    ".DS_Store": true,
+    ".fleet": true,
+    ".gitignore": true,
+    ".husky": true,
+    ".idea": true,
+    ".npmignore": true,
+    ".vscode": true,
+    "yarn.lock": true,
+    "*.log": true,
+    "eslint.config.mjs": true,
+    "logs": true,
+    "tsconfig.json": true,
+    "node_modules": true
+  }
+}
