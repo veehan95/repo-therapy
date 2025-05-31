@@ -34,8 +34,8 @@ export const rules = {
 }
 
 export const presetIgnore = {
-  backend: ['.dist'],
-  'npm-lib': ['bin']
+  backend: ['.dist/**/*'],
+  'npm-lib': ['bin/**/*']
 }
 
 export const presetFilesBase = [
