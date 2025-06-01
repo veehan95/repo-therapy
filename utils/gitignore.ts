@@ -49,7 +49,7 @@ export function gitignore (projectType: RepoTherapy.ProjectType, options: {
   writeFileSync(
     join(root, '.gitignore'),
     [
-      ...(presetIgnore[projectType]).sort(),
+      ...(presetIgnore[projectType] || []).sort(),
       '## ADDITIONAL IGNORES ##',
       ...(options.additional || []).sort()
     ].join('\n')

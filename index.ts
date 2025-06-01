@@ -16,8 +16,11 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
 } = {}) {
   logger.info(`Setting up ${p.name}`)
   gitignore(projectType, options.gitignore)
+  logger.info(' - gitignore completed')
   husky()
+  logger.info(' - husky completed')
   vscode(projectType, options.vscode)
+  logger.info(' - vscode completed')
 }
 
 init(process.env.PROJECT_TYPE as RepoTherapy.ProjectType)
