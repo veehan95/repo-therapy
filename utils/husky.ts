@@ -17,8 +17,8 @@ export function husky () {
     'this script."\n  exit 1\nfi'
   )
   if (existsSync(join(dir, '../yarn.lock'))) {
-    execSync('yarn add husky')
+    execSync('yarn add husky', { stdio: 'ignore' })
   } else {
-    execSync('npm install husky')
+    execSync('npm install husky', { stdio: 'ignore' })
   }
 }
