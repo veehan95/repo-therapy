@@ -1,4 +1,3 @@
-import { execSync } from 'child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { extname, join } from 'path'
 
@@ -16,9 +15,4 @@ export function husky () {
     'working directory."\n  echo "Please commit or stash them before running ' +
     'this script."\n  exit 1\nfi'
   )
-  if (existsSync(join(dir, '../yarn.lock'))) {
-    execSync('yarn add husky', { stdio: 'ignore' })
-  } else {
-    execSync('npm install husky', { stdio: 'ignore' })
-  }
 }
