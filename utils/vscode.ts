@@ -64,7 +64,7 @@ export function vscode (projectType: RepoTherapy.ProjectType, options: {
   tabSize?: number
   exclude?: Array<string>
 } = {}) {
-  const dir = __dirname.replace(/\/node_modules\/.*$/, '')
+  const dir = join(__dirname.replace(/\/node_modules\/.*$/, ''), '.vscode')
   if (!existsSync(dir)) { mkdirSync(dir) }
 
   const recommendations = [

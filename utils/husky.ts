@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
 export function husky () {
-  const dir = __dirname.replace(/\/node_modules\/.*$/, '')
+  const dir = join(__dirname.replace(/\/node_modules\/.*$/, ''), '.husky')
   if (!existsSync(dir)) { mkdirSync(dir) }
 
   writeFileSync(
