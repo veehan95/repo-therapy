@@ -49,22 +49,18 @@ export function gitignore (projectType: RepoTherapy.ProjectType, options: {
     __dirname,
     (extname(__filename) === '.js' ? '../' : '') + '../../../'
   )
-  writeFileSync(
-    join(dir, '.gitignore'),
-    [
-      ...(presetIgnore[projectType] || []).sort(),
-      '## ADDITIONAL IGNORES ##',
-      ...(options.additional || []).sort()
-    ].join('\n')
-  )
+  const gitIgnore = [
+    ...(presetIgnore[projectType] || [])
+      .sort((a, b) => a.replace(/^!/, '') > b.replace(/^!/, '') ? 1 : -1),
+    '## ADDITIONAL IGNORES ##',
+    ...(options.additional || [])
+      .sort((a, b) => a.replace(/^!/, '') > b.replace(/^!/, '') ? 1 : -1)
+  ]
+  writeFileSync(join(dir, '.gitignore'), gitIgnore.join('\n'))
   if (projectType === 'npm-lib') {
     writeFileSync(
       join(dir, '.npmignore'),
-      [
-        ...(presetIgnore[projectType] || []).sort(),
-        '## ADDITIONAL IGNORES ##',
-        ...(options.additional || []).sort()
-      ].filter(x => x !== 'bin').join('\n')
+      gitIgnore.filter(x => x !== 'bin').join('\n')
     )
   }
 }
