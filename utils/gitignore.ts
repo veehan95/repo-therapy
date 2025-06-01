@@ -57,4 +57,14 @@ export function gitignore (projectType: RepoTherapy.ProjectType, options: {
       ...(options.additional || []).sort()
     ].join('\n')
   )
+  if (projectType === 'npm-lib') {
+    writeFileSync(
+      join(dir, '.npmignore'),
+      [
+        ...(presetIgnore[projectType] || []).sort(),
+        '## ADDITIONAL IGNORES ##',
+        ...(options.additional || []).sort()
+      ].filter(x => x !== 'bin').join('\n')
+    )
+  }
 }

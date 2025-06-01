@@ -5,6 +5,7 @@ import { logger } from './utils/logger'
 import p from './package.json'
 import { lint } from './utils/lint'
 import { packageJson } from './utils/package'
+import { tsconfig } from './utils/tsconfig'
 
 export function init (projectType: RepoTherapy.ProjectType, options: {
   gitignore?: {
@@ -25,6 +26,8 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - husky completed')
   vscode(projectType, options.vscode)
   logger.info(' - vscode completed')
+  tsconfig(projectType)
+  logger.info(' - tsconfig completed')
   lint(projectType)
   logger.info(' - lint completed')
 }
