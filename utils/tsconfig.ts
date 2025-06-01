@@ -1,11 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { extname, join } from 'path'
+import { join } from 'path'
 
 export function tsconfig (projectType: RepoTherapy.ProjectType) {
-  const dir = join(
-    __dirname,
-    (extname(__filename) === '.js' ? '../' : '') + '../../../'
-  )
+  const dir = __dirname.replace(/\/node_modules\/.*$/, '')
 
   const path = join(dir, 'tsconfig.json')
   if (!existsSync(path)) { writeFileSync(path, '{}') }

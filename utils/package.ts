@@ -1,14 +1,11 @@
 import { execSync } from 'child_process'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { extname, join } from 'path'
+import { join } from 'path'
 import packageSort from 'sort-package-json'
 import currentPackage from '../package.json'
 
 export function packageJson (projectType: RepoTherapy.ProjectType) {
-  const dir = join(
-    __dirname,
-    (extname(__filename) === '.js' ? '../' : '') + '../../../'
-  )
+  const dir = __dirname.replace(/\/node_modules\/.*$/, '')
 
   const path = join(dir, 'package.json')
   if (!existsSync(path)) { writeFileSync(path, '{}') }

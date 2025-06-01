@@ -1,11 +1,8 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
-import { extname, join } from 'path'
+import { join } from 'path'
 
 export function husky () {
-  const dir = join(
-    __dirname,
-    (extname(__filename) === '.js' ? '../' : '') + '../../../.husky'
-  )
+  const dir = __dirname.replace(/\/node_modules\/.*$/, '')
   if (!existsSync(dir)) { mkdirSync(dir) }
 
   writeFileSync(

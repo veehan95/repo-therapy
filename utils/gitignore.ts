@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs'
-import { extname, join } from 'path'
+import { join } from 'path'
 
 export const presetIgnoreBase = [
   '!.env.example',
@@ -46,10 +46,7 @@ export const presetIgnore: Record<RepoTherapy.ProjectType, Array<string>> = {
 export function gitignore (projectType: RepoTherapy.ProjectType, options: {
   additional?: Array<string>
 } = {}) {
-  const dir = join(
-    __dirname,
-    (extname(__filename) === '.js' ? '../' : '') + '../../../'
-  )
+  const dir = __dirname.replace(/\/node_modules\/.*$/, '')
   const gitIgnore = [
     ...(presetIgnore[projectType] || [])
       .sort((a, b) => a.replace(/^!/, '') > b.replace(/^!/, '') ? 1 : -1),
