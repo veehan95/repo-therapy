@@ -11,6 +11,9 @@ export function tsconfig (projectType: RepoTherapy.ProjectType) {
   if (!existsSync(path)) { writeFileSync(path, '{}') }
 
   const p = JSON.parse(readFileSync(path, 'utf-8')) as {
+    'ts-node'?: {
+      files?: boolean
+    }
     extends?: string
     compilerOptions?: {
       target?: string
@@ -25,9 +28,12 @@ export function tsconfig (projectType: RepoTherapy.ProjectType) {
       removeComments?: boolean
     }
   }
+
   if (projectType === 'knexpresso') {
     p.extends = './node_modules/knexpresso/tsconfig.json'
   } else {
+    if (!p['ts-node']) { p['ts-node'] = {} }
+    p['ts-node'].files = true
     if (!p.compilerOptions) { p.compilerOptions = {} }
     p.compilerOptions.target = 'es2016'
     p.compilerOptions.module = 'commonjs'
