@@ -84,7 +84,7 @@ export function vscode (projectType: RepoTherapy.ProjectType, options: {
     ...(presetExlcude[projectType] || [])
   ].sort().map(x => [x, true]))
   writeFileSync(
-    join(dir, 'extensions.json'),
+    join(dir, 'settings.json'),
     JSON.stringify({
       'editor.tabSize': options.tabSize || 2,
       'eslint.enable': true,
