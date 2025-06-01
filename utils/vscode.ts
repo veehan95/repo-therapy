@@ -55,7 +55,7 @@ export const presetExlcude: Record<RepoTherapy.ProjectType, Array<string>> = {
   'npm-lib': [
     ...presetExlcudeBase,
     '.npmignore',
-    '.bin'
+    'bin'
   ]
 }
 
