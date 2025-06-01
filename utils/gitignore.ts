@@ -14,7 +14,8 @@ export const presetIgnoreBase = [
   '.idea',
   '*.log',
   'logs',
-  'node_modules'
+  'node_modules',
+  'types.d/_*'
 ]
 
 export const presetIgnore: Record<RepoTherapy.ProjectType, Array<string>> = {
