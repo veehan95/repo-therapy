@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "main": "./bin/index.js",
   "repository": {
     "type": "git",
@@ -12,7 +12,6 @@
   "license": "MIT",
   "dependencies": {
     "@types/node": "^22.15.29",
-    "@types/winston": "^2.4.4",
     "@types/yargs": "^17.0.33",
     "eslint": "^9.28.0",
     "eslint-config-standard": "^17.1.0",
