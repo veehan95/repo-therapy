@@ -3,6 +3,7 @@ import { husky } from './utils/husky'
 import { vscode } from './utils/vscode'
 import { logger } from './utils/logger'
 import p from './package.json'
+import { lint } from './utils/lint'
 
 export function init (projectType: RepoTherapy.ProjectType, options: {
   gitignore?: {
@@ -21,6 +22,6 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - husky completed')
   vscode(projectType, options.vscode)
   logger.info(' - vscode completed')
+  lint(projectType)
+  logger.info(' - vscode completed')
 }
-
-init(process.env.PROJECT_TYPE as RepoTherapy.ProjectType)

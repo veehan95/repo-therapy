@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { extname, join } from 'path'
 
 export const presetRecommendations: Record<
   RepoTherapy.ProjectType,
@@ -64,7 +64,10 @@ export function vscode (projectType: RepoTherapy.ProjectType, options: {
   tabSize?: number
   exclude?: Array<string>
 } = {}) {
-  const dir = join(__dirname, '../../../.vscode')
+  const dir = join(
+    __dirname,
+    (extname(__filename) === '.js' ? '../' : '') + '../../../.vscode'
+  )
   if (!existsSync(dir)) { mkdirSync(dir) }
 
   const recommendations = [
