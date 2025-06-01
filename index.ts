@@ -4,6 +4,7 @@ import { vscode } from './utils/vscode'
 import { logger } from './utils/logger'
 import p from './package.json'
 import { lint } from './utils/lint'
+import { packageJson } from './utils/package'
 
 export function init (projectType: RepoTherapy.ProjectType, options: {
   gitignore?: {
@@ -16,6 +17,8 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   }
 } = {}) {
   logger.info(`Setting up ${p.name}`)
+  packageJson(projectType)
+  logger.info(' - package.json completed')
   gitignore(projectType, options.gitignore)
   logger.info(' - gitignore completed')
   husky()
@@ -23,5 +26,5 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   vscode(projectType, options.vscode)
   logger.info(' - vscode completed')
   lint(projectType)
-  logger.info(' - vscode completed')
+  logger.info(' - lint completed')
 }
