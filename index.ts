@@ -31,3 +31,5 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   lint(projectType)
   logger.info(' - lint completed')
 }
+
+export default { logger, init }
