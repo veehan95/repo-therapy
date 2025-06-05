@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "./bin/index.js",
   "repository": {
     "type": "git",
@@ -27,8 +27,8 @@
     "yargs": "^18.0.0"
   },
   "scripts": {
-    "lint": "yarn eslint .",
+    "lint": "eslint .",
     "postinstall": "husky",
-    "pre-publish": "yarn tsc"
+    "pre-publish": "tsc"
   }
 }

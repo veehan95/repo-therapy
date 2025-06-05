@@ -28,7 +28,7 @@ export function packageJson (projectType: RepoTherapy.ProjectType) {
   if (!p.scripts.postinstall) { p.scripts.postinstall = '' }
 
   if (projectType === 'npm-lib') {
-    p.scripts['pre-publish'] = 'yarn tsc'
+    p.scripts['pre-publish'] = 'tsc'
     if (!p.repository) {
       p.repository = { type: '', url: '' }
     }
@@ -64,7 +64,7 @@ export function packageJson (projectType: RepoTherapy.ProjectType) {
     p.scripts.postinstall += 'knexpresso'
   }
 
-  p.scripts.lint = 'yarn eslint .'
+  p.scripts.lint = 'eslint .'
   if (!/^(.*\s)?husky(\s.*)?$/.test(p.scripts.postinstall)) {
     if (p.scripts.postinstall) { p.scripts.postinstall += ' && ' }
     p.scripts.postinstall += 'husky'
