@@ -32,6 +32,7 @@ export const presetExlcudeBase = [
   '.idea',
   '.vscode',
   '*.log',
+  '.docker-compose.yml',
   'eslint.config.mjs',
   'logs',
   'node_modules',
