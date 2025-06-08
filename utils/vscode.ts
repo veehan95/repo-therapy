@@ -32,7 +32,6 @@ export const presetExlcudeBase = [
   '.idea',
   '.vscode',
   '*.log',
-  '.docker-compose.yml',
   'eslint.config.mjs',
   'logs',
   'node_modules',
@@ -51,6 +50,7 @@ export const presetExlcude: Record<RepoTherapy.ProjectType, Array<string>> = {
     '.knexpresso',
     '.uploads',
     'dist',
+    '.docker-compose',
     'docker-compose.yml'
   ],
   'npm-lib': [

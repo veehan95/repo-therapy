@@ -26,7 +26,7 @@ export const presetIgnore: Record<RepoTherapy.ProjectType, Array<string>> = {
   knexpresso: [
     ...presetIgnoreBase,
     '.knexpresso',
-    '.docker-compose.yml',
+    '.docker-compose',
     '.uploads',
     '.credentials',
     'bin',
@@ -38,8 +38,7 @@ export const presetIgnore: Record<RepoTherapy.ProjectType, Array<string>> = {
     '.uploads',
     '.credentials',
     'bin',
-    'dist',
-    'docker-compose.yml'
+    'dist'
   ]
 }
 
