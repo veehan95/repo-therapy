@@ -55,6 +55,7 @@ export default (projectType, { ignores: _ignores, files } = {}) => {
     '.gitlab/**/*',
     '.husky/**/*',
     'node_modules/**/*',
+    'types.d/**/_*',
     ...(presetIgnore[projectType] || []),
     ...(_ignores || [])
   ]
