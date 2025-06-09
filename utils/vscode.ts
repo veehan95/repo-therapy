@@ -28,6 +28,7 @@ export const presetExlcudeBase = [
   '.DS_Store',
   '.fleet',
   '.gitignore',
+  '.gitlab',
   '.husky',
   '.idea',
   '.vscode',
