@@ -68,7 +68,11 @@ export function generateType (
         [...prefix, _str].join('\n\n')
           .replace(/\{(\n|\r|\s)*\}/, '{}')
           .replace(/\n/g, '\n    ') +
-        '\n  }\n}\n\nexport {}\n'
+        '\n  }\n\n' +
+        '  namespace RepoTherapy {\n' +
+        `    type Env = ${startCase(namespace).replace(/\s/g, '')}Env.Env\n` +
+        '  }\n' +
+        '\n}\n\nexport {}\n'
     ).replace(/\n(\s*)\n/g, '\n\n')
   )
 }

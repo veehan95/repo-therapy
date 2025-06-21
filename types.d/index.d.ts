@@ -75,6 +75,8 @@ declare global {
       mailer: EnvPresetMailer
       mailgun: EnvPresetMailer
     }
+
+    type Env = object
   }
 }
 

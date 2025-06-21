@@ -37,7 +37,7 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - lint completed')
 }
 
-export function envControl <T extends object> (
+export function envControl <T extends RepoTherapy.Env> (
   namespace: string,
   { saveTo, configPath, defaultConfig }: {
     saveTo?: string,

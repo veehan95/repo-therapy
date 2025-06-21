@@ -51,10 +51,6 @@ import { getConfig } from './utils/env/utils'
         }),
       handler: (argv) => {
         const { _, path } = argv
-        if (!_[1]) {
-          logger.error('Env namespace is required')
-          process.exit(2)
-        }
         const { config } = getConfig(argv.config)
         generateType(config.list, _[1].toString(), path)
       }
