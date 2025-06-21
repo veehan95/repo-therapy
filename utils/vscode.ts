@@ -10,13 +10,6 @@ export const presetRecommendations: Record<
     'eamodio.gitlens',
     'ms-azuretools.vscode-docker'
   ],
-  knexpresso: [
-    'amandeepmittal.pug',
-    'dbaeumer.vscode-eslint',
-    'eamodio.gitlens',
-    'janisdd.vscode-edit-csv',
-    'ms-azuretools.vscode-docker'
-  ],
   'npm-lib': [
     'dbaeumer.vscode-eslint',
     'eamodio.gitlens'
@@ -45,14 +38,6 @@ export const presetExlcude: Record<RepoTherapy.ProjectType, Array<string>> = {
     ...presetExlcudeBase,
     '.uploads',
     'dist'
-  ],
-  knexpresso: [
-    ...presetExlcudeBase,
-    '.knexpresso',
-    '.uploads',
-    'dist',
-    '.docker-compose',
-    'docker-compose.yml'
   ],
   'npm-lib': [
     ...presetExlcudeBase,

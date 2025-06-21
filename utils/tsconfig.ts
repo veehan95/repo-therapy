@@ -1,7 +1,10 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 
-export function tsconfig (projectType: RepoTherapy.ProjectType) {
+export function tsconfig (
+  projectType: RepoTherapy.ProjectType,
+  extendTsc?: string
+) {
   const dir = __dirname.replace(/\/node_modules\/.*$/, '')
 
   const path = join(dir, 'tsconfig.json')
@@ -26,8 +29,8 @@ export function tsconfig (projectType: RepoTherapy.ProjectType) {
     }
   }
 
-  if (projectType === 'knexpresso') {
-    p.extends = './node_modules/knexpresso/tsconfig.json'
+  if (extendTsc) {
+    p.extends = extendTsc
   } else {
     if (!p['ts-node']) { p['ts-node'] = {} }
     p['ts-node'].files = true

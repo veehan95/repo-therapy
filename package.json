@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "main": "./bin/index.js",
   "repository": {
     "type": "git",
@@ -11,14 +11,17 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@types/lodash": "^4.17.18",
     "@types/node": "^22.15.29",
     "@types/yargs": "^17.0.33",
+    "dotenv": "^16.5.0",
     "eslint": "^9.28.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-n": "^17.18.0",
     "eslint-plugin-promise": "^7.2.1",
     "husky": "^9.1.7",
+    "lodash": "^4.17.21",
     "sort-package-json": "^3.2.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",

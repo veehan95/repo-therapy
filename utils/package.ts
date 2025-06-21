@@ -12,6 +12,7 @@ export function packageJson (projectType: RepoTherapy.ProjectType) {
 
   const p = JSON.parse(readFileSync(path, 'utf-8')) as {
     name: string
+    type?: string
     repository?: {
       type: string
       url: string
@@ -32,6 +33,8 @@ export function packageJson (projectType: RepoTherapy.ProjectType) {
     if (!p.repository) {
       p.repository = { type: '', url: '' }
     }
+
+    p.type = 'module'
     p.repository.type = 'git'
     const url = execSync('git config --get remote.origin.url')
       .toString()
@@ -56,12 +59,6 @@ export function packageJson (projectType: RepoTherapy.ProjectType) {
     p.dependencies['eslint-plugin-promise'] = currentPackage
       .dependencies['eslint-plugin-promise']
     p.dependencies.husky = currentPackage.dependencies.husky
-  } else if (projectType === 'knexpresso') {
-    p.scripts.build = 'knexpresso build'
-    p.scripts.start = 'knexpresso start'
-    p.scripts.dev = 'knexpresso dev'
-    p.scripts.script = 'knexpresso script'
-    p.scripts.postinstall += 'knexpresso'
   }
 
   p.scripts.lint = 'eslint .'
