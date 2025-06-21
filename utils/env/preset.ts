@@ -1,6 +1,6 @@
 export const base = {
   project: { type: 'string' },
-  projectLang: { type: 'string', generate: false },
+  projectLang: { type: 'string', default: 'en' },
   tz: { type: 'string', optional: true, generate: false },
   nodeEnv: { type: 'string', default: 'local' }
 }
@@ -71,5 +71,6 @@ export default {
   database,
   google,
   mailer,
-  mailgun
+  mailgun,
+  postgres
 }

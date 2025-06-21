@@ -6,16 +6,14 @@ import preset from './preset'
 
 export function getConfig (
   configPath = './env-control.ts',
-  defaultConfig = (
-    _: typeof preset
-  ): RepoTherapy.EnvConfig => ({})
+  defaultConfig = (_: RepoTherapy.EnvPreset): RepoTherapy.EnvConfig => ({})
 ) {
   if (extname(__filename) === '.js') { register({ transpileOnly: true }) }
 
   const root = __dirname.replace(/\/node_modules\/.*$/, '')
   const _configPath = join(root, configPath)
 
-  const dConfig = defaultConfig(preset)
+  const dConfig = defaultConfig(preset as unknown as RepoTherapy.EnvPreset)
 
   const _config = (existsSync(_configPath)
     // eslint-disable-next-line @typescript-eslint/no-require-imports

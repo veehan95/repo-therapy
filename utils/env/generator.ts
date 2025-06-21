@@ -6,7 +6,7 @@ import { getConfig } from './utils'
 export const supportedFormat = ['string', 'number', 'boolean']
 
 export function recursiveGenerateType (
-  obj: RepoTherapy.EnvConfig = {},
+  obj: RepoTherapy.EnvDetail = {},
   key = 'env'
 ) {
   const interfaceName = startCase(key).replace(/\s/g, '')
@@ -17,7 +17,7 @@ export function recursiveGenerateType (
     let attribute: string = (entries[i][1] as RepoTherapy.EnvAttribute).type
     if (!supportedFormat.includes(attribute)) {
       const { interfaceName: n, str, prefix: _prefix } = recursiveGenerateType(
-        entries[i][1],
+        entries[i][1] as RepoTherapy.EnvDetail,
         startCase(`${key} ${entries[i][0]}`).replace(/\s/g, '')
       )
       prefix.push(..._prefix)
@@ -48,7 +48,7 @@ export function recursiveGenerateType (
 }
 
 export function generateType (
-  obj: RepoTherapy.EnvConfig['list'],
+  obj: RepoTherapy.EnvDetail,
   namespace: string,
   saveTo = 'types.d/_env.d.ts'
 ) {
@@ -74,13 +74,13 @@ export function generateType (
 }
 
 export function recursiveAssign (
-  obj: RepoTherapy.EnvConfig['list'],
+  obj: RepoTherapy.EnvDetail,
   env: Record<string, string> = {},
   prev = ''
 ) {
   const checkValue = process.env.ENV_CONTROL_CHECK_SKIP !== 'true'
   const entries = Object.entries(obj) as Array<
-    [string, RepoTherapy.EnvConfig | RepoTherapy.EnvAttribute]
+    [string, RepoTherapy.EnvDetail[string]]
   >
   const result: Record<string, string | number | boolean | object> = {}
   for (let i = 0; i < entries.length; i++) {
@@ -90,7 +90,7 @@ export function recursiveAssign (
       const attrKey = keys[j].replace(/^\(|\)$/g, '')
       if (!supportedFormat.includes(attribute)) {
         result[attrKey] = recursiveAssign(
-          entries[i][1],
+          entries[i][1] as RepoTherapy.EnvDetail,
           env,
           `${prev} ${keys[j]}`
         )
@@ -131,14 +131,14 @@ export function recursiveAdjustValue <T extends object> (data: T) {
 }
 
 export function generateEnv <T extends object> (
-  obj: RepoTherapy.EnvConfig['list'],
+  obj: RepoTherapy.EnvDetail,
   env: Record<string, string>
 ): T {
   return recursiveAdjustValue<T>(recursiveAssign(obj, env) as T)
 }
 
 export function generateEnvFile (
-  obj: RepoTherapy.EnvConfig['list'],
+  obj: RepoTherapy.EnvDetail,
   prev = ''
 ) {
   const entries = Object.entries(obj)
@@ -150,7 +150,7 @@ export function generateEnvFile (
       const currentKey = /\([^)]*\)/g.test(keys[j]) ? '' : '_' + keys[j]
       if (!supportedFormat.includes(attribute)) {
         result.push(...generateEnvFile(
-          entries[i][1],
+          entries[i][1] as RepoTherapy.EnvDetail,
           `${prev} ${currentKey}`
         ))
       } else {
@@ -169,7 +169,7 @@ export function generateEnvFile (
 
 export function useEnv (project: string, { configPath, defaultConfig }: {
   configPath?: string
-  defaultConfig?: (_: RepoTherapy.EnvPreset) => RepoTherapy.EnvConfig
+  defaultConfig?: (_: RepoTherapy.EnvPreset) => RepoTherapy.EnvDetail
 } = {}) {
   const { config, defaultEnv, fileName, root } = getConfig(
     configPath,
