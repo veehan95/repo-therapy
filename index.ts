@@ -37,7 +37,7 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - lint completed')
 }
 
-export function envControl <T extends RepoTherapy.Env> (
+export function envControl (
   namespace: string,
   { saveTo, configPath, defaultConfig }: {
     saveTo?: string,
@@ -47,7 +47,7 @@ export function envControl <T extends RepoTherapy.Env> (
 ) {
   const utils = getConfig(configPath, defaultConfig)
   generateType(utils.config.list, namespace, saveTo)
-  return generateEnv<T>(utils.config.list, {
+  return generateEnv(utils.config.list, {
     ...(process.env || {}),
     ...utils.defaultEnv
   })

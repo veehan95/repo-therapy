@@ -1,6 +1,6 @@
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'fs'
 import { snakeCase, startCase } from 'lodash'
-import { dirname, extname, join } from 'path'
+import { dirname, join } from 'path'
 import { getConfig } from './utils'
 
 export const supportedFormat = ['string', 'number', 'boolean']
@@ -52,10 +52,7 @@ export function generateType (
   namespace: string,
   saveTo = 'types.d/_env.d.ts'
 ) {
-  const typePath = join(
-    __dirname,
-    (extname(__filename) === '.js' ? '../' : '') + `../../${saveTo}`
-  )
+  const typePath = join(__dirname.replace(/node_modules\/.*$/, ''), saveTo)
   const dir = dirname(typePath)
   if (!existsSync(dir)) { mkdirSync(dir, { recursive: true }) }
 
@@ -72,7 +69,7 @@ export function generateType (
         '  namespace RepoTherapy {\n' +
         `    type Env = ${startCase(namespace).replace(/\s/g, '')}Env.Env\n` +
         '  }\n' +
-        '\n}\n\nexport {}\n'
+        '}\n\nexport {}\n'
     ).replace(/\n(\s*)\n/g, '\n\n')
   )
 }
@@ -134,11 +131,13 @@ export function recursiveAdjustValue <T extends object> (data: T) {
   return result as T
 }
 
-export function generateEnv <T extends object> (
+export function generateEnv (
   obj: RepoTherapy.EnvDetail,
   env: Record<string, string>
-): T {
-  return recursiveAdjustValue<T>(recursiveAssign(obj, env) as T)
+): RepoTherapy.Env {
+  return recursiveAdjustValue<RepoTherapy.Env>(
+    recursiveAssign(obj, env) as RepoTherapy.Env
+  )
 }
 
 export function generateEnvFile (

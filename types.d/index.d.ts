@@ -15,7 +15,7 @@ declare global {
     // }
 
     interface EnvAttribute <
-      T extends keyof EnvAttributeType = 'string'
+      T extends keyof EnvAttributeType
     > {
       type: T
       optional?: boolean
@@ -76,7 +76,8 @@ declare global {
       mailgun: EnvPresetMailer
     }
 
-    type Env = object
+    // eslint-disable-next-line
+    interface Env {}
   }
 }
 
