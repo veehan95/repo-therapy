@@ -14,7 +14,9 @@ export function recursiveGenerateType (
   const prefix: Array<string> = []
   const interfaceAttribute: Array<string> = []
   for (let i = 0; i < entries.length; i++) {
-    let attribute: string = (entries[i][1] as RepoTherapy.EnvAttribute).type
+    let attribute: string = (
+      entries[i][1] as RepoTherapy.EnvAttribute<'string'>
+    ).type
     if (!supportedFormat.includes(attribute)) {
       const { interfaceName: n, str, prefix: _prefix } = recursiveGenerateType(
         entries[i][1] as RepoTherapy.EnvDetail,
@@ -28,7 +30,9 @@ export function recursiveGenerateType (
       .split(/\|/g)
       .map(x => x.replace(/\(|\)/g, '').trim())
     let keyToUse = keys[0]
-    const colon = (entries[i][1] as RepoTherapy.EnvAttribute).optional
+    const colon = (
+      entries[i][1] as RepoTherapy.EnvAttribute<'string'>
+    ).optional
       ? '?:'
       : ':'
     if (keys.length > 1) {
@@ -85,7 +89,9 @@ export function recursiveAssign (
   >
   const result: Record<string, string | number | boolean | object> = {}
   for (let i = 0; i < entries.length; i++) {
-    const attribute: string = (entries[i][1] as RepoTherapy.EnvAttribute).type
+    const attribute: string = (
+      entries[i][1] as RepoTherapy.EnvAttribute<'string'>
+    ).type
     const keys = entries[i][0].split(/\|/g)
     for (let j = 0; j < keys.length; j++) {
       const attrKey = keys[j].replace(/^\(|\)$/g, '')
@@ -147,7 +153,9 @@ export function generateEnvFile (
   const entries = Object.entries(obj)
   const result: Array<string> = []
   for (let i = 0; i < entries.length; i++) {
-    const attribute: string = (entries[i][1] as RepoTherapy.EnvAttribute).type
+    const attribute: string = (
+      entries[i][1] as RepoTherapy.EnvAttribute<'string'>
+    ).type
     const keys = entries[i][0].split(/\|/g)
     for (let j = 0; j < keys.length; j++) {
       const currentKey = /\([^)]*\)/g.test(keys[j]) ? '' : '_' + keys[j]
@@ -157,11 +165,16 @@ export function generateEnvFile (
           `${prev} ${currentKey}`
         ))
       } else {
-        if ((entries[i][1] as RepoTherapy.EnvAttribute).generate !== false) {
+        if (
+          (entries[i][1] as RepoTherapy.EnvAttribute<'string'>)
+            .generate !== false
+        ) {
           result.push(
             snakeCase(`${prev} ${currentKey}`).toUpperCase() +
-            '=' +
-            ((entries[i][1] as RepoTherapy.EnvAttribute).default || '')
+            '=' + (
+              (entries[i][1] as RepoTherapy.EnvAttribute<'string'>)
+                .default || ''
+            )
           )
         }
       }
