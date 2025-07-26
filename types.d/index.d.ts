@@ -1,4 +1,8 @@
 declare global {
+  type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<Partial<T[P]>> : T[P]
+  }
+
   namespace RepoTherapy {
     type ProjectType = 'npm-lib' | 'backend'
 
@@ -82,26 +86,42 @@ declare global {
       ext: string
       path: string
       fullPath: string
-      import?: () => T
+      import?: () => Partial<T>
     }
   }
 
   function defineRepoTherapy (
     handler: (_: {
       envPreset: RepoTherapy.EnvPreset
-    }) => Partial<{
-      extends?: Array<typeof defineRepoTherapy>
+    }) => DeepPartial<{
+      extends: Array<ReturnType<typeof defineRepoTherapy>>
       // todo use generic type
       projectType: 'backend' | 'npm'
+      // todo remove ?
       env?: Record<string, RepoTherapy.EnvDetail>
+      paths: {
+        rootPath: string
+        configPath: string
+        typeDeclarationPath: string
+      }
+      typeName: string
     }>
   ): () => {
     envSample: () => Record<string, string>
     envType: () => string
+    generateTypeDeclaration: () => void
     env: RepoTherapyEnv
     config: {
-      env: Record<string, RepoTherapy.EnvDetail> 
+      env: Record<string, RepoTherapy.EnvDetail>
     }
+  }
+
+  function defineRepoTherapyImport (
+    handler?: () => DeepPartial<{ rootPath: string }>
+  ): {
+    importScript: <T extends object> (path: string) => RepoTherapy.ImportObject<T> | undefined
+    // todo fix object
+    importScriptFromDir: <T extends object> (path: keyof T & string) => Array<RepoTherapy.ImportObject<T>>
   }
 
   function defineRepoTherapyTsconfig (

@@ -6,12 +6,13 @@ import p from './package.json'
 import { lint } from './utils/lint'
 import { packageJson } from './utils/package'
 import { tsconfig } from './utils/tsconfig'
-import { importScript, importScriptFromDir } from './utils/import'
-import { join } from 'path'
-import { writeFileSync } from 'fs'
-import { defineRepoTherapy } from './utils/define'
+import { defineRepoTherapyImport as _defineRepoTherapyImport } from './utils/define/import'
+import { defineRepoTherapy as _defineRepoTherapy } from './utils/define'
+// import { join } from 'path'
+// import { writeFileSync } from 'fs'
 
-global.defineRepoTherapy = defineRepoTherapy
+// global.defineRepoTherapy = defineRepoTherapy
+// global.defineRepoTherapyImport = defineRepoTherapyImport
 
 // todo rework
 export function init (projectType: RepoTherapy.ProjectType, options: {
@@ -39,34 +40,34 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - lint completed')
 }
 
-export function repoTherapy (
-  {
-    rootPath,
-    configPath = 'repo-therapy.ts',
-    typeDeclarationPath = 'types.d/_repo-therapy.d.ts'
-  }: {
-    rootPath: string
-    configPath?: string
-    typeDeclarationPath?: string
-  }
-) {
-  const importObject = importScript<Partial<{
-    default: ReturnType<typeof defineRepoTherapy>
-  }>>(rootPath, configPath)
-  if (!importObject?.import) { throw new Error('RepoTherapy config not found') }
-  const config = importObject.import().default
-  if (!config) { throw new Error('RepoTherapy config not found') }
-  const { env, envType } = config()
+// interface PathOptions {
+//   rootPath: string
+//   configPath: string
+//   typeDeclarationPath: string
+// }
 
-  return {
-    getTypeDeclaration: () => {
-      writeFileSync(
-        join(rootPath, typeDeclarationPath),
-        `declare global {\n  ${envType().replace(/\n/g, '\n  ')}\n}`
-      )
-    },
-    env
-  }
+// export function repoTherapy ({
+//   rootPath = __dirname.replace(/\/node_modules\/.*$/, ''),
+//   configPath = 'repo-therapy.ts',
+//   typeDeclarationPath = 'types.d/_repo-therapy.d.ts'
+// }: Partial<PathOptions>) {
+//   const iScript = defineRepoTherapyImport()
+//   const importObject = iScript().importScript<Partial<{
+//     default: ReturnType<typeof defineRepoTherapy>
+//   }>>(configPath)
+//   if (!importObject?.import) { throw new Error('RepoTherapy config not found') }
+//   const config = importObject.import().default
+//   if (!config) { throw new Error('RepoTherapy config not found') }
+//   return config()
+// }
+
+export { logger }
+export { _defineRepoTherapy as defineRepoTherapy}
+export { _defineRepoTherapyImport as defineRepoTherapyImport}
+
+export default {
+  logger,
+  init,
+  defineRepoTherapy: _defineRepoTherapy,
+  defineRepoTherapyImport: _defineRepoTherapyImport
 }
-
-export default { logger, init, repoTherapy, importScript, importScriptFromDir }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { init, repoTherapy } from './index'
+import { init } from './index'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cpSync } from 'fs'
@@ -32,29 +32,30 @@ import p from './package.json'
         init(argv.type as RepoTherapy.ProjectType)
       }
     })
-    .command({
-      command: 'generate',
-      describe: 'Generate env type',
-      // builder: argv => argv
-      //   .option('path', {
-      //     alias: 'p',
-      //     describe: 'Path to save env declaration',
-      //     type: 'string',
-      //     default: 'types.d/_env.d.ts'
-      //   })
-      //   .option('config', {
-      //     alias: 'c',
-      //     describe: 'Relative path to config file',
-      //     type: 'string'
-      //   }),
-      handler: (argv) => {
-        // todo args
-        const {
-          getTypeDeclaration
-        } = repoTherapy({ rootPath: __dirname.replace(/node_modules\/.*$/, '') })
-        getTypeDeclaration()
-      }
-    })
+    // todo
+    // .command({
+    //   command: 'generate',
+    //   describe: 'Generate env type',
+    //   // builder: argv => argv
+    //   //   .option('path', {
+    //   //     alias: 'p',
+    //   //     describe: 'Path to save env declaration',
+    //   //     type: 'string',
+    //   //     default: 'types.d/_env.d.ts'
+    //   //   })
+    //   //   .option('config', {
+    //   //     alias: 'c',
+    //   //     describe: 'Relative path to config file',
+    //   //     type: 'string'
+    //   //   }),
+    //   handler: (argv) => {
+    //     // todo args
+    //     const {
+    //       generateTypeDeclaration
+    //     } = repoTherapy({ rootPath: __dirname.replace(/node_modules\/.*$/, '') })
+    //     generateTypeDeclaration()
+    //   }
+    // })
     // todo
     // .command({
     //   command: 'swap',

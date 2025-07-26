@@ -1,5 +1,7 @@
+import { writeFileSync } from 'fs'
 import envPreset from '../env-preset'
 import dotenv from 'dotenv'
+import { join } from 'path'
 
 const _defineRepoTherapy: typeof defineRepoTherapy = (
   handler
@@ -33,7 +35,7 @@ const _defineRepoTherapy: typeof defineRepoTherapy = (
     }
     // todo default support function (pass in env that is not a function)
     const returnValue = process.env[currentEnvKey] || value.default
-    if (typeof returnValue !== value.type) {
+    if (returnValue !== undefined && typeof returnValue !== value.type) {
       throw new Error(`Env type for ${currentRecuringKey.join('.')} should be ${value.type}`)
     }
     return [key, returnValue]
@@ -71,18 +73,34 @@ const _defineRepoTherapy: typeof defineRepoTherapy = (
   }
 
   const config = handler({ envPreset })
-  const configExtends = config.extends || []
+  const configExtends = (config.extends || [])
   const configEnv = configExtends.reduce((acc, cur) => {
     // todo fix nested object
-    return Object.assign(acc, cur)
+    if (!cur) { throw new Error('Unknown object is passed as defineRepoTherapy') }
+    return Object.assign(acc, cur().env)
   }, Object.assign({}, config.env || {}))
   const env = recursiveEnv('env', configEnv)[1]
+
+  const paths = {
+    rootPath: config.paths?.rootPath ||__dirname.replace(/\/node_modules\/.*$/, ''),
+    configPath: config.paths?.configPath ||'repo-therapy.ts',
+    typeDeclarationPath: config.paths?.typeDeclarationPath ||'types.d/_repo-therapy.d.ts'
+  }
+
+  function envType () {
+    const [, ...str] = recursiveEnvType('env', configEnv).split('\n')
+    return `interface ${config.typeName || 'RepoTherapyEnv'} {\n${str.join('\n')}`
+  }
+
   return {
     env,
     envSample: () => Object.fromEntries(recursiveEnvSample('env', configEnv)),
-    envType: () => {
-      const [, ...str] = recursiveEnvType('env', configEnv).split('\n')
-      return `interface RepoTherapyEnv {\n${str.join('\n')}`
+    envType,
+    generateTypeDeclaration: () => {
+      writeFileSync(
+        join(paths.rootPath, paths.typeDeclarationPath),
+        `declare global {\n  ${envType().replace(/\n/g, '\n  ')}\n}`
+      )
     },
     config: {
       env: config.env || {}
