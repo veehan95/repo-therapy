@@ -99,6 +99,7 @@ const _defineRepoTherapy: typeof defineRepoTherapy = (
     generateTypeDeclaration: () => {
       writeFileSync(
         join(paths.rootPath, paths.typeDeclarationPath),
+        // todo fix spacing when have extends
         `declare global {\n  ${envType().replace(/\n/g, '\n  ')}\n}`
       )
     },
