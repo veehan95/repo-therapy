@@ -73,11 +73,11 @@ const _defineRepoTherapy: typeof defineRepoTherapy = (
   }
 
   const config = handler({ envPreset })
-  const configExtends = (config.extends || [])
+  const configExtends = (config.extends || []).filter(x => x)
   const configEnv = configExtends.reduce((acc, cur) => {
     // todo fix nested object
     if (!cur) { throw new Error('Unknown object is passed as defineRepoTherapy') }
-    return Object.assign(acc, cur().env)
+    return Object.assign(acc, cur().config.env)
   }, Object.assign({}, config.env || {}))
   const env = recursiveEnv('env', configEnv)[1]
 
