@@ -13,5 +13,8 @@
     "outDir": "./bin",
     "rootDir": "./",
     "removeComments": true
+  },
+  "ts-node": {
+    "files": true
   }
 }

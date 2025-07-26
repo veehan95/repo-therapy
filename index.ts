@@ -1,4 +1,3 @@
-import { config } from 'dotenv'
 import { gitignore } from './utils/gitignore'
 import { husky } from './utils/husky'
 import { vscode } from './utils/vscode'
@@ -7,11 +6,14 @@ import p from './package.json'
 import { lint } from './utils/lint'
 import { packageJson } from './utils/package'
 import { tsconfig } from './utils/tsconfig'
-import { generateEnv, generateType } from './utils/env/generator'
-import { getConfig } from './utils/env/utils'
+import { importScript, importScriptFromDir } from './utils/import'
+import { join } from 'path'
+import { writeFileSync } from 'fs'
+import { defineRepoTherapy } from './utils/define'
 
-config()
+global.defineRepoTherapy = defineRepoTherapy
 
+// todo rework
 export function init (projectType: RepoTherapy.ProjectType, options: {
   gitignore?: {
     additional?: Array<string>
@@ -37,20 +39,34 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - lint completed')
 }
 
-export function envControl (
-  namespace: string,
-  { saveTo, configPath, defaultConfig }: {
-    saveTo?: string,
+export function repoTherapy (
+  {
+    rootPath,
+    configPath = 'repo-therapy.ts',
+    typeDeclarationPath = 'types.d/_repo-therapy.d.ts'
+  }: {
+    rootPath: string
     configPath?: string
-    defaultConfig?: (_: RepoTherapy.EnvPreset) => RepoTherapy.EnvConfig
+    typeDeclarationPath?: string
   }
 ) {
-  const utils = getConfig(configPath, defaultConfig)
-  generateType(utils.config.list, namespace, saveTo)
-  return generateEnv(utils.config.list, {
-    ...(process.env || {}),
-    ...utils.defaultEnv
-  })
+  const importObject = importScript<Partial<{
+    default: ReturnType<typeof defineRepoTherapy>
+  }>>(rootPath, configPath)
+  if (!importObject?.import) { throw new Error('RepoTherapy config not found') }
+  const config = importObject.import().default
+  if (!config) { throw new Error('RepoTherapy config not found') }
+  const { env, envType } = config()
+
+  return {
+    getTypeDeclaration: () => {
+      writeFileSync(
+        join(rootPath, typeDeclarationPath),
+        `declare global {\n  ${envType().replace(/\n/g, '\n  ')}\n}`
+      )
+    },
+    env
+  }
 }
 
-export default { logger, init, envControl }
+export default { logger, init, repoTherapy, importScript, importScriptFromDir }

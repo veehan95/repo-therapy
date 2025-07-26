@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "main": "./bin/index.js",
   "repository": {
     "type": "git",
@@ -14,6 +14,7 @@
     "@types/lodash": "^4.17.18",
     "@types/node": "^22.15.29",
     "@types/yargs": "^17.0.33",
+    "consola": "^3.4.2",
     "dotenv": "^16.5.0",
     "eslint": "^9.28.0",
     "eslint-config-standard": "^17.1.0",
@@ -26,7 +27,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.0",
-    "winston": "^3.17.0",
     "yargs": "^18.0.0"
   },
   "scripts": {

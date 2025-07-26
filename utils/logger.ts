@@ -1,10 +1,3 @@
-import winston from 'winston'
+import consola from 'consola'
 
-export const logger = winston.createLogger({
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.cli(),
-    winston.format.colorize({ all: true })
-  ),
-  transports: [new winston.transports.Console()]
-})
+export const logger = consola

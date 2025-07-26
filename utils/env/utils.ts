@@ -2,7 +2,7 @@ import { parse } from 'dotenv'
 import { existsSync, readFileSync } from 'fs'
 import { extname, join } from 'path'
 import { register } from 'ts-node'
-import preset from './preset'
+import preset from '../env-preset'
 
 export function getConfig (
   configPath = './env-control.ts',

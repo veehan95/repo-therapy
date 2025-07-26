@@ -46,8 +46,7 @@ declare global {
     >
 
     type EnvPresetDatabase = Record<
-      'host' | 'name' | 'user' | 'password' | 'sslRejectUnauthorized' | 'port',
-      EnvDetail
+      'host' | 'name' | 'user' | 'password' | 'port', EnvDetail
     > & { pool: Record<'min' | 'max', EnvDetail> }
 
     type EnvPresetCognito = Record<
@@ -78,6 +77,45 @@ declare global {
 
     // eslint-disable-next-line
     interface Env {}
+
+    type ImportObject <T> = {
+      ext: string
+      path: string
+      fullPath: string
+      import?: () => T
+    }
+  }
+
+  function defineRepoTherapy (
+    handler: (_: {
+      envPreset: RepoTherapy.EnvPreset
+    }) => Partial<{
+      extends?: Array<typeof defineRepoTherapy>
+      // todo use generic type
+      projectType: 'backend' | 'npm'
+      env?: Record<string, RepoTherapy.EnvDetail>
+    }>
+  ): () => {
+    envSample: () => Record<string, string>
+    envType: () => string
+    env: RepoTherapyEnv
+    config: {
+      env: Record<string, RepoTherapy.EnvDetail> 
+    }
+  }
+
+  function defineRepoTherapyTsconfig (
+    handler: () => Partial<{
+      rootPath: string
+      path: string
+      extends: string
+      allowTsNode: string
+      projectType: 'backend' | 'npm'
+    }>
+  ): () => {
+    config: {
+      compilerOptions: import('typescript').CompilerOptions
+    }
   }
 }
 

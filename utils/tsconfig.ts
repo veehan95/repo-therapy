@@ -26,6 +26,9 @@ export function tsconfig (
       outDir?: string
       rootDir?: string
       removeComments?: boolean
+      declaration?: boolean
+      declarationMap?: boolean
+      emitDeclarationOnly?: boolean
     }
   }
 
@@ -45,6 +48,9 @@ export function tsconfig (
     p.compilerOptions.outDir = projectType === 'npm-lib' ? './bin' : '.dist'
     p.compilerOptions.rootDir = './'
     p.compilerOptions.removeComments = true
+    p.compilerOptions.declaration = true
+    p.compilerOptions.declarationMap = true
+    p.compilerOptions.emitDeclarationOnly = false
   }
   writeFileSync(path, JSON.stringify(p, undefined, 2))
 }

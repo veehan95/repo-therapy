@@ -1,13 +1,10 @@
 #!/usr/bin/env node
-import { init } from './index'
+import { init, repoTherapy } from './index'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cpSync } from 'fs'
 import { join } from 'path'
 import p from './package.json'
-import { logger } from './utils/logger'
-import { generateType, useEnv } from './utils/env/generator'
-import { getConfig } from './utils/env/utils'
 
 (async () => {
   cpSync(
@@ -31,42 +28,46 @@ import { getConfig } from './utils/env/utils'
           type: 'string'
         }),
       handler: (argv) => {
+        // todo patch for vue/nuxt lint
         init(argv.type as RepoTherapy.ProjectType)
       }
     })
     .command({
       command: 'generate',
       describe: 'Generate env type',
-      builder: argv => argv
-        .option('path', {
-          alias: 'p',
-          describe: 'Path to save env declaration',
-          type: 'string',
-          default: 'types.d/_env.d.ts'
-        })
-        .option('config', {
-          alias: 'c',
-          describe: 'Relative path to config file',
-          type: 'string'
-        }),
+      // builder: argv => argv
+      //   .option('path', {
+      //     alias: 'p',
+      //     describe: 'Path to save env declaration',
+      //     type: 'string',
+      //     default: 'types.d/_env.d.ts'
+      //   })
+      //   .option('config', {
+      //     alias: 'c',
+      //     describe: 'Relative path to config file',
+      //     type: 'string'
+      //   }),
       handler: (argv) => {
-        const { _, path } = argv
-        const { config } = getConfig(argv.config)
-        generateType(config.list, _[1].toString(), path)
+        // todo args
+        const {
+          getTypeDeclaration
+        } = repoTherapy({ rootPath: __dirname.replace(/node_modules\/.*$/, '') })
+        getTypeDeclaration()
       }
     })
-    .command({
-      command: 'swap',
-      describe: 'Change env file',
-      handler: (argv) => {
-        const { _ } = argv
-        if (!_[1]) {
-          logger.error('Project slug is required')
-          process.exit(2)
-        }
-        useEnv(_[1].toString())
-      }
-    })
+    // todo
+    // .command({
+    //   command: 'swap',
+    //   describe: 'Change env file',
+    //   handler: (argv) => {
+    //     const { _ } = argv
+    //     if (!_[1]) {
+    //       logger.error('Project slug is required')
+    //       process.exit(2)
+    //     }
+    //     useEnv(_[1].toString())
+    //   }
+    // })
     .help('h')
     .alias('h', 'help')
     .epilog(`For more information, visit ${p.repository.url}`)

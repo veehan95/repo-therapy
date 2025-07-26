@@ -10,7 +10,6 @@ export const database = {
   name: { type: 'string' },
   user: { type: 'string' },
   password: { type: 'string' },
-  sslRejectUnauthorized: { type: 'boolean', optional: true },
   port: { type: 'number', default: 5432, generate: false },
   pool: {
     min: { type: 'number', default: 1, generate: false },
@@ -63,7 +62,7 @@ export const backend = {
   }
 }
 
-export default {
+const preset: RepoTherapy.EnvPreset = {
   aws,
   backend,
   base,
@@ -74,3 +73,5 @@ export default {
   mailgun,
   postgres
 }
+
+export default preset
