@@ -22,6 +22,10 @@ const _defineRepoTherapy: typeof defineRepoTherapy = (
     const currentRecuringKey = [..._recuringKey, key]
     const fullKeyRegExp = new RegExp(`^${
       currentRecuringKey
+        .join(' ')
+        .replace(/([A-Z])/g, ' $1')
+        .trim()
+        .split(/\s/g)
         .filter(x => x)
         .map(x => x.toLowerCase() === 'default' ? '(_default)?' : `_${x}`)
         .join('')
