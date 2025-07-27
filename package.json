@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.24",
+  "version": "0.1.30",
   "main": "./bin/index.js",
   "repository": {
     "type": "git",

@@ -86,7 +86,7 @@ declare global {
       ext: string
       path: string
       fullPath: string
-      import?: () => Partial<T>
+      import: () => Partial<T>
     }
   }
 
@@ -119,9 +119,12 @@ declare global {
   function defineRepoTherapyImport (
     handler?: () => DeepPartial<{ rootPath: string }>
   ): {
-    importScript: <T extends object> (path: string) => RepoTherapy.ImportObject<T> | undefined
+    importScript: <T extends object> (path: string) => RepoTherapy.ImportObject<T>
     // todo fix object
-    importScriptFromDir: <T extends object> (path: keyof T & string) => Array<RepoTherapy.ImportObject<T>>
+    importScriptFromDir: <T extends object> (path: string) => Array<{
+      dir: string
+      relativePath: string
+    } & RepoTherapy.ImportObject<T>>
   }
 
   function defineRepoTherapyTsconfig (

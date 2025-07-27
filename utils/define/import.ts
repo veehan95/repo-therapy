@@ -9,18 +9,19 @@ const _defineRepoTherapyImport: typeof defineRepoTherapyImport = (
 ) => {
   const h = handler ? handler() : {}
   const rootPath = h.rootPath || __dirname.replace(/\/node_modules\/.*$/, '')
-  function importScript <T extends object> (path: string): RepoTherapy.ImportObject<T> | undefined {
+  function importScript <T extends object> (path: string): RepoTherapy.ImportObject<T> {
     const fPath = join(rootPath, path)
-    if (lstatSync(fPath).isDirectory() || /\.d\.ts/.test(fPath)) { return }
-    if (!tsImported && extname(__filename) === '.js' && extname(fPath) === '.ts') {
-      register({ transpileOnly: true })
-      tsImported = true
-    }
     const ext = extname(fPath)
     const o: RepoTherapy.ImportObject<T> = {
       ext,
       path: `/${path}`.replace(/^\/\//, '/'),
-      fullPath: fPath
+      fullPath: fPath,
+      import: () => ({})
+    }
+    if (lstatSync(fPath).isDirectory() || /\.d\.ts/.test(fPath)) { return o }
+    if (!tsImported && extname(__filename) === '.js' && extname(fPath) === '.ts') {
+      register({ transpileOnly: true })
+      tsImported = true
     }
     if (['.js', '.ts', '.json'].includes(ext)) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -29,11 +30,15 @@ const _defineRepoTherapyImport: typeof defineRepoTherapyImport = (
     return o
   }
 
-  function importScriptFromDir <T extends object> (path: keyof T & string) {
-    if (!existsSync(path)) { return [] }
-    return readdirSync(path, { recursive: true, encoding: 'utf-8' })
-      .map(x => importScript<T>(x))
-      .filter(x => x) as Array<RepoTherapy.ImportObject<T>>
+  function importScriptFromDir <T extends object> (path: string) {
+    const fPath = join(rootPath, path)
+    if (!existsSync(fPath)) { return [] }
+    return readdirSync(fPath, { recursive: true, encoding: 'utf-8' })
+      .map(x => ({
+        dir: path,
+        relativePath: x,
+        ...importScript<T>(join(path, x))
+      }))
   }  
   return { importScript, importScriptFromDir }
 }
