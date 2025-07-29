@@ -54,7 +54,7 @@ declare global {
     > & { pool: Record<'min' | 'max', EnvDetail> }
 
     type EnvPresetCognito = Record<
-      'region' | 'domain' | 'clientId' | 'clientSecret',
+      'region' | 'userPoolId' | 'clientId' | 'clientSecret',
       EnvDetail
     >
 

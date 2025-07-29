@@ -21,7 +21,7 @@ export const postgres = JSON.parse(JSON.stringify(database))
 postgres.port.default = 5432
 
 export const aws = {
-  region: { type: 'string', generate: false },
+  region: { type: 'string', default: 'ap-southeast-1', generate: false },
   access: {
     key: { type: 'string' },
     secret: { type: 'string' }
@@ -29,8 +29,11 @@ export const aws = {
 }
 
 export const cognito = {
-  region: { type: 'string', optional: true, generate: false },
-  domain: { type: 'string' },
+  // todo default pull from aws
+  region: { type: 'string', default: 'ap-southeast-1', generate: false },
+  userPoolId: { type: 'string' },
+  // todo https://<cognito id>.auth.<region>.amazoncognito.com
+  // domain: { type: 'string' },
   clientId: { type: 'string' },
   clientSecret: { type: 'string' }
 }
