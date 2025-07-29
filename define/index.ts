@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs'
-import envPreset from '../env-preset'
+import envPreset from '../utils/env-preset'
 import dotenv from 'dotenv'
 import { join } from 'path'
 
