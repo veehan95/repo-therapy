@@ -32,8 +32,11 @@ export const cognito = {
   // todo default pull from aws
   region: { type: 'string', default: 'ap-southeast-1', generate: false },
   userPoolId: { type: 'string' },
+  subDomain: { type: 'string' },
   // todo https://<cognito id>.auth.<region>.amazoncognito.com
   // domain: { type: 'string' },
+  // todo https://cognito-idp.<region>.amazonaws.com/<userPoolId>/.well-known/jwks.json 
+  // jwks: { type: 'string' },
   clientId: { type: 'string' },
   clientSecret: { type: 'string' }
 }
