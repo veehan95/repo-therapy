@@ -38,7 +38,8 @@ const _defineRepoTherapy: typeof defineRepoTherapy = (
       throw new Error(`Env not configured ${currentRecuringKey.join('.')}`)
     }
     // todo default support function (pass in env that is not a function)
-    const returnValue = process.env[currentEnvKey] || value.default
+    let returnValue = process.env[currentEnvKey] || value.default
+    if (value.type === 'number') { returnValue = Number(returnValue) }
     if (
       returnValue !== undefined && (
         (value.type === 'number' && isNaN(returnValue)) ||
