@@ -28,9 +28,12 @@ const _defineRepoTherapyImport: typeof defineRepoTherapyImport = (
     }
     if (['.js', '.ts', '.json'].includes(ext)) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      o.import = () => (existsSync(fPath) && require(fPath)) || {}
+      o.import = () => {
+        const x = (existsSync(fPath) && require(fPath)) || {}
+        if (validator) { validator(o.import()) }
+        return x
+      }
     }
-    if (validator) { validator(o.import()) }
     return o
   }
 
