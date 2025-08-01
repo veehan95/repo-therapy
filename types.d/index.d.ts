@@ -90,23 +90,23 @@ declare global {
     }
   }
 
-  function defineRepoTherapy (
-    handler: (_: {
-      envPreset: RepoTherapy.EnvPreset
-    }) => DeepPartial<{
-      extends: Array<ReturnType<typeof defineRepoTherapy>>
-      // todo use generic type
-      projectType: 'backend' | 'npm'
-      // todo remove ?
-      env?: Record<string, RepoTherapy.EnvDetail>
-      paths: {
-        rootPath: string
-        configPath: string
-        typeDeclarationPath: string
-      }
-      typeName: string
-    }>
-  ): () => {
+  function EnvHandler (_: {
+    envPreset: RepoTherapy.EnvPreset
+  }): DeepPartial<{
+    extends: Array<ReturnType<typeof defineRepoTherapy>>
+    // todo use generic type
+    projectType: 'backend' | 'npm'
+    // todo remove ?
+    env?: Record<string, RepoTherapy.EnvDetail>
+    paths: {
+      rootPath: string
+      configPath: string
+      typeDeclarationPath: string
+    }
+    typeName: string
+  }>
+
+  function defineRepoTherapyEnv (handler: typeof EnvHandler): () => {
     envSample: () => Record<string, string>
     envType: () => string
     generateTypeDeclaration: () => void
@@ -116,14 +116,22 @@ declare global {
     }
   }
 
+  function defineRepoTherapy (
+    handler: typeof EnvHandler
+  ): ReturnType<typeof defineRepoTherapyEnv>
+
   function defineRepoTherapyImport (
     handler?: () => DeepPartial<{ rootPath: string }>
   ): {
-    importScript: <T extends object> (path: string) => RepoTherapy.ImportObject<T>
+    importScript: <T extends object> (
+      path: string,
+      validator?: (_: Partial<T>) => void
+    ) => RepoTherapy.ImportObject<T>
     // todo fix object
     importScriptFromDir: <T extends object> (path: string) => Array<{
       dir: string
-      relativePath: string
+      relativePath: string,
+      validator?: (_: Partial<T>) => void
     } & RepoTherapy.ImportObject<T>>
   }
 

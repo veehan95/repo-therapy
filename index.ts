@@ -7,7 +7,7 @@ import { lint } from './utils/lint'
 import { packageJson } from './utils/package'
 import { tsconfig } from './utils/tsconfig'
 import { defineRepoTherapyImport as _defineRepoTherapyImport } from './define/import'
-import { defineRepoTherapy as _defineRepoTherapy } from './define'
+import { defineRepoTherapyEnv as _defineRepoTherapyEnv } from './define/env'
 // import { join } from 'path'
 // import { writeFileSync } from 'fs'
 
@@ -62,12 +62,12 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
 // }
 
 export { logger }
-export { _defineRepoTherapy as defineRepoTherapy}
+export { _defineRepoTherapyEnv as defineRepoTherapyEnv }
 export { _defineRepoTherapyImport as defineRepoTherapyImport}
 
 export default {
   logger,
   init,
-  defineRepoTherapy: _defineRepoTherapy,
+  defineRepoTherapyEnv: _defineRepoTherapyEnv,
   defineRepoTherapyImport: _defineRepoTherapyImport
 }

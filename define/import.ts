@@ -9,7 +9,10 @@ const _defineRepoTherapyImport: typeof defineRepoTherapyImport = (
 ) => {
   const h = handler ? handler() : {}
   const rootPath = h.rootPath || __dirname.replace(/\/node_modules\/.*$/, '')
-  function importScript <T extends object> (path: string): RepoTherapy.ImportObject<T> {
+  function importScript <T extends object> (
+    path: string,
+    validator?: (_: Partial<T>) => void
+  ): RepoTherapy.ImportObject<T> {
     const fPath = join(rootPath, path)
     const ext = extname(fPath)
     const o: RepoTherapy.ImportObject<T> = {
@@ -27,17 +30,21 @@ const _defineRepoTherapyImport: typeof defineRepoTherapyImport = (
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       o.import = () => (existsSync(fPath) && require(fPath)) || {}
     }
+    if (validator) { validator(o.import()) }
     return o
   }
 
-  function importScriptFromDir <T extends object> (path: string) {
+  function importScriptFromDir <T extends object> (
+    path: string,
+    validator?: (_: Partial<T>) => void
+  ) {
     const fPath = join(rootPath, path)
     if (!existsSync(fPath)) { return [] }
     return readdirSync(fPath, { recursive: true, encoding: 'utf-8' })
       .map(x => ({
         dir: path,
         relativePath: x,
-        ...importScript<T>(join(path, x))
+        ...importScript<T>(join(path, x), validator)
       }))
   }  
   return { importScript, importScriptFromDir }
