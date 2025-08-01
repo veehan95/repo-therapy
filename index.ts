@@ -8,6 +8,7 @@ import { packageJson } from './utils/package'
 import { tsconfig } from './utils/tsconfig'
 import { defineRepoTherapyImport as _defineRepoTherapyImport } from './define/import'
 import { defineRepoTherapyEnv as _defineRepoTherapyEnv } from './define/env'
+import { defineRepoTherapy as _defineRepoTherapy } from './define/index'
 // import { join } from 'path'
 // import { writeFileSync } from 'fs'
 
@@ -68,6 +69,7 @@ export { _defineRepoTherapyImport as defineRepoTherapyImport}
 export default {
   logger,
   init,
+  defineRepoTherapy: _defineRepoTherapy,
   defineRepoTherapyEnv: _defineRepoTherapyEnv,
   defineRepoTherapyImport: _defineRepoTherapyImport
 }
