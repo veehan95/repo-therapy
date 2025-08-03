@@ -35,7 +35,8 @@ export const cognito = {
   subDomain: { type: 'string' },
   // todo https://<cognito id>.auth.<region>.amazoncognito.com
   // domain: { type: 'string' },
-  // todo https://cognito-idp.<region>.amazonaws.com/<userPoolId>/.well-known/jwks.json 
+  // todo https://cognito-idp.<region>.amazonaws.com/
+  // <userPoolId>/.well-known/jwks.json
   // jwks: { type: 'string' },
   clientId: { type: 'string' },
   clientSecret: { type: 'string' }

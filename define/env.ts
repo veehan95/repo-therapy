@@ -2,6 +2,7 @@ import { writeFileSync } from 'fs'
 import envPreset from '../utils/env-preset'
 import dotenv from 'dotenv'
 import { join } from 'path'
+import { snakeCase } from 'lodash'
 
 const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
   handler
@@ -9,13 +10,17 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
   dotenv.config()
   const envKey = Object.keys(process.env)
 
-  function recursiveEnv (key: string, value: RepoTherapy.EnvDetail, recuringKey: Array<string> = []): [string, any] {
+  function recursiveEnv (
+    key: string,
+    value: RepoTherapy.EnvDetail,
+    recuringKey: Array<string> = []
+  ): [string, any] { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!value.type) {
       return [
         key,
-        Object.fromEntries(
-          Object.entries(value).map(([k, v]) => recursiveEnv(k, v, [...recuringKey, key]))
-        )
+        Object.fromEntries(Object.entries(value).map(
+          ([k, v]) => recursiveEnv(k, v, [...recuringKey, key])
+        ))
       ]
     }
     const [, ..._recuringKey] = recuringKey
@@ -43,17 +48,26 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     if (
       returnValue !== undefined && (
         (value.type === 'number' && isNaN(returnValue)) ||
+        // eslint-disable-next-line  valid-typeof
         typeof returnValue !== value.type
       )
     ) {
-      throw new Error(`Env type for ${currentRecuringKey.join('.')} should be ${value.type}`)
+      throw new Error(
+        `Env type for ${currentRecuringKey.join('.')} should be ${value.type}`
+      )
     }
     return [key, returnValue]
   }
 
-  function recursiveEnvSample (key: string, value: RepoTherapy.EnvDetail, recuringKey: Array<string> = []): Array<[string, string]> {
+  function recursiveEnvSample (
+    key: string,
+    value: RepoTherapy.EnvDetail,
+    recuringKey: Array<string> = []
+  ): Array<[string, string]> {
     if (!value.type) {
-      return Object.entries(value).flatMap(([k, v]) => recursiveEnvSample(k, v, [...recuringKey, key]))
+      return Object.entries(value).flatMap(
+        ([k, v]) => recursiveEnvSample(snakeCase(k), v, [...recuringKey, key])
+      )
     }
     const [, ..._recuringKey] = recuringKey
     // todo default support function (pass in env that is not a function)
@@ -68,7 +82,10 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     ]]
   }
 
-  function recursiveEnvType (key: string, value: RepoTherapy.EnvDetail): string {
+  function recursiveEnvType (
+    key: string,
+    value: RepoTherapy.EnvDetail
+  ): string {
     if (!value.type) {
       return `${key}: {\n  ${
         Object.entries(value)
@@ -86,20 +103,26 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
   const configExtends = (config.extends || []).filter(x => x)
   const configEnv = configExtends.reduce((acc, cur) => {
     // todo fix nested object
-    if (!cur) { throw new Error('Unknown object is passed as defineRepoTherapy') }
+    if (!cur) {
+      throw new Error('Unknown object is passed as defineRepoTherapy')
+    }
     return Object.assign(acc, cur().config.env)
   }, Object.assign({}, config.env || {}))
   const env = recursiveEnv('env', configEnv)[1]
 
   const paths = {
-    rootPath: config.paths?.rootPath ||__dirname.replace(/\/node_modules\/.*$/, ''),
-    configPath: config.paths?.configPath ||'repo-therapy.ts',
-    typeDeclarationPath: config.paths?.typeDeclarationPath ||'types.d/_repo-therapy.d.ts'
+    rootPath: config.paths?.rootPath ||
+      __dirname.replace(/\/node_modules\/.*$/, ''),
+    configPath: config.paths?.configPath || 'repo-therapy.ts',
+    typeDeclarationPath: config.paths?.typeDeclarationPath ||
+      'types.d/_repo-therapy.d.ts'
   }
 
   function envType () {
     const [, ...str] = recursiveEnvType('env', configEnv).split('\n')
-    return `interface ${config.typeName || 'RepoTherapyEnv'} {\n${str.join('\n')}`
+    return `interface ${config.typeName || 'RepoTherapyEnv'} {\n${
+      str.join('\n')
+    }`
   }
 
   return {

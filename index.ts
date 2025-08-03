@@ -6,7 +6,9 @@ import p from './package.json'
 import { lint } from './utils/lint'
 import { packageJson } from './utils/package'
 import { tsconfig } from './utils/tsconfig'
-import { defineRepoTherapyImport as _defineRepoTherapyImport } from './define/import'
+import {
+  defineRepoTherapyImport as _defineRepoTherapyImport
+} from './define/import'
 import { defineRepoTherapyEnv as _defineRepoTherapyEnv } from './define/env'
 import { defineRepoTherapy as _defineRepoTherapy } from './define/index'
 // import { join } from 'path'
@@ -56,16 +58,17 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
 //   const importObject = iScript().importScript<Partial<{
 //     default: ReturnType<typeof defineRepoTherapy>
 //   }>>(configPath)
-//   if (!importObject?.import) { throw new Error('RepoTherapy config not found') }
+//   if (!importObject?.import) { throw new Error('RepoTherapy
+//  config not found') }
 //   const config = importObject.import().default
 //   if (!config) { throw new Error('RepoTherapy config not found') }
 //   return config()
 // }
 
 export { logger }
-export { _defineRepoTherapy as defineRepoTherapy}
+export { _defineRepoTherapy as defineRepoTherapy }
 export { _defineRepoTherapyEnv as defineRepoTherapyEnv }
-export { _defineRepoTherapyImport as defineRepoTherapyImport}
+export { _defineRepoTherapyImport as defineRepoTherapyImport }
 
 export default {
   logger,

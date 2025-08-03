@@ -1,3 +1,5 @@
+import { defineRepoTherapyEnv } from './env'
+
 const _defineRepoTherapy: typeof defineRepoTherapy = (
   handler
 ) => () => {

@@ -52,7 +52,8 @@ import p from './package.json'
     //     // todo args
     //     const {
     //       generateTypeDeclaration
-    //     } = repoTherapy({ rootPath: __dirname.replace(/node_modules\/.*$/, '') })
+    //     } = repoTherapy({ rootPath: __dirname
+    // .replace(/node_modules\/.*$/, '') })
     //     generateTypeDeclaration()
     //   }
     // })
