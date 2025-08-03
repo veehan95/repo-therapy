@@ -63,6 +63,7 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
 // }
 
 export { logger }
+export { _defineRepoTherapy as defineRepoTherapy}
 export { _defineRepoTherapyEnv as defineRepoTherapyEnv }
 export { _defineRepoTherapyImport as defineRepoTherapyImport}
 
