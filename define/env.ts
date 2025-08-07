@@ -129,6 +129,8 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     env,
     envSample: () => Object.fromEntries(recursiveEnvSample('env', configEnv)),
     envType,
+    // todo fix if mixed with number and symbol its wont be 100% reverse as per
+    getEnvName: (s: string) => snakeCase(s).toUpperCase(),
     generateTypeDeclaration: () => {
       writeFileSync(
         join(paths.rootPath, paths.typeDeclarationPath),

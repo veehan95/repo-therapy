@@ -39,11 +39,6 @@ declare global {
       // list?: Array<Mapping | string>
     }
 
-    interface EnvPresetAws {
-      region: EnvDetail
-      access: Record<'key' | 'secret', EnvDetail>
-    }
-
     type EnvPresetBase = Record<
       'project' | 'projectLang' | 'tz' | 'nodeEnv',
       EnvDetail
@@ -54,9 +49,18 @@ declare global {
     > & { pool: Record<'min' | 'max', EnvDetail> }
 
     type EnvPresetCognito = Record<
-      'region' | 'userPoolId' | 'clientId' | 'clientSecret',
+      'subDomain' | 'userPoolId' | 'clientId' | 'clientSecret',
       EnvDetail
     >
+
+    interface EnvPresetAws {
+      region: EnvDetail
+      accountId: EnvDetail
+      profile: EnvDetail
+      access: Record<'key' | 'secret', EnvDetail>
+      // todo force correct setting
+      cognito?: EnvPresetCognito
+    }
 
     type EnvPresetMailer = Record<
       'client' | 'name' | 'email' | 'password' | 'host' | 'port',
@@ -67,11 +71,14 @@ declare global {
 
     type EnvPresetBackend = Record<'host' | 'port' | 'cdnURL', EnvDetail>
 
+    interface AwsOptions {
+      cognito?: boolean
+    }
+
     interface EnvPreset {
-      aws: EnvPresetAws
+      aws: <U extends AwsOptions>(option?: U) => EnvPresetAws
       backend: EnvPresetBackend
       base: EnvPresetBase
-      cognito: EnvPresetCognito
       database: EnvPresetDatabase
       postgres: EnvPresetDatabase
       google: EnvPresetGoogle
@@ -109,6 +116,7 @@ declare global {
   function defineRepoTherapyEnv (handler: typeof EnvHandler): () => {
     envSample: () => Record<string, string>
     envType: () => string
+    getEnvName: (s: string) => string
     generateTypeDeclaration: () => void
     env: RepoTherapyEnv
     config: {

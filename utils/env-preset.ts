@@ -1,3 +1,7 @@
+import { config } from 'dotenv'
+
+config()
+
 export const base = {
   project: { type: 'string' },
   projectLang: { type: 'string', default: 'en' },
@@ -20,26 +24,46 @@ export const database = {
 export const postgres = JSON.parse(JSON.stringify(database))
 postgres.port.default = 5432
 
-export const aws = {
-  region: { type: 'string', default: 'ap-southeast-1', generate: false },
-  access: {
-    key: { type: 'string' },
-    secret: { type: 'string' }
+export function aws (options?: RepoTherapy.AwsOptions) {
+  const r: ReturnType<RepoTherapy.EnvPreset['aws']> = {
+    region: {
+      type: 'string',
+      default: process.env.AWS_REGION || 'ap-southeast-1',
+      generate: false
+    },
+    accountId: { type: 'string', default: '000000', generate: false },
+    access: {
+      key: {
+        type: 'string',
+        default: process.env.AWS_ACCESS_KEY_ID || '<N/A>'
+      },
+      secret: {
+        type: 'string',
+        default: process.env.AWS_SECRET_ACCESS_KEY || '<N/A>'
+      }
+    },
+    profile: {
+      type: 'string',
+      default: process.env.AWS_PROFILE || '<N/A>',
+      generate: false
+    }
   }
-}
+  if (options?.cognito) {
+    r.cognito = {
+      // todo default pull from aws
+      userPoolId: { type: 'string' },
+      subDomain: { type: 'string' },
+      // todo https://<cognito id>.auth.<region>.amazoncognito.com
+      // domain: { type: 'string' }
+      // todo https://cognito-idp.<region>.amazonaws.com/
+      // <userPoolId>/.well-known/jwks.json
+      // jwks: { type: 'string' }
+      clientId: { type: 'string' },
+      clientSecret: { type: 'string' }
+    }
+  }
 
-export const cognito = {
-  // todo default pull from aws
-  region: { type: 'string', default: 'ap-southeast-1', generate: false },
-  userPoolId: { type: 'string' },
-  subDomain: { type: 'string' },
-  // todo https://<cognito id>.auth.<region>.amazoncognito.com
-  // domain: { type: 'string' },
-  // todo https://cognito-idp.<region>.amazonaws.com/
-  // <userPoolId>/.well-known/jwks.json
-  // jwks: { type: 'string' },
-  clientId: { type: 'string' },
-  clientSecret: { type: 'string' }
+  return r
 }
 
 export const mailer = {
@@ -73,7 +97,6 @@ const preset: RepoTherapy.EnvPreset = {
   aws,
   backend,
   base,
-  cognito,
   database,
   google,
   mailer,
