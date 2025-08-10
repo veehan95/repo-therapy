@@ -13,15 +13,16 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
   function recursiveEnv (
     key: string,
     value: RepoTherapy.EnvDetail,
-    recuringKey: Array<string> = []
-  ): [string, any] { // eslint-disable-line @typescript-eslint/no-explicit-any
+    recuringKey: Array<string> = [],
+    ogKey = false
+  ): Record<string, any> { // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!value.type) {
-      return [
-        key,
-        Object.fromEntries(Object.entries(value).map(
-          ([k, v]) => recursiveEnv(k, v, [...recuringKey, key])
+      const objVal = Object.fromEntries(
+        Object.entries(value).flatMap(([k, v]) => Object.entries(
+          recursiveEnv(k, v, [...recuringKey, key], ogKey)
         ))
-      ]
+      )
+      return ogKey ? objVal : { [key]: objVal }
     }
     const [, ..._recuringKey] = recuringKey
     const currentRecuringKey = [..._recuringKey, key]
@@ -45,10 +46,14 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     // todo default support function (pass in env that is not a function)
     let returnValue = process.env[currentEnvKey] || value.default
     if (value.type === 'number') { returnValue = Number(returnValue) }
+    if (value.type === 'boolean') {
+      if (returnValue === 'true') { returnValue = true }
+      if (returnValue === 'false') { returnValue = false }
+    }
     if (
       returnValue !== undefined && (
         (value.type === 'number' && isNaN(returnValue)) ||
-        // eslint-disable-next-line  valid-typeof
+        // eslint-disable-next-line valid-typeof
         typeof returnValue !== value.type
       )
     ) {
@@ -56,7 +61,16 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
         `Env type for ${currentRecuringKey.join('.')} should be ${value.type}`
       )
     }
-    return [key, returnValue]
+    return {
+      [
+        ogKey
+          ? (
+            currentEnvKey ||
+            snakeCase(currentRecuringKey.join('_')).toUpperCase()
+          )
+          : key
+      ]: returnValue
+    }
   }
 
   function recursiveEnvSample (
@@ -108,7 +122,7 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     }
     return Object.assign(acc, cur().config.env)
   }, Object.assign({}, config.env || {}))
-  const env = recursiveEnv('env', configEnv)[1]
+  const env = recursiveEnv('env', configEnv).env
 
   const paths = {
     rootPath: config.paths?.rootPath ||
@@ -130,7 +144,7 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     envSample: () => Object.fromEntries(recursiveEnvSample('env', configEnv)),
     envType,
     // todo fix if mixed with number and symbol its wont be 100% reverse as per
-    getEnvName: (s: string) => snakeCase(s).toUpperCase(),
+    getOriginalEnv: () => recursiveEnv('env', configEnv, undefined, true),
     generateTypeDeclaration: () => {
       writeFileSync(
         join(paths.rootPath, paths.typeDeclarationPath),
