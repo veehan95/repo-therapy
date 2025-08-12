@@ -128,6 +128,17 @@ declare global {
     }
   }
 
+  function defineRepoTherapyCsv <T extends object, U extends object> (
+    path: string,
+    _?: {
+      readParse?: (_: T | U) => T | undefined
+      writeParse?: (_: T | U) => T | undefined
+    }
+  ): () => {
+    read: () => Promise<Array<T>>
+    write: (data: Array<T>) => Promise<void>
+  }
+
   function defineRepoTherapy (
     handler?: typeof EnvHandler
   ): ReturnType<typeof defineRepoTherapyEnv>

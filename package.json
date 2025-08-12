@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.57",
+  "version": "0.1.58",
   "main": "./bin/index.js",
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-n": "^17.18.0",
     "eslint-plugin-promise": "^7.2.1",
+    "fast-csv": "^5.0.5",
     "husky": "^9.1.7",
     "lodash": "^4.17.21",
     "sort-package-json": "^3.2.1",

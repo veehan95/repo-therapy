@@ -11,11 +11,9 @@ import {
 } from './define/import'
 import { defineRepoTherapyEnv as _defineRepoTherapyEnv } from './define/env'
 import { defineRepoTherapy as _defineRepoTherapy } from './define/index'
-// import { join } from 'path'
-// import { writeFileSync } from 'fs'
-
-// global.defineRepoTherapy = defineRepoTherapy
-// global.defineRepoTherapyImport = defineRepoTherapyImport
+import {
+  defineRepoTherapyCsv as _defineRepoTherapyCsv
+} from './define/csv'
 
 // todo rework
 export function init (projectType: RepoTherapy.ProjectType, options: {
@@ -43,28 +41,6 @@ export function init (projectType: RepoTherapy.ProjectType, options: {
   logger.info(' - lint completed')
 }
 
-// interface PathOptions {
-//   rootPath: string
-//   configPath: string
-//   typeDeclarationPath: string
-// }
-
-// export function repoTherapy ({
-//   rootPath = __dirname.replace(/\/node_modules\/.*$/, ''),
-//   configPath = 'repo-therapy.ts',
-//   typeDeclarationPath = 'types.d/_repo-therapy.d.ts'
-// }: Partial<PathOptions>) {
-//   const iScript = defineRepoTherapyImport()
-//   const importObject = iScript().importScript<Partial<{
-//     default: ReturnType<typeof defineRepoTherapy>
-//   }>>(configPath)
-//   if (!importObject?.import) { throw new Error('RepoTherapy
-//  config not found') }
-//   const config = importObject.import().default
-//   if (!config) { throw new Error('RepoTherapy config not found') }
-//   return config()
-// }
-
 export { logger }
 export { _defineRepoTherapy as defineRepoTherapy }
 export { _defineRepoTherapyEnv as defineRepoTherapyEnv }
@@ -75,5 +51,6 @@ export default {
   init,
   defineRepoTherapy: _defineRepoTherapy,
   defineRepoTherapyEnv: _defineRepoTherapyEnv,
-  defineRepoTherapyImport: _defineRepoTherapyImport
+  defineRepoTherapyImport: _defineRepoTherapyImport,
+  defineRepoTherapyCsv: _defineRepoTherapyCsv
 }
