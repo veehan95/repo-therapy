@@ -117,7 +117,7 @@ declare global {
     typeName: string
   }>
 
-  function defineRepoTherapyEnv (handler: typeof EnvHandler): () => {
+  function defineRepoTherapyEnv (handler?: typeof EnvHandler): () => {
     envSample: () => Record<string, string>
     envType: () => string
     getOriginalEnv: () => Record<string, string>
@@ -129,7 +129,7 @@ declare global {
   }
 
   function defineRepoTherapy (
-    handler: typeof EnvHandler
+    handler?: typeof EnvHandler
   ): ReturnType<typeof defineRepoTherapyEnv>
 
   function defineRepoTherapyImport (

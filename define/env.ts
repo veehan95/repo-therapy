@@ -127,7 +127,7 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     return r
   }
 
-  const config = handler({ envPreset })
+  const config = handler ? handler({ envPreset }) : {}
   if (config.skip) {
     return {
       env: {},
