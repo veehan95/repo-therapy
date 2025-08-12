@@ -129,12 +129,12 @@ declare global {
   }
 
   function defineRepoTherapyCsv <T extends object, U extends object> (
-    path: string,
+    header: Array<string>,
     _?: {
       readParse?: (_: T | U) => T | undefined
       writeParse?: (_: T | U) => T | undefined
     }
-  ): () => {
+  ): (path: string) => {
     read: () => Promise<Array<T>>
     write: (data: Array<T>) => Promise<void>
   }

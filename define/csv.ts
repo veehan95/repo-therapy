@@ -1,17 +1,16 @@
 import * as csv from 'fast-csv'
 import { existsSync, mkdirSync } from 'fs'
-import { camelCase } from 'lodash'
 import { dirname, join } from 'path'
 import { type ParserRow } from 'fast-csv'
 
 // todo smart number
 const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U>(
-  path: string,
+  header: Array<string>,
   { readParse, writeParse }: {
     readParse?: (_: T | U) => T | undefined
     writeParse?: (_: T | U) => T | undefined
   } = {}
-) => () => {
+) => (path: string) => {
   const t: Record<string, boolean> = { true: true, false: false }
 
   const csvPath = join(__dirname.replace(/\/node_modules\/.*$/, ''), path)
@@ -25,7 +24,8 @@ const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U>(
         .on('data', row => {
           const x = Object.fromEntries(
             Object.entries(row as Record<string, string>)
-              .map(([k, v]) => [camelCase(k), t[v] || v])
+              .map(([k, v]) => [k, t[v] || v])
+              .filter(x => header.includes(x[0] as string))
           )
           const _x = (x && readParse) ? readParse(x as T) : x
           if (_x) { d.push(_x as T) }
@@ -39,7 +39,7 @@ const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U>(
       csvPath,
       data.filter(x => x)
         .map(x => writeParse ? writeParse(x) : x) as Array<ParserRow>,
-      { headers: ['path', 'alt', 'show_title'] }
+      { headers: header }
     )
   }
 
