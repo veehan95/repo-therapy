@@ -20,17 +20,20 @@ const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U = T>(
   function read (): Promise<Array<T>> {
     return new Promise((resolve) => {
       const d: Array<T> = []
-      csv.parseFile(csvPath, { headers: true })
-        .on('data', row => {
-          const x = Object.fromEntries(
-            Object.entries(row as Record<string, string>)
-              .map(([k, v]) => [k, t[v] || v])
-              .filter(x => header.includes(x[0] as string))
-          )
-          const _x = (x && readParse) ? readParse(x as U) : x
-          if (_x) { d.push(_x as T) }
-        })
-        .on('end', () => { resolve(d) })
+      try {
+        csv.parseFile(csvPath, { headers: true })
+          .on('data', row => {
+            const x = Object.fromEntries(
+              Object.entries(row as Record<string, string>)
+                .map(([k, v]) => [k, t[v] || v])
+                .filter(x => header.includes(x[0] as string))
+            )
+            const _x = (x && readParse) ? readParse(x as U) : x
+            if (_x) { d.push(_x as T) }
+          })
+          .on('end', () => { resolve(d) })
+          .on('error', () => { resolve(d) })
+      } catch { resolve(d) }
     })
   }
 
