@@ -45,6 +45,7 @@ export { logger }
 export { _defineRepoTherapy as defineRepoTherapy }
 export { _defineRepoTherapyEnv as defineRepoTherapyEnv }
 export { _defineRepoTherapyImport as defineRepoTherapyImport }
+export { _defineRepoTherapyCsv as defineRepoTherapyCsv }
 
 export default {
   logger,
