@@ -4,7 +4,7 @@ import { dirname, join } from 'path'
 import { type ParserRow } from 'fast-csv'
 
 // todo smart number
-const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U>(
+const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U = T>(
   header: Array<string>,
   { readParse, writeParse }: {
     readParse?: (_: T | U) => T | undefined
@@ -27,14 +27,14 @@ const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U>(
               .map(([k, v]) => [k, t[v] || v])
               .filter(x => header.includes(x[0] as string))
           )
-          const _x = (x && readParse) ? readParse(x as T) : x
+          const _x = (x && readParse) ? readParse(x as U) : x
           if (_x) { d.push(_x as T) }
         })
         .on('end', () => { resolve(d) })
     })
   }
 
-  async function write (data: Array<T>) {
+  async function write (data: Array<U>) {
     csv.writeToPath(
       csvPath,
       data.filter(x => x)
