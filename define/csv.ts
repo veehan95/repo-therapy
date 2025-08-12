@@ -4,6 +4,7 @@ import { camelCase } from 'lodash'
 import { dirname, join } from 'path'
 import { type ParserRow } from 'fast-csv'
 
+// todo smart number
 const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U>(
   path: string,
   { readParse, writeParse }: {
