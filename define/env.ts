@@ -55,7 +55,7 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
       value.default !== undefined
         ? (
             typeof value.default === 'function'
-              ? (baseEnv ? value.default() : undefined)
+              ? (baseEnv ? value.default(baseEnv) : undefined)
               : value.default
           )
         : undefined
