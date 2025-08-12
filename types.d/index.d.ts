@@ -24,8 +24,11 @@ declare global {
       type: T
       optional?: boolean
       // todo
-      default: EnvAttributeType[T] | ((_: object) => EnvAttributeType[T])
+      default: EnvAttributeType[T] | (
+        (_: DeepPartial<RepoTherapyEnv>) => EnvAttributeType[T]
+      )
       generate?: boolean
+      alias?: string
     }
 
     interface EnvDetail {
@@ -100,6 +103,7 @@ declare global {
   function EnvHandler (_: {
     envPreset: RepoTherapy.EnvPreset
   }): DeepPartial<{
+    skip?; boolean
     extends: Array<ReturnType<typeof defineRepoTherapy>>
     // todo use generic type
     projectType: 'backend' | 'npm'

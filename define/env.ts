@@ -14,12 +14,14 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     key: string,
     value: RepoTherapy.EnvDetail,
     recuringKey: Array<string> = [],
-    ogKey = false
-  ): Record<string, any> { // eslint-disable-line @typescript-eslint/no-explicit-any
+    ogKey = false,
+    baseEnv?: object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Record<string, any> {
     if (!value.type) {
       const objVal = Object.fromEntries(
         Object.entries(value).flatMap(([k, v]) => Object.entries(
-          recursiveEnv(k, v, [...recuringKey, key], ogKey)
+          recursiveEnv(k, v, [...recuringKey, key], ogKey, baseEnv)
         ))
       )
       return ogKey ? objVal : { [key]: objVal }
@@ -39,12 +41,25 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
         .replace(/^_/, '')
         .replace(/^\(_/, '(')
     }$`)
-    const currentEnvKey = envKey.find(x => fullKeyRegExp.test(x)) || ''
+    let currentEnvKey = envKey.find(x => fullKeyRegExp.test(x)) || ''
+    if (
+      !process.env[currentEnvKey] &&
+      value.alias &&
+      process.env[value.alias]
+    ) { currentEnvKey = value.alias }
     if (!currentEnvKey && !value.optional && !value.default) {
       throw new Error(`Env not configured ${currentRecuringKey.join('.')}`)
     }
     // todo default support function (pass in env that is not a function)
-    let returnValue = process.env[currentEnvKey] || value.default
+    let returnValue = process.env[currentEnvKey] || (
+      value.default !== undefined
+        ? (
+            typeof value.default === 'function'
+              ? (baseEnv ? value.default() : undefined)
+              : value.default
+          )
+        : undefined
+    )
     if (value.type === 'number') { returnValue = Number(returnValue) }
     if (value.type === 'boolean') {
       if (returnValue === 'true') { returnValue = true }
@@ -62,13 +77,12 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
       )
     }
     return {
-      [
-        ogKey
-          ? (
+      [ogKey
+        ? (
             currentEnvKey ||
             snakeCase(currentRecuringKey.join('_')).toUpperCase()
           )
-          : key
+        : key
       ]: returnValue
     }
   }
@@ -114,6 +128,16 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
   }
 
   const config = handler({ envPreset })
+  if (config.skip) {
+    return {
+      env: {},
+      envSample: () => ({}),
+      envType: () => '',
+      getOriginalEnv: () => ({}),
+      generateTypeDeclaration: () => {},
+      config: { env: {} }
+    }
+  }
   const configExtends = (config.extends || []).filter(x => x)
   const configEnv = configExtends.reduce((acc, cur) => {
     // todo fix nested object
@@ -122,7 +146,14 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     }
     return Object.assign(acc, cur().config.env)
   }, Object.assign({}, config.env || {}))
-  const env = recursiveEnv('env', configEnv).env
+  const rootEnv = recursiveEnv('env', configEnv)
+  const env = recursiveEnv(
+    'env',
+    configEnv,
+    undefined,
+    false,
+    rootEnv
+  ).env
 
   const paths = {
     rootPath: config.paths?.rootPath ||
@@ -143,8 +174,13 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
     env,
     envSample: () => Object.fromEntries(recursiveEnvSample('env', configEnv)),
     envType,
-    // todo fix if mixed with number and symbol its wont be 100% reverse as per
-    getOriginalEnv: () => recursiveEnv('env', configEnv, undefined, true),
+    getOriginalEnv: () => recursiveEnv(
+      'env',
+      configEnv,
+      undefined,
+      true,
+      rootEnv
+    ),
     generateTypeDeclaration: () => {
       writeFileSync(
         join(paths.rootPath, paths.typeDeclarationPath),
