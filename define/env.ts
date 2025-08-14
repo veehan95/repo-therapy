@@ -47,11 +47,14 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
         value.alias as Array<string>
       ).find(x => process.env[x] !== undefined) || ''
     }
-    if (!currentEnvKey && !value.optional && !value.default) {
-      throw new Error(`Env not configured ${currentRecuringKey.join('.')}`)
-    }
+    if (
+      !currentEnvKey &&
+      !value.optional &&
+      !value.default &&
+      value.force === undefined
+    ) { throw new Error(`Env not configured ${currentRecuringKey.join('.')}`) }
     // todo default support function (pass in env that is not a function)
-    let returnValue = process.env[currentEnvKey] || (
+    let returnValue = value.force || process.env[currentEnvKey] || (
       value.default !== undefined
         ? (
             typeof value.default === 'function'

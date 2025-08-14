@@ -29,6 +29,7 @@ declare global {
       )
       generate?: boolean
       alias?: Array<string>
+      force?: string | number | boolean
     }
 
     interface EnvDetail {
@@ -66,7 +67,7 @@ declare global {
     }
 
     type EnvPresetMailer = Record<
-      'client' | 'name' | 'email' | 'password' | 'host' | 'port',
+      'client' | 'email' | 'password' | 'host' | 'port',
       EnvDetail
     >
 

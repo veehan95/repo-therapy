@@ -71,14 +71,13 @@ export function aws (options?: RepoTherapy.AwsOptions) {
 
 export const mailer = {
   client: { type: 'string' },
-  name: { type: 'string' },
   email: { type: 'string' },
   password: { type: 'string' },
   host: { type: 'string' },
   port: { type: 'number' }
 }
 export const mailgun = JSON.parse(JSON.stringify(mailer))
-mailgun.host.client = 'mailgun'
+mailgun.host.force = 'mailgun'
 mailgun.host.default = 'smtp.mailgun.org'
 mailgun.port.default = 465
 
