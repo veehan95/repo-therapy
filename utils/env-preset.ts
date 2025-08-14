@@ -29,17 +29,20 @@ export function aws (options?: RepoTherapy.AwsOptions) {
     region: {
       type: 'string',
       default: process.env.AWS_REGION || 'ap-southeast-1',
-      generate: false
+      generate: false,
+      alias: ['AWS_DEFAULT_REGION', 'AWS_REGION']
     },
     accountId: { type: 'string', default: '000000', generate: false },
     access: {
       key: {
         type: 'string',
-        default: process.env.AWS_ACCESS_KEY_ID || '<N/A>'
+        default: process.env.AWS_ACCESS_KEY_ID || '<N/A>',
+        alias: ['AWS_ACCESS_KEY_ID']
       },
       secret: {
         type: 'string',
-        default: process.env.AWS_SECRET_ACCESS_KEY || '<N/A>'
+        default: process.env.AWS_SECRET_ACCESS_KEY || '<N/A>',
+        alias: ['AWS_SECRET_ACCESS_KEY']
       }
     },
     profile: {
@@ -75,6 +78,7 @@ export const mailer = {
   port: { type: 'number' }
 }
 export const mailgun = JSON.parse(JSON.stringify(mailer))
+mailgun.host.client = 'mailgun'
 mailgun.host.default = 'smtp.mailgun.org'
 mailgun.port.default = 465
 

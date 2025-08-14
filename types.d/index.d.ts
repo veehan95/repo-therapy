@@ -28,7 +28,7 @@ declare global {
         (_: DeepPartial<RepoTherapyEnv>) => EnvAttributeType[T]
       )
       generate?: boolean
-      alias?: string
+      alias?: Array<string>
     }
 
     interface EnvDetail {

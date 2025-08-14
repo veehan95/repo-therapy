@@ -42,11 +42,11 @@ const _defineRepoTherapyEnv: typeof defineRepoTherapyEnv = (
         .replace(/^\(_/, '(')
     }$`)
     let currentEnvKey = envKey.find(x => fullKeyRegExp.test(x)) || ''
-    if (
-      !process.env[currentEnvKey] &&
-      value.alias &&
-      process.env[value.alias]
-    ) { currentEnvKey = value.alias }
+    if (!process.env[currentEnvKey] && value.alias?.length > 0) {
+      currentEnvKey = (
+        value.alias as Array<string>
+      ).find(x => process.env[x] !== undefined) || ''
+    }
     if (!currentEnvKey && !value.optional && !value.default) {
       throw new Error(`Env not configured ${currentRecuringKey.join('.')}`)
     }
