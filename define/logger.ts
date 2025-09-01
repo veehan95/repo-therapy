@@ -5,11 +5,11 @@ import winston, {
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
 const consolePrefix = {
-  complete: '✨ ',
   error: '\x1b[41m ERROR \x1b[49m',
+  warn: '\x1b[43m\x1b[30m WARN \x1b[39m\x1b[49m',
   info: '\x1b[36m\u2139\x1b[39m',
   success: '\x1b[32m\u2714\x1b[39m',
-  warn: '\x1b[43m\x1b[30m WARN \x1b[39m\x1b[49m'
+  complete: '✨ '
 }
 
 function printString (
@@ -31,7 +31,7 @@ const f: typeof defineRepoTherapyLogger = ({
     if (transportConfig.includes('file')) {
       _transports.push(
         // todo , 'verbose', 'debug'
-        ...['error', 'warn', 'info'].map(x => new winston.transports.File({
+        ...Object.keys(consolePrefix).map(x => new winston.transports.File({
           filename: `${x}.log`,
           level: x
         }))
@@ -46,6 +46,7 @@ const f: typeof defineRepoTherapyLogger = ({
   if (!transportConfig || transportConfig?.includes('console')) {
     _transports.push(
       new winston.transports.Console({
+        level: 'complete',
         format: winston.format.combine(
           winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
           winston.format.printf((params) => printString(
@@ -67,23 +68,13 @@ const f: typeof defineRepoTherapyLogger = ({
 
   return {
     logger: {
-      complete: (logger as unknown as { complete: LeveledLogMethod }).complete,
-      error: logger.error,
-      info: logger.info,
-      success: (logger as unknown as { success: LeveledLogMethod }).success,
-      warn: logger.warn,
-      time: async (
-        processName: string,
-        callback: () => Promise<void> | void
-      ) => {
-        logger.info(`${processName} starting:`)
-        const d = new Date().getTime()
-        await callback()
-        // .toString().padStart(2, '0')
-        ;(logger as unknown as { complete: LeveledLogMethod }).complete(`${
-          processName
-        } done in ${((new Date().getTime() - d) / 1000).toFixed(2)}s`)
-      }
+      complete: (...s) => (logger as unknown as { complete: LeveledLogMethod })
+        .complete(...s),
+      error: (...s) => logger.error(...s),
+      info: (...s) => logger.info(...s),
+      success: (...s) => (logger as unknown as { success: LeveledLogMethod })
+        .success(...s),
+      warn: (...s) => logger.warn(...s)
     },
     printString
   }

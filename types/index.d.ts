@@ -251,10 +251,6 @@ declare global {
       info: import('winston').LeveledLogMethod
       success: import('winston').LeveledLogMethod
       warn: import('winston').LeveledLogMethod
-      time: (
-        processName: string,
-        callback: () => Promise<void> | void
-      ) => Promise<void>
     },
     printString: (level: string, s: string) => string
   }>>

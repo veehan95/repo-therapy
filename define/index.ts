@@ -275,7 +275,7 @@ const f: typeof defineRepoTherapy = ({
   Object.assign(libTool, { logger: logger(libTool).logger })
   // todo cleanup log
   if (definEnv.warning.length > 0) {
-    definEnv.warning.forEach((x) => { libTool.logger.warn(x) })
+    definEnv.warning.forEach(async (x) => libTool.logger.warn(x))
   }
 
   const serverResponse = Object.entries(

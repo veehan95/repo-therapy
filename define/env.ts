@@ -317,7 +317,7 @@ const f: typeof defineRepoTherapyEnv = (
   if (envDefault?.import) {
     if (
       config.project &&
-      config.project === dotenv.parse(envDefault.import).project
+      config.project === dotenv.parse(envDefault.import).PROJECT
     ) { envInit = envDefault }
   }
 
