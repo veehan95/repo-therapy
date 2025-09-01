@@ -1,4 +1,4 @@
-import './types/index'
+import '../types/index'
 export { defineRepoTherapyCsv } from './define/csv'
 export { defineRepoTherapyEnv } from './define/env'
 export { defineRepoTherapyError } from './define/error'
