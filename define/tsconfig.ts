@@ -22,8 +22,8 @@ export const f: typeof defineRepoTherapyTsconfig = (
 
   const c: RepoTherapyUtil.JsonDefination = {
     extends: true,
-    'compilerOptions.target': { default: ScriptTarget.ES2020 },
-    'compilerOptions.module': { default: ModuleKind.CommonJS },
+    'compilerOptions.target': { default: ScriptTarget.ES2020, type: 'number' },
+    'compilerOptions.module': { default: ModuleKind.CommonJS, type: 'number' },
     'compilerOptions.lib': {
       default: ['esnext', 'dom'],
       type: 'Array<string>'
@@ -58,7 +58,8 @@ export const f: typeof defineRepoTherapyTsconfig = (
     'compilerOptions.noImplicitReturns': true,
     'compilerOptions.noFallthroughCasesInSwitch': true,
     'compilerOptions.moduleResolution': {
-      default: ModuleResolutionKind.NodeNext
+      default: ModuleResolutionKind.NodeNext,
+      type: 'number'
     },
     'compilerOptions.baseUrl': { default: './' },
     'compilerOptions.paths': true,
