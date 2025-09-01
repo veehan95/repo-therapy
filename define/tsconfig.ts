@@ -1,4 +1,3 @@
-import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
 import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyJson } from './json'
@@ -22,8 +21,8 @@ export const f: typeof defineRepoTherapyTsconfig = (
 
   const c: RepoTherapyUtil.JsonDefination = {
     extends: true,
-    'compilerOptions.target': { default: ScriptTarget.ES2020, type: 'number' },
-    'compilerOptions.module': { default: ModuleKind.CommonJS, type: 'number' },
+    'compilerOptions.target': { default: 'es2020' },
+    'compilerOptions.module': { default: 'nodenext' },
     'compilerOptions.lib': {
       default: ['esnext', 'dom'],
       type: 'Array<string>'
@@ -57,10 +56,7 @@ export const f: typeof defineRepoTherapyTsconfig = (
     'compilerOptions.noUnusedParameters': true,
     'compilerOptions.noImplicitReturns': true,
     'compilerOptions.noFallthroughCasesInSwitch': true,
-    'compilerOptions.moduleResolution': {
-      default: ModuleResolutionKind.NodeNext,
-      type: 'number'
-    },
+    'compilerOptions.moduleResolution': { default: 'nodenext' },
     'compilerOptions.baseUrl': { default: './' },
     'compilerOptions.paths': true,
     'compilerOptions.rootDirs': true,
@@ -80,7 +76,17 @@ export const f: typeof defineRepoTherapyTsconfig = (
       default: true,
       type: 'boolean'
     },
-    'compilerOptions.resolveJsonModule': { default: true, type: 'boolean' }
+    'compilerOptions.resolveJsonModule': { default: true, type: 'boolean' },
+    include: {
+      default: [
+        '**/*.ts',
+        'types/**/*.d.ts',
+        'node_modules/**/types/**/*.d.ts'
+      ],
+      type: 'Array<string>',
+      merge: true,
+      sort: true
+    }
   }
   if (options.allowTsNode !== false) {
     c['ts-node.files'] = { default: true, type: 'boolean' }
