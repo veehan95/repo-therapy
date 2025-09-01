@@ -8,13 +8,15 @@
 
 ---
 
+## Why Repo Therapy?
+
 Setting up a new Node.js project involves tedious, repetitive configuration of tools like TypeScript, ESLint, Husky, and VS Code. Ensuring these configurations are consistent and adhere to best practices across multiple projects is a constant challenge.
 
 **Repo Therapy** is a command-line tool that automates this entire process. With a single command, it initializes your repository with a robust, modern, and consistent set of configurations, letting you focus on writing code instead of wrestling with boilerplate.
 
 ## ✨ Features
 
-- **One-Command Setup:** Initialize a fully configured repository with `repo-therapy init`.
+- **One-Command Setup:** Initialize a fully configured repository with a single command.
 - **Project Templates:** Out-of-the-box support for different project types, starting with `npm-lib` and `backend`.
 - **Smart `package.json` Configuration:** Automatically adds required scripts (`lint`, `postinstall`), dependencies, and even detects and sets your git repository URL.
 - **Best-Practice `tsconfig.json`:** Generates a strict, modern TypeScript configuration tailored to your project type.
@@ -55,13 +57,29 @@ mkdir my-cool-api && cd my-cool-api
 npx repo-therapy init --type backend
 ```
 
+## 🔧 Commands
+
+### `init`
+
+Initializes a new project with the specified type.
+
+**Usage:**
+
+```bash
+npx repo-therapy init --type <project-type>
+```
+
+**Arguments:**
+
+- `--type`: The type of project to initialize. Available types: `npm-lib`, `backend`.
+
 ## 🔧 Advanced Configuration
 
 Repo Therapy is designed to be extensible. In the future, you will be able to create a `repo-therapy.config.ts` file to define custom settings and override the default configurations for even greater control.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/your-username/repo-therapy/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://gitlab.com/vh95/repo-therapy/issues).
 
 ## 📄 License
 
