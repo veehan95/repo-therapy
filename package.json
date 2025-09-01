@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "scripts": {
     "lint": "eslint .",
     "postinstall": "husky",
@@ -9,7 +9,8 @@
   "main": "./bin/index.js",
   "types": "./bin/index.d.ts",
   "files": [
-    "bin"
+    "bin",
+    "types"
   ],
   "bin": {
     "repo-therapy": "./bin/cli.js"

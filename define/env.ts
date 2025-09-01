@@ -373,7 +373,7 @@ const f: typeof defineRepoTherapyEnv = (
   const paths = {
     configPath: config.paths?.configPath || 'repo-therapy.ts',
     typeDeclarationPath: config.paths?.typeDeclarationPath ||
-      'types.d/_repo-therapy.d.ts'
+      'types/_repo-therapy.d.ts'
   }
 
   function envType () {

@@ -90,7 +90,7 @@ const f: typeof defineRepoTherapyLint = ({
         import: i,
         n,
         promise: p,
-        ...((tseslint.configs.recommended as unknown as {
+        ...((tseslint.configs.recommended[0] as unknown as {
           plugins: Record<string, string>
         })?.plugins || {})
       },

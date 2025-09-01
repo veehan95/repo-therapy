@@ -40,7 +40,7 @@ import p from './package.json'
     //   //     alias: 'p',
     //   //     describe: 'Path to save env declaration',
     //   //     type: 'string',
-    //   //     default: 'types.d/_env.d.ts'
+    //   //     default: 'types/_env.d.ts'
     //   //   })
     //   //   .option('config', {
     //   //     alias: 'c',
