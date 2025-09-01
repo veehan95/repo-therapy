@@ -1,4 +1,4 @@
-import lint from './eslint/npm-lib.mjs'
-import p from './package.json' with { type: 'json' }
+import defination from './bin/define/index.js'
 
-export default lint(p.name)
+export default await defination.defineRepoTherapy()()
+  .then(x => x.lint().then(y => y.lint()))

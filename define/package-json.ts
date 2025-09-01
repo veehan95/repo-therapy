@@ -36,7 +36,7 @@ const f: typeof defineRepoTherapyPackageJson = ({
     ...(
       projectType === 'npm-lib'
         ? {
-            'scripts.pre-publish': { default: 'tsc' },
+            'scripts.pre-publish': { default: 'rm -rf bin && tsc' },
             main: { default: './bin/index.js' },
             types: { default: './bin/index.d.ts' },
             files: {

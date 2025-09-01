@@ -21,10 +21,11 @@ export const f: typeof defineRepoTherapyVsCode = (
   const vscodeIgnore = [
     '.git',
     '.gitlab',
-    '.vscode',
     '.husky',
-    'yarn.lock',
+    '.npmignore',
+    '.vscode',
     'package-lock.json',
+    'yarn.lock',
     ...gitignore
   ].map(s => [s.replace(/\./g, '\\\\.'), { default: true, type: 'boolean' }])
   // todo add all config
@@ -82,4 +83,4 @@ export const f: typeof defineRepoTherapyVsCode = (
   }
 })
 
-export { f as defineRepoTherapVsCode }
+export { f as defineRepoTherapyVsCode }

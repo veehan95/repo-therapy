@@ -3,9 +3,10 @@ import eslint from '@eslint/js'
 import { type Linter } from 'eslint'
 import tseslint from 'typescript-eslint'
 import standard from 'eslint-config-standard'
-import i from 'eslint-plugin-import'
+import * as i from 'eslint-plugin-import'
 import n from 'eslint-plugin-n'
 import p from 'eslint-plugin-promise'
+import { defineRepoTherapyVsCode } from './vscode'
 
 const {
   parserOptions,
@@ -56,8 +57,9 @@ const presetFiles = {
 const f: typeof defineRepoTherapyLint = ({
   projectType = 'npm-lib',
   framework,
-  ignores = []
-} = {}) => wrapper('define-lint', async () => {
+  vsCode = defineRepoTherapyVsCode()
+} = {}) => wrapper('define-lint', async (libTool) => {
+  const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
   let lintWrap = (x: Linter.Config) => x
   if (framework === 'nuxt-monorepo' || framework === 'nuxt.js') {
     lintWrap = await defineRepoTherapyImport<(
@@ -66,10 +68,13 @@ const f: typeof defineRepoTherapyLint = ({
       .importScript('./.nuxt/eslint.config.mjs', { soft: true })
       .then(x => x.import) || ((x: Linter.Config) => x)
   }
+
   return {
     lint: () => lintWrap({
       rules,
-      ignores,
+      ignores: Object.keys((vsCodeSettings as {
+        'files.exclude': Record<string, string>
+      })['files.exclude']).flatMap(x => [x, `${x}/**/*`]),
       files: [
         ...(presetFiles[projectType] || [])
       ],
@@ -97,4 +102,4 @@ const f: typeof defineRepoTherapyLint = ({
   }
 })
 
-export { f as defineRepoTherapyHusky }
+export { f as defineRepoTherapyLint }

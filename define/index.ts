@@ -5,9 +5,10 @@ import { defineRepoTherapyError } from './error'
 import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyGitignore } from './gitignore'
 import { defineRepoTherapyTsconfig } from './tsconfig'
-import { defineRepoTherapVsCode } from './vscode'
+import { defineRepoTherapyVsCode } from './vscode'
 import { defineRepoTherapyHusky } from './husky'
 import { defineRepoTherapyPackageJson } from './package-json'
+import { defineRepoTherapyLint } from './lint'
 
 const defaultServerCodes: RepoTherapyUtil.ServerCode = {
   informational: {
@@ -355,7 +356,7 @@ const f: typeof defineRepoTherapy = ({
       .then(x => x.write())
     await defineRepoTherapyTsconfig({ projectType: _projectType })(libTool)
       .then(x => x.write())
-    await defineRepoTherapVsCode({
+    await defineRepoTherapyVsCode({
       packageManager,
       framework: _framework
     })(libTool).then(x => x.write())
@@ -368,7 +369,8 @@ const f: typeof defineRepoTherapy = ({
     env: libTool.env,
     serverCode: Object.fromEntries(serverResponse),
     error: errorList,
-    logger: libTool.logger
+    logger: libTool.logger,
+    lint: () => defineRepoTherapyLint()(libTool)
   }
 })
 

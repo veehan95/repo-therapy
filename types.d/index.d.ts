@@ -218,7 +218,7 @@ declare global {
   function defineRepoTherapyLint (handler?: Partial<{
     projectType: RepoTherapy.ProjectType
     framework: RepoTherapy.Framework
-    ignores: Array<string>
+    vsCode: ReturnType<typeof defineRepoTherapyVsCode>
   }>): ReturnType<typeof defineRepoTherapyWrapper<(
     libTool: RepoTherapy.DefineLibTool
   ) => Promise<{ lint: () => void }>>>
@@ -317,6 +317,7 @@ declare global {
     serverCode: Record<string, RepoTherapyUtil.ServerCodeConfig>
     error: Record<string, RepoTherapyUtil.Error>
     logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
+    lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
   }>>>
 
   function defineRepoTherapyImport <T = object> (
