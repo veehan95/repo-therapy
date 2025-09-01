@@ -98,10 +98,8 @@ const f: typeof defineRepoTherapyEnv = (
     }
   }
 
-  const p = await defineRepoTherapyImport<{ name: string }>()()
-    .importScript('package.json')
   const base = {
-    project: { type: 'string', default: p.import?.name || 'unknown' },
+    project: { type: 'string', default: '<undefined project>' },
     nodeEnv: { type: 'string', default: 'local' },
     projectLang: { type: 'string', default: 'en' },
     tz: {

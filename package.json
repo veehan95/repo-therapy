@@ -1,6 +1,6 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.68",
+  "version": "0.2.0",
   "scripts": {
     "lint": "eslint .",
     "postinstall": "husky",

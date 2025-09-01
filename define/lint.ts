@@ -90,11 +90,16 @@ const f: typeof defineRepoTherapyLint = ({
         import: i,
         n,
         promise: p,
-        ...tseslint.configs.recommended[0].plugins
+        ...((tseslint.configs.recommended as unknown as {
+          plugins: Record<string, string>
+        })?.plugins || {})
       },
       languageOptions: {
-        parser: tseslint.configs.recommended[0].languageOptions
-          ?.parser as Linter.Parser,
+        parser: (
+          tseslint.configs.recommended[0] as unknown as {
+            languageOptions?: { parser: Linter.Parser }
+          }
+        )?.languageOptions?.parser,
         parserOptions,
         globals
       }

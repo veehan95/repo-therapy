@@ -262,12 +262,14 @@ const f: typeof defineRepoTherapy = ({
   serverCode = {},
   error = {}
 } = {}) => wrapper('define-repo-therapy', async () => {
+  const p = await defineRepoTherapyImport<{ name: string }>()()
+    .importScript('package.json')
   let _projectType: RepoTherapy.ProjectType | undefined = projectType
   const rootPath = await defineRepoTherapyImport()().rootPath
   const libTool = { rootPath } as unknown as RepoTherapy.DefineLibTool
   const definEnv = await defineRepoTherapyEnv((...x) => ({
     ...((envConfig ? envConfig(...x) : undefined) || {}),
-    project
+    project: project || p.import?.name
   }))(libTool)
   Object.assign(libTool, { env: definEnv.env })
   Object.assign(libTool, { logger: logger(libTool).logger })
