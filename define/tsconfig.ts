@@ -1,35 +1,99 @@
-// import { existsSync, readFileSync, writeFileSync } from 'fs'
-// import { join } from 'path'
-// import { type CompilerOptions } from 'typescript'
-// import { type TsConfigOptions } from 'ts-node'
+import { ModuleKind, ModuleResolutionKind, ScriptTarget } from 'typescript'
+import { defineRepoTherapyImport } from './import'
+import { defineRepoTherapyWrapper as wrapper } from './wrapper'
+import { defineRepoTherapyJson } from './json'
+import { writeFileSync } from 'fs'
+import { cloneDeep, merge } from 'lodash'
 
-// // todo to finish
-// export const _defineRepoTherapyTsconfig: typeof defineRepoTherapyTsconfig = (
-//   handler
-// ) => () => {
-//   const h = handler()
+export const f: typeof defineRepoTherapyTsconfig = (
+  options = {}
+) => wrapper('define-tsconfig', async (libTool) => {
+  const path = options.path || 'tsconfig.json'
 
-//   const path = h.path || 'tsconfig.json'
-//   const fullPath = join(h.rootPath, path)
-//   const p = JSON.parse(readFileSync(path, 'utf-8')) as Partial<{
-//     'ts-node': TsConfigOptions
-//     compilerOptions: Partial<CompilerOptions>
-//     extends: string
-//   }>
-//   if (h.extends) { p.extends = h.extends }
-//   if (h.allowTsNode) { p['ts-node'] = { files: true } }
-//   if (!p.compilerOptions) { p.compilerOptions = {} }
-//   // // p.compilerOptions.target = 'es2016'
-//   // // p.compilerOptions.module = 'commonjs'
-//   // p.compilerOptions.resolveJsonModule = true
-//   // p.compilerOptions.esModuleInterop = true
-//   // p.compilerOptions.forceConsistentCasingInFileNames = true
-//   // p.compilerOptions.strict = true
-//   // p.compilerOptions.skipLibCheck = true
-//   // p.compilerOptions.outDir = projectType === 'npm-lib' ? './bin' : '.dist'
-//   // p.compilerOptions.rootDir = './'
-//   // p.compilerOptions.removeComments = true
-//   // p.compilerOptions.declaration = true
-//   // p.compilerOptions.declarationMap = true
-//   // p.compilerOptions.emitDeclarationOnly = false
-// }
+  const x = await defineRepoTherapyImport()()
+    .importScript(path, { soft: true })
+  const config: RepoTherapyUtil.DeepPartial<
+    RepoTherapyUtil.TsConfigJson
+  > = x.import || {}
+
+
+  const extendConfig = config.extends
+    ? await f({ path: config.extends })(libTool).then(x => x.config)
+    : {}
+
+  const c: RepoTherapyUtil.JsonDefination = {
+    extends: true,
+    'compilerOptions.target': { default: ScriptTarget.ES2020 },
+    'compilerOptions.module': { default: ModuleKind.CommonJS },
+    'compilerOptions.lib': {
+      default: ['esnext', 'dom'],
+      type: 'Array<string>'
+    },
+    'compilerOptions.allowJs': true,
+    'compilerOptions.checkJs': true,
+    'compilerOptions.jsx': true,
+    'compilerOptions.declaration': { default: true, type: 'boolean' },
+    'compilerOptions.declarationMap': { default: true, type: 'boolean' },
+    'compilerOptions.sourceMap': { default: true, type: 'boolean' },
+    'compilerOptions.outFile': true,
+    'compilerOptions.outDir': {
+      default: options.projectType === 'npm-lib' ? './bin' : '.dist'
+    },
+    'compilerOptions.rootDir': { default: './src' },
+    'compilerOptions.composite': true,
+    'compilerOptions.removeComments': { default: false, type: 'boolean' },
+    'compilerOptions.noEmit': true,
+    'compilerOptions.importHelpers': true,
+    'compilerOptions.downlevelIteration': true,
+    'compilerOptions.isolatedModules': true,
+    'compilerOptions.strict': { default: true, type: 'boolean' },
+    'compilerOptions.noImplicitAny': true,
+    'compilerOptions.strictNullChecks': true,
+    'compilerOptions.strictFunctionTypes': true,
+    'compilerOptions.strictBindCallApply': true,
+    'compilerOptions.strictPropertyInitialization': true,
+    'compilerOptions.noImplicitThis': true,
+    'compilerOptions.alwaysStrict': true,
+    'compilerOptions.noUnusedLocals': true,
+    'compilerOptions.noUnusedParameters': true,
+    'compilerOptions.noImplicitReturns': true,
+    'compilerOptions.noFallthroughCasesInSwitch': true,
+    'compilerOptions.moduleResolution': {
+      default: ModuleResolutionKind.NodeNext
+    },
+    'compilerOptions.baseUrl': { default: './' },
+    'compilerOptions.paths': true,
+    'compilerOptions.rootDirs': true,
+    'compilerOptions.typeRoots': true,
+    'compilerOptions.types': true,
+    'compilerOptions.allowSyntheticDefaultImports': true,
+    'compilerOptions.esModuleInterop': { default: true, type: 'boolean' },
+    'compilerOptions.preserveSymlinks': true,
+    'compilerOptions.sourceRoot': true,
+    'compilerOptions.mapRoot': true,
+    'compilerOptions.inlineSourceMap': true,
+    'compilerOptions.inlineSources': true,
+    'compilerOptions.experimentalDecorators': true,
+    'compilerOptions.emitDecoratorMetadata': true,
+    'compilerOptions.skipLibCheck': true,
+    'compilerOptions.forceConsistentCasingInFileNames': { default: true, type: 'boolean' },
+    'compilerOptions.resolveJsonModule': { default: true, type: 'boolean' },
+  }
+  if (options.allowTsNode !== false) {
+    c['ts-node.files'] = { default: true, type: 'boolean' }
+  }
+  const json = defineRepoTherapyJson<any>(c)(merge(cloneDeep(extendConfig), config))
+
+  return {
+    config,
+    path: x.fullPath,
+    write: () => {
+      writeFileSync(
+        x.fullPath,
+        JSON.stringify(json.difference(extendConfig), undefined, 2)
+      )
+    }
+  }
+})
+
+export { f as defineRepoTherapyTsconfig }

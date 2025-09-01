@@ -2,51 +2,72 @@ import * as csv from 'fast-csv'
 import { existsSync, mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { type ParserRow } from 'fast-csv'
+import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
-// todo smart number
-const _defineRepoTherapyCsv: typeof defineRepoTherapyCsv = (<T, U = T>(
+function read <T, U = T> (
+  csvPath: string,
   header: Array<string>,
-  { readParse, writeParse }: {
-    readParse?: (_: T | U) => T | undefined
-    writeParse?: (_: T | U) => T | undefined
+  readParse: (_: U | undefined) => T | undefined
+): Promise<Array<U>> {
+  return new Promise((resolve) => {
+    const d: Array<U> = []
+    try {
+      csv.parseFile(csvPath, { headers: true })
+        .on('data', row => {
+          const x = Object.fromEntries(
+            Object.entries(row as Record<string, string>)
+              .filter(([k]) => header.includes(k))
+              .map(([k, v]) => {
+                let _v: string | number | boolean | object = v.trim()
+                try { _v = JSON.parse(_v) } catch {}
+                return [k, _v]
+              })
+          )
+          const _x = readParse(x as U)
+          if (_x) { d.push(_x as U) }
+        })
+        .on('end', () => { resolve(d) })
+        .on('error', () => { resolve(d) })
+    } catch { resolve(d) }
+  })
+}
+
+function write <T, U = T> (
+  csvPath: string,
+  header: Array<string>,
+  data: Array<T>,
+  writeParse: (_: T | undefined) => U | undefined
+) {
+  csv.writeToPath(
+    csvPath,
+    data.map(x => writeParse(x)).filter(x => x) as Array<ParserRow<U>>,
+    { headers: header }
+  )
+}
+
+const f: typeof defineRepoTherapyCsv = <T, U = T> (
+  header: Array<string>,
+  {
+    readParse = (x: U | undefined) => x as T | undefined,
+    writeParse = (x: T | undefined) => x as U | undefined,
+    autoGenerate = false
   } = {}
-) => (path: string) => {
+) => wrapper('repo-therapy-csv', (path: string) => {
   const t: Record<string, boolean> = { true: true, false: false }
 
   const csvPath = join(__dirname.replace(/\/node_modules\/.*$/, ''), path)
-  const csvDir = dirname(csvPath)
-  if (!existsSync(csvDir)) { mkdirSync(csvDir) }
 
-  function read (): Promise<Array<T>> {
-    return new Promise((resolve) => {
-      const d: Array<T> = []
-      try {
-        csv.parseFile(csvPath, { headers: true })
-          .on('data', row => {
-            const x = Object.fromEntries(
-              Object.entries(row as Record<string, string>)
-                .map(([k, v]) => [k, t[v] || v])
-                .filter(x => header.includes(x[0] as string))
-            )
-            const _x = (x && readParse) ? readParse(x as U) : x
-            if (_x) { d.push(_x as T) }
-          })
-          .on('end', () => { resolve(d) })
-          .on('error', () => { resolve(d) })
-      } catch { resolve(d) }
-    })
+  if (autoGenerate && !existsSync(csvPath)) {
+    const csvDir = dirname(csvPath)
+    if (!existsSync(csvDir)) { mkdirSync(csvDir, { recursive: true }) }
+    write(path, header, [], writeParse)
   }
 
-  async function write (data: Array<U>) {
-    csv.writeToPath(
-      csvPath,
-      data.filter(x => x)
-        .map(x => writeParse ? writeParse(x) : x) as Array<ParserRow>,
-      { headers: header }
-    )
-  }
+  return {
+    header,
+    read: () => read<T, U>(path, header, readParse),
+    write: async (data: Array<T>) => write<T, U>(path, header, data, writeParse)
+  } as any
+})
 
-  return { read, write }
-}) as typeof defineRepoTherapyCsv
-
-export { _defineRepoTherapyCsv as defineRepoTherapyCsv }
+export { f as defineRepoTherapyCsv }

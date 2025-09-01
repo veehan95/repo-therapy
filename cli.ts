@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { init } from './index'
+import { defineRepoTherapy } from './define/index'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { cpSync } from 'fs'
@@ -21,15 +21,22 @@ import p from './package.json'
       command: 'init',
       describe: 'Initialize repository',
       builder: argv => argv
+        .positional('project', {
+          alias: 'p',
+          describe: 'Project name',
+          type: 'string'
+        })
         .positional('type', {
           alias: 't',
           describe: 'Type of project',
-          choices: ['npm-lib', 'backend'],
+          choices: ['npm-lib', 'backend', 'frontend'],
           type: 'string'
         }),
-      handler: (argv) => {
-        // todo patch for vue/nuxt lint
-        init(argv.type as RepoTherapy.ProjectType)
+      handler: async (argv) => {
+        await defineRepoTherapy({
+          project: argv.project,
+          projectType: argv.type as RepoTherapy.ProjectType
+        })().then(x => x.init())
       }
     })
     // todo
