@@ -1,6 +1,6 @@
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import { writeFileSync } from 'fs'
+import { mkdirSync, writeFileSync } from 'fs'
 
 const f: typeof defineRepoTherapyHusky = (
   // todo
@@ -11,13 +11,14 @@ const f: typeof defineRepoTherapyHusky = (
   return {
     path: { preCommit },
     setup: () => {
+      mkdirSync(dirname(preCommit), { recursive: true })
       // todo other than yarn
       writeFileSync(
         preCommit,
         '#!/bin/sh\nyarn lint;\n# Check for modified/untracked files\nif ! ' +
         'git diff --quiet; then\n  echo "Error: There are uncommitted ' +
         'changes in the working directory."\n  echo "Please commit or stash ' +
-        'them before running this script."\n  exit 1\nfi'
+        'them before running this script."\n  exit 1\nfi\n'
       )
     }
   }

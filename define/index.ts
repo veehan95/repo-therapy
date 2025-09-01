@@ -316,11 +316,17 @@ const f: typeof defineRepoTherapy = ({
   let packageManager: RepoTherapy.PackageManager = 'yarn'
   try {
     await defineRepoTherapyImport()()
-      .importScript('package-lock.json', { soft: true })
+      .importScript('package-lock.json')
       .then(x => x.import)
-    // todo pnpm
     packageManager = 'npm'
-  } catch {}
+  } catch {
+    try {
+      await defineRepoTherapyImport()()
+        .importScript('pnpm-lock.yaml')
+        .then(x => x.import)
+      packageManager = 'pnpm'
+    } catch {}
+  }
   let _framework: Array<RepoTherapy.Framework> | undefined = framework
   const frameworkList: Record<
     RepoTherapy.ProjectType,

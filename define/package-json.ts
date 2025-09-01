@@ -65,9 +65,10 @@ const f: typeof defineRepoTherapyPackageJson = ({
     //   default: libPackageJson.dependencies['eslint-plugin-promise']
     // },
     // 'dependencies.husky': { default: libPackageJson.dependencies.husky },
-    devDependencies: { optional: true },
-    peerDependencies: { optional: true },
-    optionalDependencies: { optional: true },
+    dependencies: { default: {}, type: 'object' },
+    devDependencies: { optional: true, type: 'object' },
+    peerDependencies: { optional: true, type: 'object' },
+    optionalDependencies: { optional: true, type: 'object' },
     'engines.node': { default: `>=${nodeVersion}` },
     [`engines.${packageManager}`]: { default: `>=${packageManagerVersion}` },
     private: { default: true, type: 'boolean' },

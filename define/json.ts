@@ -53,7 +53,7 @@ function recursiveParse <T extends Record<string, object>> (
           throw new Error(`${pre}${actualKey} must ${dataType}.`)
         }
       }
-      if (typeof v[0] === 'object') {
+      if (value && typeof v[0] === 'object') {
         if (dataType === 'object') {
           if (merge) {
             value = { ...(v[0].default as object || {}), ...value }

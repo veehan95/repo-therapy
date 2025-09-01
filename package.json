@@ -42,7 +42,7 @@
   },
   "engines": {
     "node": ">=v22.18.0",
-    "npm": ">=11.5.2"
+    "yarn": ">=1.22.22"
   },
   "private": true,
   "publishConfig": {
