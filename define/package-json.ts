@@ -71,7 +71,7 @@ const f: typeof defineRepoTherapyPackageJson = ({
     optionalDependencies: { optional: true, type: 'object' },
     'engines.node': { default: `>=${nodeVersion}` },
     [`engines.${packageManager}`]: { default: `>=${packageManagerVersion}` },
-    private: { default: true, type: 'boolean' },
+    private: { default: projectType !== 'npm-lib', type: 'boolean' },
     'publishConfig.registry': { default: 'https://registry.npmjs.org/' },
     'publishConfig.access': { default: 'public' },
     'publishConfig.strict-ssl': { default: false, type: 'boolean' },
