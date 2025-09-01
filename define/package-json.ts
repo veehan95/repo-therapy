@@ -38,7 +38,7 @@ const f: typeof defineRepoTherapyPackageJson = ({
         ? {
             'scripts.pre-publish': { default: 'rm -rf bin && tsc' },
             main: { default: './bin/index.js' },
-            types: { default: './types.d/index.d.ts' },
+            types: { default: './bin/index.d.ts' },
             files: {
               default: ['bin', 'types'],
               merge: true,
