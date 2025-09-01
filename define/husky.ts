@@ -14,10 +14,10 @@ const f: typeof defineRepoTherapyHusky = (
       // todo other than yarn
       writeFileSync(
         preCommit,
-        '#!/bin/sh\nyarn lint;\n# Check for modified/untracked files\nif ! git ' +
-        'diff --quiet; then\n  echo "Error: There are uncommitted changes in the ' +
-        'working directory."\n  echo "Please commit or stash them before running ' +
-        'this script."\n  exit 1\nfi'
+        '#!/bin/sh\nyarn lint;\n# Check for modified/untracked files\nif ! ' +
+        'git diff --quiet; then\n  echo "Error: There are uncommitted ' +
+        'changes in the working directory."\n  echo "Please commit or stash ' +
+        'them before running this script."\n  exit 1\nfi'
       )
     }
   }

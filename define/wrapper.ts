@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const f: typeof defineRepoTherapyWrapper = <T extends Function> (
   slug: string,
   handler: T,

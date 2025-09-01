@@ -12,9 +12,13 @@ const consolePrefix = {
   warn: '\x1b[43m\x1b[30m WARN \x1b[39m\x1b[49m'
 }
 
-function printString (level: keyof typeof consolePrefix | string, message: string) {
+function printString (
+  level: keyof typeof consolePrefix | string,
+  message: string
+) {
   return `${
-    consolePrefix[level as keyof typeof consolePrefix] || `\x1b[44m ${level} \x1b[49m`
+    consolePrefix[level as keyof typeof consolePrefix] ||
+    `\x1b[44m ${level} \x1b[49m`
   } ${message}`
 }
 
@@ -27,10 +31,14 @@ const f: typeof defineRepoTherapyLogger = ({
     if (transportConfig.includes('file')) {
       _transports.push(
         // todo , 'verbose', 'debug'
-        ...['error', 'warn', 'info']
-          .map(x => new winston.transports.File({ filename: `${x}.log`, level: x }))
+        ...['error', 'warn', 'info'].map(x => new winston.transports.File({
+          filename: `${x}.log`,
+          level: x
+        }))
       )
-      _transports.push(new winston.transports.File({ filename: 'combined.log' }))
+      _transports.push(new winston.transports.File({
+        filename: 'combined.log'
+      }))
     }
     transportConfig.filter(x => x && typeof x !== 'string')
       .forEach(x => { _transports.push(x as Transport) })
@@ -64,7 +72,10 @@ const f: typeof defineRepoTherapyLogger = ({
       info: logger.info,
       success: (logger as unknown as { success: LeveledLogMethod }).success,
       warn: logger.warn,
-      time: async (processName: string, callback: Function) => {
+      time: async (
+        processName: string,
+        callback: () => Promise<void> | void
+      ) => {
         logger.info(`${processName} starting:`)
         const d = new Date().getTime()
         await callback()

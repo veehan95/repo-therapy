@@ -57,7 +57,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     notModified: { statusCode: 304 },
     useProxy: {
       statusCode: 305,
-      defaultMessage: 'Access to this resource requires using the specified proxy'
+      defaultMessage: 'Access to this resource requires using the specified ' +
+        'proxy'
     },
     temporaryRedirect: {
       statusCode: 307,
@@ -95,7 +96,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     notAcceptable: {
       statusCode: 406,
-      defaultMessage: 'The server cannot produce a response matching the acceptable formats'
+      defaultMessage: 'The server cannot produce a response matching the ' +
+        'acceptable formats'
     },
     proxyAuthenticationRequired: {
       statusCode: 407,
@@ -111,7 +113,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     gone: {
       statusCode: 410,
-      defaultMessage: 'This resource is no longer available and has been permanently removed'
+      defaultMessage: 'This resource is no longer available and has been ' +
+        'permanently removed'
     },
     lengthRequired: {
       statusCode: 411,
@@ -127,7 +130,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     uriTooLong: {
       statusCode: 414,
-      defaultMessage: 'The request URI is longer than the server is willing to interpret'
+      defaultMessage: 'The request URI is longer than the server is willing ' +
+        'to interpret'
     },
     unsupportedMediaType: {
       statusCode: 415,
@@ -135,11 +139,13 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     rangeNotSatisfiable: {
       statusCode: 416,
-      defaultMessage: 'The requested range cannot be satisfied for this resource'
+      defaultMessage: 'The requested range cannot be satisfied for this ' +
+        'resource'
     },
     expectationFailed: {
       statusCode: 417,
-      defaultMessage: 'The server cannot meet the requirements of the Expect header'
+      defaultMessage: 'The server cannot meet the requirements of the Expect ' +
+        'header'
     },
     imATeapot: {
       statusCode: 418,
@@ -147,15 +153,18 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     misdirectedRequest: {
       statusCode: 421,
-      defaultMessage: 'The request was directed to a server that cannot produce a response'
+      defaultMessage: 'The request was directed to a server that cannot ' +
+        'produce a response'
     },
     unprocessableEntity: {
       statusCode: 422,
-      defaultMessage: 'The request contains semantic errors and cannot be processed'
+      defaultMessage: 'The request contains semantic errors and cannot be ' +
+        'processed'
     },
     locked: {
       statusCode: 423,
-      defaultMessage: 'The requested resource is currently locked and unavailable'
+      defaultMessage: 'The requested resource is currently locked and ' +
+        'unavailable'
     },
     failedDependency: {
       statusCode: 424,
@@ -163,7 +172,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     tooEarly: {
       statusCode: 425,
-      defaultMessage: 'The server is unwilling to process the request at this time'
+      defaultMessage: 'The server is unwilling to process the request at ' +
+        'this time'
     },
     upgradeRequired: {
       statusCode: 426,
@@ -171,11 +181,13 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     preconditionRequired: {
       statusCode: 428,
-      defaultMessage: 'This request requires conditional headers to be specified'
+      defaultMessage: 'This request requires conditional headers to be ' +
+        'specified'
     },
     tooManyRequests: {
       statusCode: 429,
-      defaultMessage: 'Too many requests have been sent in a given amount of time'
+      defaultMessage: 'Too many requests have been sent in a given amount ' +
+        'of time'
     },
     requestHeaderFieldsTooLarge: {
       statusCode: 431,
@@ -193,7 +205,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     notImplemented: {
       statusCode: 501,
-      defaultMessage: 'This functionality has not been implemented on the server'
+      defaultMessage: 'This functionality has not been implemented on the ' +
+        'server'
     },
     badGateway: {
       statusCode: 502,
@@ -201,7 +214,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     serviceUnavailable: {
       statusCode: 503,
-      defaultMessage: 'The service is temporarily unavailable due to maintenance or overload'
+      defaultMessage: 'The service is temporarily unavailable due to ' +
+        'maintenance or overload'
     },
     gatewayTimeout: {
       statusCode: 504,
@@ -213,15 +227,18 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     variantAlsoNegotiates: {
       statusCode: 506,
-      defaultMessage: 'Server configuration error prevents completing the request'
+      defaultMessage: 'Server configuration error prevents completing the ' +
+        'request'
     },
     insufficientStorage: {
       statusCode: 507,
-      defaultMessage: 'Server does not have sufficient storage to complete the request'
+      defaultMessage: 'Server does not have sufficient storage to complete ' +
+        'the request'
     },
     loopDetected: {
       statusCode: 508,
-      defaultMessage: 'The server detected an infinite loop while processing the request'
+      defaultMessage: 'The server detected an infinite loop while processing ' +
+        'the request'
     },
     notExtended: {
       statusCode: 510,
@@ -229,7 +246,8 @@ const defaultServerCodes: RepoTherapyUtil.ServerCode = {
     },
     networkAuthenticationRequired: {
       statusCode: 511,
-      defaultMessage: 'Network authentication is required to access this resource'
+      defaultMessage: 'Network authentication is required to access this ' +
+        'resource'
     }
   }
 }
@@ -245,7 +263,7 @@ const f: typeof defineRepoTherapy = ({
 } = {}) => wrapper('define-repo-therapy', async () => {
   let _projectType: RepoTherapy.ProjectType | undefined = projectType
   const rootPath = await defineRepoTherapyImport()().rootPath
-  const libTool = { rootPath } as unknown as RepoTherapyUtil.DefineLibTool
+  const libTool = { rootPath } as unknown as RepoTherapy.DefineLibTool
   const definEnv = await defineRepoTherapyEnv((...x) => ({
     ...((envConfig ? envConfig(...x) : undefined) || {}),
     project
@@ -307,8 +325,8 @@ const f: typeof defineRepoTherapy = ({
     RepoTherapy.ProjectType,
     Array<RepoTherapy.Framework>
   > = {
-    'frontend': ['nuxt.js', 'angular', 'svelte', 'vue.js', 'nuxt-monorepo'],
-    'backend': ['next.js', 'serverless', 'dynamodb', 'knexpresso'],
+    frontend: ['nuxt.js', 'angular', 'svelte', 'vue.js', 'nuxt-monorepo'],
+    backend: ['next.js', 'serverless', 'dynamodb', 'knexpresso'],
     'npm-lib': []
   }
   if (!_projectType || !_framework) {
@@ -322,12 +340,13 @@ const f: typeof defineRepoTherapy = ({
       ))?.[0] || 'npm-lib') as RepoTherapy.ProjectType
     }
     if (!_framework) {
-      _framework = Object.entries(frameworkList).flatMap(x => dependencies.filter(
-        y => x[1].includes(y as RepoTherapy.Framework)
-      )) as Array<RepoTherapy.Framework>
+      _framework = Object.entries(frameworkList)
+        .flatMap(x => dependencies.filter(
+          y => x[1].includes(y as RepoTherapy.Framework)
+        )) as Array<RepoTherapy.Framework>
     }
   }
-  
+
   async function init () {
     await defineRepoTherapyPackageJson(
       { projectType: _projectType, packageManager }
@@ -354,14 +373,3 @@ const f: typeof defineRepoTherapy = ({
 })
 
 export { f as defineRepoTherapy }
-
-f({
-  env: ({ envPreset }) => ({
-    env: {
-      database: {
-        '(default)': envPreset.database,
-        cmg: envPreset.database
-      }
-    }
-  })
-})().then(x => x.init())

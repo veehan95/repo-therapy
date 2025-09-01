@@ -3,15 +3,14 @@ import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
 class RepoTherapyError <T extends object>
   extends Error
-  implements RepoTherapyUtil.Error<T>
-{
+  implements RepoTherapyUtil.Error<T> {
   private _name: string
   public get name () { return this._name }
 
   private _props: T
   public get props () { return this._props }
-  
-  constructor(name: string, message: string, props?: T) {
+
+  constructor (name: string, message: string, props?: T) {
     super(message || 'An unexpected error occurred.')
     this._props = props || {} as T
     this._name = name
@@ -32,17 +31,17 @@ const f: typeof defineRepoTherapyError = <T extends object> (
     defaultProp?: T
   }
 ) => wrapper('define-error', () => {
-  let r
-  if (typeof error === 'string') {
-    r = new RepoTherapyError(error, defaultMessage, {})
-  } else {
-    r = new RepoTherapyError(
-      error.name,
-      error.defaultMessage || defaultMessage,
-      error.defaultProp || {}
-    )
-  }
-  return r
-})
+    let r
+    if (typeof error === 'string') {
+      r = new RepoTherapyError(error, defaultMessage, {})
+    } else {
+      r = new RepoTherapyError(
+        error.name,
+        error.defaultMessage || defaultMessage,
+        error.defaultProp || {}
+      )
+    }
+    return r
+  })
 
 export { f as defineRepoTherapyError }

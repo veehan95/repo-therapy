@@ -91,15 +91,15 @@ const baseGitignore = {
 }
 
 const frameworkGitignore: Record<RepoTherapy.Framework, Array<string>> = {
-  'knexpresso': ['.knexpresso', 'uploads', 'credentials', 'docker-compose.yml'],
+  knexpresso: ['.knexpresso', 'uploads', 'credentials', 'docker-compose.yml'],
   'next.js': ['.next', 'out'],
   'vue.js': ['node_modules', 'dist', 'dist-ssr', '*.local'],
   'nuxt.js': ['.nuxt', '.nuxt-prod'],
   'nuxt-monorepo': ['.nuxt', '.nuxt-prod', 'nuxt-monorepo'],
-  'angular': ['.aot', '.ng'],
-  'svelte': ['.svelte-kit'],
-  'serverless': ['.serverless'],
-  'dynamodb': ['.dynamodb']
+  angular: ['.aot', '.ng'],
+  svelte: ['.svelte-kit'],
+  serverless: ['.serverless'],
+  dynamodb: ['.dynamodb']
 }
 
 export const f: typeof defineRepoTherapyGitignore = (
@@ -122,7 +122,11 @@ export const f: typeof defineRepoTherapyGitignore = (
     .filter(x => x && !/^#/.test(x))
   const existingCustomGitignore = currentConfig
     .split(/\n/g)
-    .filter(x => x.trim() && !/^#/.test(x) && !defaultGitignore.includes(x.trim()))
+    .filter(
+      x => x.trim() &&
+        !/^#/.test(x) &&
+        !defaultGitignore.includes(x.trim())
+    )
   const customGitignore = options.custom
     ? options.custom(existingCustomGitignore)
     : existingCustomGitignore

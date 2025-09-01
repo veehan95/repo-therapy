@@ -1,33 +1,38 @@
 import { cloneDeep, isEmpty, omitBy, unset } from 'lodash'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
-function recursiveParse <T extends Record<string, object> = {}> (
+function recursiveParse <T extends Record<string, object>> (
   pre: string,
   objDefination: RepoTherapyUtil.JsonDefination,
-  data?: T,
+  data?: T
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   const properties = Object.entries(objDefination)
     .map(([key, v]) => {
       const [_key, ...otherKey] = key.split(/(?<!\\\\)\./)
       return [_key, otherKey.length > 0 ? [otherKey.join('.'), v] : v]
     })
-  const uniqueKey = Array.from(new Set(properties.map(([key]) => key.toString())))
+  const uniqueKey = Array.from(
+    new Set(properties.map(([key]) => key.toString()))
+  )
   const expectedProp = Object.fromEntries(uniqueKey.map((k) => {
     const actualKey = k.replace(/\\\\/g, '')
     const v = properties.filter(x => x[0] === k).map(x => x[1])
     if (!Array.isArray(v[0])) {
       if (v.length > 1) {
         throw new Error(
-          `${actualKey} cannot be an object and non-object value at the same time`
+          `${actualKey} cannot be an object and non-object value at the ` +
+          'same time'
         )
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let value: any = data && data[k]
       let sort = true
-      let merge = true
+      const merge = true
       let dataType = 'string'
       if (typeof v[0] === 'object') {
         if (value === undefined) { value = v[0].default }
-        sort = v[0].sort !== true
+        sort = v[0].sort !== false
         if (v[0].type) { dataType = v[0].type }
       }
       if (!(typeof v[0] === 'object' ? v[0].optional : v[0])) {
@@ -35,19 +40,21 @@ function recursiveParse <T extends Record<string, object> = {}> (
           throw new Error(`${pre}${actualKey} must be defined.`)
         }
         try {
-          const [_, arrayType] = /Array<(.*)>/.exec(dataType) || []
+          const [, arrayType] = /Array<(.*)>/.exec(dataType) || []
           if (arrayType) {
-            if (!Array.isArray(value)) {throw new Error()}
+            if (!Array.isArray(value)) { throw new Error() }
             value.forEach(x => {
+              // eslint-disable-next-line valid-typeof
               if (typeof x !== arrayType) { throw new Error() }
             })
+            // eslint-disable-next-line valid-typeof
           } else if (typeof value !== dataType) { throw new Error() }
         } catch {
           throw new Error(`${pre}${actualKey} must ${dataType}.`)
         }
       }
       if (typeof v[0] === 'object') {
-        if (dataType === 'object'){
+        if (dataType === 'object') {
           if (merge) {
             value = { ...(v[0].default as object || {}), ...value }
           }
@@ -56,7 +63,7 @@ function recursiveParse <T extends Record<string, object> = {}> (
             value = Object.fromEntries([
               ...defaultkeys,
               ...Object.keys(value || {}).filter(x => !defaultkeys.includes(x))
-            ].map(x => [x, value [x]]))
+            ].map(x => [x, value[x]]))
           }
         } else if (/^Array<.*>$/.test(dataType)) {
           if (merge) {
@@ -66,7 +73,8 @@ function recursiveParse <T extends Record<string, object> = {}> (
             const defaultArray = v[0].default as typeof value || []
             value = [
               ...defaultArray,
-              ...(value as Array<any>|| []).filter(x => !defaultArray.includes(x))
+              ...(value as Array<string> || [])
+                .filter(x => !defaultArray.includes(x))
             ]
           }
         }
@@ -75,7 +83,9 @@ function recursiveParse <T extends Record<string, object> = {}> (
     }
     return [actualKey, omitBy(recursiveParse(
       `${pre}${actualKey}.`,
-      Object.fromEntries(v as Array<[string, RepoTherapyUtil.JsonDefinationDetail]>),
+      Object.fromEntries(
+        v as Array<[string, RepoTherapyUtil.JsonDefinationDetail]>
+      ),
       data ? data[k] as T : undefined
     ), value => typeof value !== 'boolean' && (
       value === undefined || value === null || isEmpty(value)
@@ -115,24 +125,36 @@ function recursiveMatch <
   return result
 }
 
-export const f: typeof defineRepoTherapyJson = <T extends Record<string, object>> (
-  objDefination: RepoTherapyUtil.JsonDefination
-) => wrapper('define-json', (data: T) => {
-  const json = recursiveParse('', objDefination, data) as T
-  function match (target: T) { return recursiveMatch(target, json) }
-  return {
-    json,
-    match,
-    difference: (target: T) => {
-      const newJson = cloneDeep(json)
-      match(target).forEach((k) => { unset(newJson, k) })
-      return omitBy(newJson,
-        value => (typeof value === 'object' && isEmpty(value)) ||
-          value === undefined ||
-          value === null
-      ) as RepoTherapyUtil.DeepPartial<T>
+export const f: typeof defineRepoTherapyJson = <
+  T extends object
+> (objDefination: RepoTherapyUtil.JsonDefination) => wrapper(
+    'define-json',
+    (data: T) => {
+      const json = recursiveParse(
+        '',
+        objDefination,
+        data as Record<string, object>
+      ) as T
+      function match (target: T) {
+        return recursiveMatch(
+          target as Record<string, object>,
+          json as Record<string, object>
+        )
+      }
+      return {
+        json,
+        match,
+        difference: (target: T) => {
+          const newJson = cloneDeep(json)
+          match(target).forEach((k) => { unset(newJson, k) })
+          return omitBy(newJson,
+            value => (typeof value === 'object' && isEmpty(value)) ||
+            value === undefined ||
+            value === null
+          ) as RepoTherapyUtil.DeepPartial<T>
+        }
+      }
     }
-  }
-})
+  )
 
 export { f as defineRepoTherapyJson }

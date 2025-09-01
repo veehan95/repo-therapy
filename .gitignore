@@ -53,9 +53,6 @@ node_modules
 # ================================
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
 .env.*.local
 .husky/_
 
@@ -105,16 +102,3 @@ out
 *.tsbuildinfo
 *.js.map
 *.d.ts.map
-
-# ================================
-# Framework: knexpresso
-# ================================
-.knexpresso
-uploads
-credentials
-docker-compose.yml
-
-# ================================
-# Custom Ignores
-# ================================
-.dist

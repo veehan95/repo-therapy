@@ -3,7 +3,7 @@ import { defineRepoTherapyImport } from './import'
 import { writeFileSync } from 'fs'
 import { defineRepoTherapyJson } from './json'
 import { execSync } from 'child_process'
-import libPackageJson from '../package.json'
+// import libPackageJson from '../package.json'
 import { type PackageJson } from 'type-fest'
 
 const f: typeof defineRepoTherapyPackageJson = ({
@@ -31,35 +31,40 @@ const f: typeof defineRepoTherapyPackageJson = ({
   const config: RepoTherapyUtil.JsonDefination = {
     name: { default: env.project },
     version: { default: '0.0.1' },
-    'scripts.lint': { default: 'eslint .'},
+    'scripts.lint': { default: 'eslint .' },
     'scripts.postinstall': { default: 'husky' },
     ...(
       projectType === 'npm-lib'
-       ? {
-         'scripts.pre-publish': { default: 'tsc' },
-          main: { default: './bin/index.js' },
-          types: { default: './bin/index.d.ts' },
-          files: { default: ['bin'], merge: true, sort: true, type: 'Array<string>' },
-          [`bin.${env.project}`]: { default: './bin/cli.js' },
-        }
-       : {}
+        ? {
+            'scripts.pre-publish': { default: 'tsc' },
+            main: { default: './bin/index.js' },
+            types: { default: './bin/index.d.ts' },
+            files: {
+              default: ['bin'],
+              merge: true,
+              sort: true,
+              type: 'Array<string>'
+            },
+            [`bin.${env.project}`]: { default: './bin/cli.js' }
+          }
+        : {}
     ),
     'repository.type': { default: 'git' },
     'repository.url': { default: gitUrl },
-    'dependencies.eslint': { default: libPackageJson.dependencies.eslint },
-    'dependencies.eslint-config-standard': {
-      default: libPackageJson.dependencies['eslint-config-standard']
-    },
-    'dependencies.eslint-plugin-import': {
-      default: libPackageJson.dependencies['eslint-plugin-import']
-    },
-    'dependencies.eslint-plugin-n': {
-      default: libPackageJson.dependencies['eslint-plugin-n']
-    },
-    'dependencies.eslint-plugin-promise': {
-      default: libPackageJson.dependencies['eslint-plugin-promise']
-    },
-    'dependencies.husky': { default: libPackageJson.dependencies.husky },
+    // 'dependencies.eslint': { default: libPackageJson.dependencies.eslint },
+    // 'dependencies.eslint-config-standard': {
+    //   default: libPackageJson.dependencies['eslint-config-standard']
+    // },
+    // 'dependencies.eslint-plugin-import': {
+    //   default: libPackageJson.dependencies['eslint-plugin-import']
+    // },
+    // 'dependencies.eslint-plugin-n': {
+    //   default: libPackageJson.dependencies['eslint-plugin-n']
+    // },
+    // 'dependencies.eslint-plugin-promise': {
+    //   default: libPackageJson.dependencies['eslint-plugin-promise']
+    // },
+    // 'dependencies.husky': { default: libPackageJson.dependencies.husky },
     devDependencies: { optional: true },
     peerDependencies: { optional: true },
     optionalDependencies: { optional: true },

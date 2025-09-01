@@ -16,7 +16,6 @@ export const f: typeof defineRepoTherapyTsconfig = (
     RepoTherapyUtil.TsConfigJson
   > = x.import || {}
 
-
   const extendConfig = config.extends
     ? await f({ path: config.extends })(libTool).then(x => x.config)
     : {}
@@ -76,22 +75,28 @@ export const f: typeof defineRepoTherapyTsconfig = (
     'compilerOptions.experimentalDecorators': true,
     'compilerOptions.emitDecoratorMetadata': true,
     'compilerOptions.skipLibCheck': true,
-    'compilerOptions.forceConsistentCasingInFileNames': { default: true, type: 'boolean' },
-    'compilerOptions.resolveJsonModule': { default: true, type: 'boolean' },
+    'compilerOptions.forceConsistentCasingInFileNames': {
+      default: true,
+      type: 'boolean'
+    },
+    'compilerOptions.resolveJsonModule': { default: true, type: 'boolean' }
   }
   if (options.allowTsNode !== false) {
     c['ts-node.files'] = { default: true, type: 'boolean' }
   }
-  const json = defineRepoTherapyJson<any>(c)(merge(cloneDeep(extendConfig), config))
+  const json = defineRepoTherapyJson<RepoTherapyUtil.TsConfigJson>(c)(
+    merge(cloneDeep(extendConfig), config) as RepoTherapyUtil.TsConfigJson
+  )
 
   return {
     config,
     path: x.fullPath,
     write: () => {
-      writeFileSync(
-        x.fullPath,
-        JSON.stringify(json.difference(extendConfig), undefined, 2)
-      )
+      writeFileSync(x.fullPath, JSON.stringify(
+        json.difference(extendConfig as RepoTherapyUtil.TsConfigJson),
+        undefined,
+        2
+      ))
     }
   }
 })

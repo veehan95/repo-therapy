@@ -7,8 +7,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs'
 
 export const f: typeof defineRepoTherapyVsCode = (
   {
-    path = '.vscode',
-    packageManager= 'yarn'
+    path = '.vscode'
   } = {}
 ) => wrapper('define-gitignore', async (libTool) => {
   const settingsPath = join(path, 'settings.json')
@@ -21,18 +20,18 @@ export const f: typeof defineRepoTherapyVsCode = (
     .importScript(settingsPath, { soft: true })
   const vscodeIgnore = [
     '.git',
+    '.gitlab',
     '.vscode',
     '.husky',
     'yarn.lock',
     'package-lock.json',
     ...gitignore
-  ].map(s => [s.replace(/\./g,'\\\\.'), { default: true, type: 'boolean' }])
+  ].map(s => [s.replace(/\./g, '\\\\.'), { default: true, type: 'boolean' }])
   // todo add all config
   const jsonSettings = defineRepoTherapyJson({
     'editor\\\\.tabSize': { default: 2, type: 'number' },
     'editor\\\\.trimAutoWhitespace': { default: true, type: 'boolean' },
     'eslint\\\\.enable': { default: true, type: 'boolean' },
-    'eslint\\\\.packageManager': { default: packageManager, optional: true },
     'eslint\\\\.format\\\\.enable': { default: true, type: 'boolean' },
     'editor\\\\.codeActionsOnSave.source\\\\.fixAll\\\\.eslint': {
       default: 'explicit'
@@ -54,7 +53,7 @@ export const f: typeof defineRepoTherapyVsCode = (
   const currentExtensions = await defineRepoTherapyImport()()
     .importScript(extensionsPath, { soft: true })
   const jsonExtensions = defineRepoTherapyJson({
-    'recommendations': {
+    recommendations: {
       default: ['dbaeumer.vscode-eslint', 'eamodio.gitlens'],
       type: 'Array<string>'
     }

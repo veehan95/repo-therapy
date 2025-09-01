@@ -1,32 +1,36 @@
 {
   "name": "repo-therapy",
   "version": "0.1.67",
+  "scripts": {
+    "lint": "eslint .",
+    "postinstall": "husky",
+    "pre-publish": "tsc"
+  },
   "main": "./bin/index.js",
   "types": "./bin/index.d.ts",
   "files": [
     "bin"
   ],
+  "bin": {
+    "repo-therapy": "./bin/cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://gitlab.com/vh95/repo-therapy"
   },
-  "bin": {
-    "repo-therapy": "./bin/cli.js"
-  },
-  "license": "MIT",
   "dependencies": {
-    "@types/lodash": "^4.17.18",
-    "@types/node": "^24.3.0",
-    "@types/yargs": "^17.0.33",
-    "dotenv": "^16.5.0",
     "eslint": "^9.28.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-n": "^17.18.0",
     "eslint-plugin-promise": "^7.2.1",
+    "husky": "^9.1.7",
+    "@types/lodash": "^4.17.18",
+    "@types/node": "^24.3.0",
+    "@types/yargs": "^17.0.33",
+    "dotenv": "^16.5.0",
     "fast-csv": "^5.0.5",
     "find-up": "^7.0.0",
-    "husky": "^9.1.7",
     "lodash": "^4.17.21",
     "sort-package-json": "^3.2.1",
     "ts-node": "^10.9.2",
@@ -36,9 +40,15 @@
     "winston": "^3.17.0",
     "yargs": "^18.0.0"
   },
-  "scripts": {
-    "lint": "eslint .",
-    "postinstall": "husky",
-    "pre-publish": "tsc"
-  }
+  "engines": {
+    "node": ">=v22.18.0",
+    "npm": ">=11.5.2"
+  },
+  "private": true,
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "strict-ssl": false
+  },
+  "license": "MIT"
 }

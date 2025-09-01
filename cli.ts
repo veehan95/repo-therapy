@@ -2,17 +2,9 @@
 import { defineRepoTherapy } from './define/index'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { cpSync } from 'fs'
-import { join } from 'path'
 import p from './package.json'
 
 (async () => {
-  cpSync(
-    join(__dirname, '../types.d'),
-    join(__dirname, `../../@types/${p.name}`),
-    { recursive: true }
-  )
-
   await yargs(hideBin(process.argv))
     .scriptName(p.name)
     .parserConfiguration({ 'strip-aliased': true })

@@ -45,29 +45,33 @@ function write <T, U = T> (
   )
 }
 
-const f: typeof defineRepoTherapyCsv = <T, U = T> (
-  header: Array<string>,
-  {
+const f: typeof defineRepoTherapyCsv = <
+  T extends object,
+  U extends object = T
+> (header: Array<string>, {
     readParse = (x: U | undefined) => x as T | undefined,
     writeParse = (x: T | undefined) => x as U | undefined,
     autoGenerate = false
-  } = {}
-) => wrapper('repo-therapy-csv', (path: string) => {
-  const t: Record<string, boolean> = { true: true, false: false }
+  } = {}) => wrapper('repo-therapy-csv', (path: string) => {
+    const csvPath = join(__dirname.replace(/\/node_modules\/.*$/, ''), path)
 
-  const csvPath = join(__dirname.replace(/\/node_modules\/.*$/, ''), path)
+    if (autoGenerate && !existsSync(csvPath)) {
+      const csvDir = dirname(csvPath)
+      if (!existsSync(csvDir)) { mkdirSync(csvDir, { recursive: true }) }
+      write(path, header, [], writeParse)
+    }
 
-  if (autoGenerate && !existsSync(csvPath)) {
-    const csvDir = dirname(csvPath)
-    if (!existsSync(csvDir)) { mkdirSync(csvDir, { recursive: true }) }
-    write(path, header, [], writeParse)
-  }
-
-  return {
-    header,
-    read: () => read<T, U>(path, header, readParse),
-    write: async (data: Array<T>) => write<T, U>(path, header, data, writeParse)
-  } as any
-})
+    return {
+      header,
+      read: () => read<T, U>(path, header, readParse),
+      write: async (data: Array<T>) => write<T, U>(
+        path,
+        header,
+        data,
+        writeParse
+      )
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any
 
 export { f as defineRepoTherapyCsv }

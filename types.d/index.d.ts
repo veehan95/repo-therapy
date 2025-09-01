@@ -4,12 +4,6 @@ declare global {
       [P in keyof T]?: T[P] extends object ? DeepPartial<Partial<T[P]>> : T[P]
     }
 
-    interface DefineLibTool {
-      rootPath: string
-      logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
-      env: RepoTherapy.Env
-    }
-
     interface Error <T extends object> extends Error {
       name: string
       props: T
@@ -50,7 +44,7 @@ declare global {
       Record<string, RepoTherapyUtil.ServerCodeInfo>
     >
 
-    type ServerCodeConfig <T extends object = {}> = T & {
+    type ServerCodeConfig <T extends object = object> = T & {
       name: string
       isError: boolean
       category: string
@@ -66,7 +60,8 @@ declare global {
 
     type JsonDefinationDetail = {
       // force type
-      default?: string | number | boolean | object | Array<string | number |  boolean | object>
+      default?: string | number | boolean | object |
+        Array<string | number | boolean | object>
       optional?: boolean
       type?: keyof TypeConversion | `Array<${keyof TypeConversion}>`
       sort?: boolean
@@ -201,8 +196,15 @@ declare global {
       nodeEnv: string
       project: string
     }
+
+    interface DefineLibTool {
+      rootPath: string
+      logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
+      env: Env
+    }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   function defineRepoTherapyWrapper <T extends Function> (
     slug: string,
     func: T,
@@ -213,13 +215,21 @@ declare global {
     validate: (s: string) => void
   }
 
+  function defineRepoTherapyLint (handler?: Partial<{
+    projectType: RepoTherapy.ProjectType
+    framework: RepoTherapy.Framework
+    ignores: Array<string>
+  }>): ReturnType<typeof defineRepoTherapyWrapper<(
+    libTool: RepoTherapy.DefineLibTool
+  ) => Promise<{ lint: () => void }>>>
+
   function defineRepoTherapyHusky (
     // todo
     // options: RepoTherapyUtil.DeepPartial<{
     //   precommit: Array<string>
     // }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+    libTool: RepoTherapy.DefineLibTool
   ) => {
     path: {
       preCommit: string
@@ -233,7 +243,7 @@ declare global {
       transportConfig: Array<'file' | 'console' | import('winston').transport>
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+    libTool: RepoTherapy.DefineLibTool
   ) => {
     logger: {
       complete: import('winston').LeveledLogMethod
@@ -241,7 +251,10 @@ declare global {
       info: import('winston').LeveledLogMethod
       success: import('winston').LeveledLogMethod
       warn: import('winston').LeveledLogMethod
-      time: (processName: string, callback: Function) => Promise<void>
+      time: (
+        processName: string,
+        callback: () => Promise<void> | void
+      ) => Promise<void>
     },
     printString: (level: string, s: string) => string
   }>>
@@ -259,7 +272,7 @@ declare global {
   function defineRepoTherapyEnv (
     handler?: RepoTherapyEnv.Handler
   ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+    libTool: RepoTherapy.DefineLibTool
   ) => Promise<{
     envSample: () => Record<string, string>
     envType: () => string
@@ -306,7 +319,7 @@ declare global {
     logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
   }>>>
 
-  function defineRepoTherapyImport <T = {}> (
+  function defineRepoTherapyImport <T = object> (
     options?: RepoTherapyUtil.DeepPartial<{
       packageJsonPath: string
       encoding: BufferEncoding
@@ -345,14 +358,14 @@ declare global {
       packageManager: RepoTherapy.PackageManager
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+    libTool: RepoTherapy.DefineLibTool
   ) => Promise<{
     path: string
     json: import('type-fest').PackageJson.PackageJsonStandard
     write: () => void
   }>>>
 
-  function defineRepoTherapyJson <T extends Record<string, object>> (
+  function defineRepoTherapyJson <T extends object> (
     objDefination: RepoTherapyUtil.JsonDefination
   ): ReturnType<typeof defineRepoTherapyWrapper<(data: T) => {
     json: T
@@ -368,21 +381,19 @@ declare global {
       projectType: RepoTherapyUtil.ProjectType
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+    libTool: RepoTherapy.DefineLibTool
   ) => Promise<{
     config: RepoTherapyUtil.DeepPartial<RepoTherapyUtil.TsConfigJson>
     path: string
     write: () => void
   }>>>
 
-  function defineRepoTherapyGitignore (
-    handler?: Partial<{
-      path: string
-      framework: Array<RepoTherapy.Framework>
-      custom: (s: Array<string>) => Array<string>
-    }>
-  ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+  function defineRepoTherapyGitignore (handler?: Partial<{
+    path: string
+    framework: Array<RepoTherapy.Framework>
+    custom: (s: Array<string>) => Array<string>
+  }>): ReturnType<typeof defineRepoTherapyWrapper<(
+    libTool: RepoTherapy.DefineLibTool
   ) => Promise<{
     config: Record<string, Array<string>>
     path: string
@@ -398,7 +409,7 @@ declare global {
       custom: (s: Array<string>) => Array<string>
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
-    libTool: RepoTherapyUtil.DefineLibTool
+    libTool: RepoTherapy.DefineLibTool
   ) => Promise<{
     config: {
       // todo
