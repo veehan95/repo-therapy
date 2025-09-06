@@ -3,8 +3,10 @@ import { defineRepoTherapy } from './index'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { startCase } from 'lodash'
-import p from '../package.json'
+import _p from '../package.json'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
+import { type PackageJson } from 'type-fest'
+const p = _p as PackageJson
 
 export const f: typeof defineRepoTherapyCli = (
   handler = () => {}
@@ -14,7 +16,7 @@ export const f: typeof defineRepoTherapyCli = (
   >
   function init () {
     return yargs(hideBin(process.argv))
-      .scriptName(p.name)
+      .scriptName(p.name || '')
       .parserConfiguration({ 'strip-aliased': true })
       .usage('Usage: $0 <command> [options]')
       .positional('project', {
@@ -82,7 +84,9 @@ export const f: typeof defineRepoTherapyCli = (
 
   cli.help('h').alias('h', 'help')
   cli.version('v').alias('v', 'version')
-  cli.epilog(`For more information, visit ${p.repository.url}`)
+  cli.epilog(`For more information, visit ${
+    typeof p.repository === 'string' ? p.repository : p.repository?.url
+  }`)
   await cli.argv
   if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
   repoTherapy.logger.info('')
