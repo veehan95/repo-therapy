@@ -317,12 +317,13 @@ declare global {
       // todo stricter type declaration
       // defaultProp: object
     }>
-  // todo move to @types
+    // todo move to @types
     manualModuleTyping: Array<string>
   }>): ReturnType<typeof defineRepoTherapyWrapper<() => Promise<{
     init: () => Promise<void>
     rootPath: string
     env: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyEnv>>>['env']
+    newError: typeof defineRepoTherapyError
     serverCode: Record<string, RepoTherapyUtil.ServerCodeConfig>
     error: Record<string, RepoTherapyUtil.CustomError<object>>
     logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
@@ -339,7 +340,15 @@ declare global {
           : undefined
       }>
     ) => ReturnType<typeof defineRepoTherapyImport<T, U>>
-    script: typeof defineRepoTherapyScript
+    script: (
+      handler: (libTool: RepoTherapy.DefineLibTool, args: T) => void,
+      builder?: (
+        libTool: RepoTherapy.DefineLibTool,
+        argv: import('yargs').Argv<T>
+      ) => void | import('yargs').Argv<T>
+    ) => (scriptName: string) => ReturnType<
+      ReturnType<typeof defineRepoTherapyScript>
+    >
     json: typeof defineRepoTherapyJson
     packageJson: import('type-fest').PackageJson.PackageJsonStandard
   }>>>

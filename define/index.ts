@@ -396,6 +396,7 @@ const f: typeof defineRepoTherapy = ({
     env: libTool.env,
     serverCode: Object.fromEntries(serverResponse),
     error: errorList,
+    newError: defineRepoTherapyError,
     logger: libTool.logger,
     lint: () => defineRepoTherapyLint()(libTool),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -403,7 +404,7 @@ const f: typeof defineRepoTherapy = ({
       slug: string,
       func: T,
       warpperClient?: string
-    ) => defineRepoTherapyWrapper(
+    ) => wrapper(
       `define-${packageJsonCache.json.name}-${slug}`,
       func,
       warpperClient
@@ -419,7 +420,9 @@ const f: typeof defineRepoTherapy = ({
           : undefined
       }>
     ) => defineRepoTherapyImport(options),
-    script: defineRepoTherapyScript,
+    script: (...o) => (
+      scriptname
+    ) => defineRepoTherapyScript(...o)(libTool, scriptname),
     json: defineRepoTherapyJson,
     packageJson: packageJsonCache.json
   }
