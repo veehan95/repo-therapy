@@ -1,14 +1,18 @@
-import { defineRepoTherapyLogger } from './logger'
 import { defineRepoTherapyEnv } from './env'
-import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyError } from './error'
-import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyGitignore } from './gitignore'
+import { defineRepoTherapyHusky } from './husky'
+import { defineRepoTherapyImport } from './import'
+import { defineRepoTherapyJson } from './json'
+import { defineRepoTherapyLint } from './lint'
+import { defineRepoTherapyLogger } from './logger'
+import { defineRepoTherapyPackageJson } from './package-json'
+import { defineRepoTherapyScript } from './script'
 import { defineRepoTherapyTsconfig } from './tsconfig'
 import { defineRepoTherapyVsCode } from './vscode'
-import { defineRepoTherapyHusky } from './husky'
-import { defineRepoTherapyPackageJson } from './package-json'
-import { defineRepoTherapyLint } from './lint'
+import { defineRepoTherapyWrapper as wrapper } from './wrapper'
+import { cpSync, existsSync, mkdirSync } from 'fs'
+import { join } from 'path'
 
 const defaultServerCodes: RepoTherapyUtil.ServerCode = {
   informational: {
@@ -260,8 +264,23 @@ const f: typeof defineRepoTherapy = ({
   logger = defineRepoTherapyLogger(),
   env: envConfig,
   serverCode = {},
-  error = {}
+  error = {},
+  // todo move to @types
+  manualModuleTyping = []
 } = {}) => wrapper('define-repo-therapy', async () => {
+  if (/\/node_modules\//.test(__dirname)) {
+    const nodeModuleDir = __dirname
+      .replace(/\/node_modules\/.*/g, '/node_modules')
+    const typesDir = join(nodeModuleDir, '@types')
+    if (!existsSync(typesDir)) { mkdirSync(typesDir) }
+    ;['repo-therapy', ...manualModuleTyping].forEach((x) => {
+      cpSync(
+        join(__dirname, '../../types/'),
+        join(typesDir, x),
+        { recursive: true }
+      )
+    })
+  }
   const p = await defineRepoTherapyImport<{ name: string }>()()
     .importScript('package.json')
   let _projectType: RepoTherapy.ProjectType | undefined = projectType
@@ -305,7 +324,7 @@ const f: typeof defineRepoTherapy = ({
     if (typeof x === 'string') {
       return [
         name,
-        defineRepoTherapyError({ name, defaultMessage: x })
+        defineRepoTherapyError({ name, defaultMessage: x })()
       ]
     }
     return [name, defineRepoTherapyError({
@@ -338,10 +357,10 @@ const f: typeof defineRepoTherapy = ({
     backend: ['next.js', 'serverless', 'dynamodb', 'knexpresso'],
     'npm-lib': []
   }
+  const packageJsonCache = await defineRepoTherapyPackageJson(
+    { projectType: _projectType || 'npm-lib', packageManager }
+  )(libTool)
   if (!_projectType || !_framework) {
-    const packageJsonCache = await defineRepoTherapyPackageJson(
-      { projectType: _projectType || 'npm-lib', packageManager }
-    )(libTool)
     const dependencies = Object.keys(packageJsonCache.json.dependencies || {})
     if (!_projectType) {
       _projectType = (Object.entries(frameworkList).find(x => dependencies.find(
@@ -368,7 +387,7 @@ const f: typeof defineRepoTherapy = ({
       packageManager,
       framework: _framework
     })(libTool).then(x => x.write())
-    defineRepoTherapyHusky()(libTool).setup()
+    defineRepoTherapyHusky({ packageManager })(libTool).setup()
   }
 
   return {
@@ -378,7 +397,31 @@ const f: typeof defineRepoTherapy = ({
     serverCode: Object.fromEntries(serverResponse),
     error: errorList,
     logger: libTool.logger,
-    lint: () => defineRepoTherapyLint()(libTool)
+    lint: () => defineRepoTherapyLint()(libTool),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    wrapper: <T extends Function> (
+      slug: string,
+      func: T,
+      warpperClient?: string
+    ) => defineRepoTherapyWrapper(
+      `define-${packageJsonCache.json.name}-${slug}`,
+      func,
+      warpperClient
+    ),
+    import: <T = object, U = string> (
+      options: RepoTherapyUtil.DeepPartial<{
+        encoding: BufferEncoding
+        headers: U extends `${string}.csv` ? Array<string> : undefined
+        accept: U extends `${string}.${
+          'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+        }`
+          ? Record<string, keyof T | Array<keyof T>>
+          : undefined
+      }>
+    ) => defineRepoTherapyImport(options),
+    script: defineRepoTherapyScript,
+    json: defineRepoTherapyJson,
+    packageJson: packageJsonCache.json
   }
 })
 

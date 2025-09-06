@@ -107,7 +107,8 @@ const f: typeof defineRepoTherapyEnv = (
       optional: true,
       generate: false,
       force: process.env.TZ
-    }
+    },
+    isDocker: { type: 'boolean', default: false }
   }
 
   const database = {
@@ -135,14 +136,18 @@ const f: typeof defineRepoTherapyEnv = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Record<string, any> {
     const _key = key.toLowerCase() === '(default)' ? 'default' : key
-    if (!value.type) {
+    if (!(typeof value === 'string' || typeof value.type === 'string')) {
       const objVal = Object.fromEntries(
-        Object.entries(value).flatMap(([k, v]) => Object.entries(
-          recursiveEnv(k, v, [...recuringKey, _key], ogKey, baseEnv)
-        ))
+        Object.entries(value as Record<string, RepoTherapyEnv.Detail>)
+          .flatMap(([k, v]) => Object.entries(
+            recursiveEnv(k, v, [...recuringKey, _key], ogKey, baseEnv)
+          ))
       )
       return ogKey ? objVal : { [_key]: objVal }
     }
+    const _value = typeof value === 'string'
+      ? { type: value }
+      : value as (RepoTherapyEnv.Attribute & object)
     const [, ..._recuringKey] = recuringKey
     const currentRecuringKey = [..._recuringKey, _key]
     const _primaryKey = kebabCase(currentRecuringKey.join(' ')).toUpperCase()
@@ -164,7 +169,7 @@ const f: typeof defineRepoTherapyEnv = (
       }, {} as Record<number, Array<string>>))
       .sort(([a], [b]) => Number(a) - Number(b))
       .flatMap(([, v]) => v.sort())
-    const fullKey = [...primaryKey, ...(value.alias || [])]
+    const fullKey = [...primaryKey, ...(_value.alias || [])]
     let currentEnvKey: string = primaryKey[0]
     for (let i = 0; i < fullKey.length; i++) {
       if (process.env[fullKey[i]]) {
@@ -174,34 +179,34 @@ const f: typeof defineRepoTherapyEnv = (
     }
     if (
       !currentEnvKey &&
-      !value.optional &&
-      !value.default &&
-      value.force === undefined
+      !_value.optional &&
+      !_value.default &&
+      _value.force === undefined
     ) { throw new Error(`Env not configured ${currentRecuringKey.join('.')}`) }
     // todo default support function (pass in env that is not a function)
-    let returnValue = value.force || process.env[currentEnvKey] || (
-      value.default !== undefined
+    let returnValue = _value.force || process.env[currentEnvKey] || (
+      _value.default !== undefined
         ? (
-            typeof value.default === 'function'
-              ? (baseEnv ? value.default(baseEnv) : undefined)
-              : value.default
+            typeof _value.default === 'function'
+              ? (baseEnv ? _value.default(baseEnv) : undefined)
+              : _value.default
           )
         : undefined
     )
-    if (value.type === 'number') { returnValue = Number(returnValue) }
-    if (value.type === 'boolean') {
+    if (_value.type === 'number') { returnValue = Number(returnValue) }
+    if (_value.type === 'boolean') {
       if (returnValue === 'true') { returnValue = true }
       if (returnValue === 'false') { returnValue = false }
     }
     if (
       returnValue !== undefined && (
-        (value.type === 'number' && isNaN(returnValue)) ||
+        (_value.type === 'number' && isNaN(returnValue)) ||
         // eslint-disable-next-line valid-typeof
-        typeof returnValue !== value.type
+        typeof returnValue !== _value.type
       )
     ) {
       throw new Error(
-        `Env type for ${currentRecuringKey.join('.')} should be ${value.type}`
+        `Env type for ${currentRecuringKey.join('.')} should be ${_value.type}`
       )
     }
     return {
@@ -220,13 +225,15 @@ const f: typeof defineRepoTherapyEnv = (
     value: RepoTherapyEnv.Detail,
     recuringKey: Array<string> = []
   ): Array<[string, { value: string, map: Array<string> }]> {
-    if (!value.type) {
-      return Object.entries(value).flatMap(
-        ([k, v]) => recursiveEnvSample(k, v, [...recuringKey, key])
-      )
+    if (typeof value.type !== 'string') {
+      return Object.entries(value as Record<string, RepoTherapyEnv.Detail>)
+        .flatMap(([k, v]) => recursiveEnvSample(k, v, [...recuringKey, key]))
     }
+    const _value = typeof value === 'string'
+      ? { type: value }
+      : value as (RepoTherapyEnv.Attribute & object)
     const [, ..._recuringKey] = recuringKey
-    if (value.generate === false) { return [] }
+    if (_value.generate === false) { return [] }
     // todo default support function (pass in env that is not a function)
     return [[
       kebabCase(
@@ -234,7 +241,7 @@ const f: typeof defineRepoTherapyEnv = (
           .filter(x => x && key !== '(default)' && key !== 'default')
           .join(' ')
       ).toUpperCase().replace(/-/g, '_'),
-      { value: value.default || '', map: [..._recuringKey, key] }
+      { value: _value.default || '', map: [..._recuringKey, key] }
     ]]
   }
 
@@ -244,7 +251,7 @@ const f: typeof defineRepoTherapyEnv = (
   ): string {
     if (!value.type) {
       return `${key}: {\n  ${
-        Object.entries(value)
+        Object.entries(value as Record<string, RepoTherapyEnv.Detail>)
           .flatMap(([k, v]) => recursiveEnvType(k, v).split('\n'))
           .join('\n  ')
       }\n}`
@@ -310,16 +317,21 @@ const f: typeof defineRepoTherapyEnv = (
     `${path}${config.project ? `.${config.project}.local` : ''}`,
     { soft: true }
   )
+  if (
+    !envInit?.import ||
+    config.project !== dotenv.parse(envInit.import).PROJECT
+  ) {
+    envInit = await defineRepoTherapyImport<string>()()
+      .importScript('.env.local', { soft: true })
+  }
   const envDefault: Awaited<ReturnType<ReturnType<
     ReturnType<typeof defineRepoTherapyImport<string>>
   >['importScript']>> = await defineRepoTherapyImport<string>()()
     .importScript('.env', { soft: true })
-  if (envDefault?.import) {
-    if (
-      config.project &&
-      config.project === dotenv.parse(envDefault.import).PROJECT
-    ) { envInit = envDefault }
-  }
+  if (
+    envDefault?.import &&
+    config.project === dotenv.parse(envDefault.import).PROJECT
+  ) { envInit = envDefault }
 
   if (envInit.import === undefined) {
     warning.push(`Env for ${config.project} not found`)
@@ -342,13 +354,7 @@ const f: typeof defineRepoTherapyEnv = (
   dotenv.config({ path: envInit.fullPath })
 
   const rootEnv = recursiveEnv('env', envConfig)
-  const env = recursiveEnv(
-    'env',
-    envConfig,
-    undefined,
-    false,
-    rootEnv
-  ).env
+  const env = recursiveEnv('env', envConfig, undefined, false, rootEnv).env
   if (envInit.import) {
     const envSampleObj = envSample(env)
     const envSampleKey = Object.keys(envSampleObj)

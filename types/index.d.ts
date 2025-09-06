@@ -4,7 +4,7 @@ declare global {
       [P in keyof T]?: T[P] extends object ? DeepPartial<Partial<T[P]>> : T[P]
     }
 
-    interface Error <T extends object> extends Error {
+    interface CustomError <T extends object> extends Error {
       name: string
       props: T
       instanceOf (s: string): boolean
@@ -90,9 +90,7 @@ declare global {
       boolean: boolean
     }
 
-    interface Attribute <
-      T extends keyof AttributeType
-    > {
+    type Attribute <T extends keyof AttributeType = string> = {
       type: T
       optional?: boolean
       // todo
@@ -101,8 +99,9 @@ declare global {
       // )
       generate?: boolean
       alias?: Array<string>
-      force?: string | number | boolean
-    }
+      force?: AttributeType<T>
+      default?: AttributeType<T>
+    } | T
 
     interface Detail {
       [key: string]: Detail | Attribute;
@@ -117,36 +116,36 @@ declare global {
 
     type PresetBase = Record<
       'project' | 'projectLang' | 'tz' | 'nodeEnv',
-      Detail
+      Attribute
     >
 
     type PresetDatabase = Record<
-      'host' | 'name' | 'user' | 'password' | 'port', Detail
-    > & { pool: Record<'min' | 'max', Detail> }
+      'host' | 'name' | 'user' | 'password' | 'port', Attribute
+    > & { pool: Record<'min' | 'max', Attribute> }
 
     type PresetCognito = Record<
       'subDomain' | 'userPoolId' | 'clientId' | 'clientSecret',
         // | 'domain' | 'jwks' | 'id',
-      Detail
+      Attribute
     >
 
     interface PresetAws {
-      region: Detail
-      accountId: Detail
-      profile: Detail
-      access: Record<'key' | 'secret', Detail>
+      region: Attribute
+      accountId: Attribute
+      profile: Attribute
+      access: Record<'key' | 'secret', Attribute>
       // todo force correct setting
       cognito?: PresetCognito
     }
 
     type PresetMailer = Record<
       'client' | 'email' | 'password' | 'host' | 'port',
-      Detail
+      Attribute
     >
 
-    type PresetGoogle = Record<'email' | 'pkey', Detail>
+    type PresetGoogle = Record<'email' | 'pkey', Attribute>
 
-    type PresetBackend = Record<'host' | 'port' | 'cdnURL', Detail>
+    type PresetBackend = Record<'host' | 'port' | 'cdnURL', Attribute>
 
     interface AwsOptions {
       cognito?: boolean
@@ -168,7 +167,7 @@ declare global {
     }) => RepoTherapyUtil.DeepPartial<{
       project: string
       // skip?; boolean
-      env: Record<string, RepoTherapyEnv.Detail>
+      env?: Record<string, RepoTherapyEnv.Detail>
       paths: {
         configPath: string
         typeDeclarationPath: string
@@ -224,10 +223,11 @@ declare global {
   ) => Promise<{ lint: () => void }>>>
 
   function defineRepoTherapyHusky (
-    // todo
-    // options: RepoTherapyUtil.DeepPartial<{
-    //   precommit: Array<string>
-    // }>
+    options: RepoTherapyUtil.DeepPartial<{
+      packageManager: RepoTherapy.PackageManager
+      // todo
+      // precommit: Array<string>
+    }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
     libTool: RepoTherapy.DefineLibTool
   ) => {
@@ -262,7 +262,7 @@ declare global {
       defaultProp?: T
     }
   ): ReturnType<typeof defineRepoTherapyWrapper<
-    () => RepoTherapyUtil.Error
+    () => RepoTherapyUtil.CustomError<object>
   >>
 
   function defineRepoTherapyEnv (
@@ -274,9 +274,9 @@ declare global {
     envType: () => string
     getOriginalEnv: () => Record<string, string>
     generateTypeDeclaration: () => void
-    env: RepoTherapyEnv
+    env: RepoTherapy.Env
     config: {
-      env: Record<string, RepoTherapy.EnvDetail>
+      env: Record<string, RepoTherapyEnv.Detail>
     }
     warning: Array<string>
   }>>>
@@ -294,6 +294,17 @@ declare global {
     write: (data: Array<T>) => Promise<void>
   }>>
 
+  function defineRepoTherapyCli (
+    handler?: (
+      yargs: yargs.Argv<
+        { project: string | undefined } &
+        { type: string | undefined }
+      >
+    ) => void | Promise<void>
+  ): ReturnType<typeof defineRepoTherapyWrapper<() => Promise<{
+    cli: undefined
+  }>>>
+
   function defineRepoTherapy (options?: Partial<{
     project: string
     projectType: RepoTherapy.ProjectType
@@ -306,39 +317,53 @@ declare global {
       // todo stricter type declaration
       // defaultProp: object
     }>
+  // todo move to @types
+    manualModuleTyping: Array<string>
   }>): ReturnType<typeof defineRepoTherapyWrapper<() => Promise<{
     init: () => Promise<void>
     rootPath: string
     env: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyEnv>>>['env']
     serverCode: Record<string, RepoTherapyUtil.ServerCodeConfig>
-    error: Record<string, RepoTherapyUtil.Error>
+    error: Record<string, RepoTherapyUtil.CustomError<object>>
     logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
     lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
+    wrapper: typeof defineRepoTherapyWrapper
+    import: <T = object, U = string> (
+      options: RepoTherapyUtil.DeepPartial<{
+        encoding: BufferEncoding
+        headers: U extends `${string}.csv` ? Array<string> : undefined
+        accept: U extends `${string}.${
+          'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+        }`
+          ? Record<string, keyof T | Array<keyof T>>
+          : undefined
+      }>
+    ) => ReturnType<typeof defineRepoTherapyImport<T, U>>
+    script: typeof defineRepoTherapyScript
+    json: typeof defineRepoTherapyJson
+    packageJson: import('type-fest').PackageJson.PackageJsonStandard
   }>>>
 
-  function defineRepoTherapyImport <T = object> (
+  function defineRepoTherapyImport <T = object, U = string> (
     options?: RepoTherapyUtil.DeepPartial<{
       packageJsonPath: string
       encoding: BufferEncoding
-      // todo limit to .csv only
-      headers: Array<string>
+      headers: U extends `${string}.csv` ? Array<string> : undefined
+      accept: U extends `${string}.${
+        'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+      }`
+        ? Record<string, keyof T | Array<keyof T>>
+        : undefined
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<() => {
     rootPath: Promise<string>
     importScript: (
-      path: string,
-      options?: RepoTherapyUtil.DeepPartial<{
-        // todo typing for undefined
-        soft: boolean
-        accept: Record<string, keyof T | Array<keyof T>>
-      }>
+      path: U,
+      options?: RepoTherapyUtil.DeepPartial<{ soft: booleanm}>
     ) => Promise<RepoTherapy.ImportObject<T>>
     importScriptFromDir: (
       path: string,
-      options?: RepoTherapyUtil.DeepPartial<{
-        soft: boolean
-        accept: Record<string, keyof T | Array<keyof T>>
-      }>
+      options?: RepoTherapyUtil.DeepPartial<{ soft: boolean }>
     ) => Promise<
       Array<{
         dir: string
@@ -348,10 +373,25 @@ declare global {
     >
   }>>
 
+  function defineRepoTherapyScript <T extends object> (
+    handler: (libTool: RepoTherapy.DefineLibTool, args: T) => void,
+    builder?: (
+      libTool: RepoTherapy.DefineLibTool,
+      argv: import('yargs').Argv<T>
+    ) => void | import('yargs').Argv<T>
+  ): ReturnType<typeof defineRepoTherapyWrapper<(
+    libTool: RepoTherapy.DefineLibTool,
+    scriptName: string
+  ) => Promise<{
+    builder: (argv: import('yargs').Argv<T>) => void | import('yargs').Argv<T>
+    handler: (args: T) => void
+    scriptName: string
+  }>>>
+
   function defineRepoTherapyPackageJson (
     options?: RepoTherapyUtil.DeepPartial<{
       path: string
-      projectType: RepoTherapyUtil.ProjectType
+      projectType: RepoTherapy.ProjectType
       packageManager: RepoTherapy.PackageManager
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
@@ -375,7 +415,7 @@ declare global {
       path: string
       extends: string
       allowTsNode: boolean
-      projectType: RepoTherapyUtil.ProjectType
+      projectType: RepoTherapy.ProjectType
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<(
     libTool: RepoTherapy.DefineLibTool

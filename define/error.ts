@@ -3,7 +3,7 @@ import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
 class RepoTherapyError <T extends object>
   extends Error
-  implements RepoTherapyUtil.Error<T> {
+  implements RepoTherapyUtil.CustomError<T> {
   private _name: string
   public get name () { return this._name }
 

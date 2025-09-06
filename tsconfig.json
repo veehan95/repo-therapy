@@ -16,6 +16,10 @@
     "strict": true,
     "moduleResolution": "nodenext",
     "baseUrl": "./",
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

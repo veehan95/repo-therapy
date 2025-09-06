@@ -1,10 +1,11 @@
 {
   "name": "repo-therapy",
-  "version": "0.2.10",
+  "version": "0.2.15",
   "scripts": {
     "lint": "eslint .",
     "postinstall": "husky",
-    "pre-publish": "rm -rf bin && tsc"
+    "pre-publish": "rm -rf bin && tsc",
+    "publish": "yarn pre-publish && npm publish"
   },
   "main": "./bin/index.js",
   "types": "./bin/index.d.ts",

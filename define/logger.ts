@@ -68,13 +68,15 @@ const f: typeof defineRepoTherapyLogger = ({
 
   return {
     logger: {
-      complete: (...s) => (logger as unknown as { complete: LeveledLogMethod })
-        .complete(...s),
-      error: (...s) => logger.error(...s),
-      info: (...s) => logger.info(...s),
-      success: (...s) => (logger as unknown as { success: LeveledLogMethod })
-        .success(...s),
-      warn: (...s) => logger.warn(...s)
+      complete: (str, ...s) => (
+        logger as unknown as { complete: LeveledLogMethod }
+      ).complete(str || ' ', ...s),
+      error: (str, ...s) => logger.error(str || ' ', ...s),
+      info: (str, ...s) => logger.info(str || ' ', ...s),
+      success: (str, ...s) => (
+        logger as unknown as { success: LeveledLogMethod }
+      ).success(str || ' ', ...s),
+      warn: (str, ...s) => logger.warn(str || ' ', ...s)
     },
     printString
   }

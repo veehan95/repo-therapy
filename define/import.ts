@@ -7,11 +7,16 @@ import { findUp } from 'find-up'
 
 let tsImported = false
 
-const f: typeof defineRepoTherapyImport = <T = object> (
+const f: typeof defineRepoTherapyImport = <T = object, U = string> (
   options: RepoTherapyUtil.DeepPartial<{
     packageJsonPath: string
     encoding: BufferEncoding
-    headers: Array<string>
+    headers: U extends `${string}.csv` ? Array<string> : undefined
+    accept: U extends `${string}.${
+      'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+    }`
+      ? Record<string, keyof T | Array<keyof T>>
+      : undefined
   }> = {}
 ) => wrapper('define-import', () => {
     const rootPath: Promise<string> = (new Promise<string>((resolve) => {
@@ -23,16 +28,10 @@ const f: typeof defineRepoTherapyImport = <T = object> (
     })).then(x => dirname(x))
 
     async function importScript (
-      path: string,
-      {
-        soft = false,
-        accept = {}
-      }: RepoTherapyUtil.DeepPartial<{
-      soft?: boolean
-      accept?: Record<string, keyof T | Array<keyof T>>
-    }> = {}
+      path: U,
+      { soft = false }: RepoTherapyUtil.DeepPartial<{ soft?: boolean }> = {}
     ): Promise<RepoTherapy.ImportObject<T>> {
-      const fPath = join(await rootPath, path)
+      const fPath = join(await rootPath, path as string)
       if (!soft) {
         if (!existsSync(fPath)) { throw new Error(`${path} not found.`) }
         if (lstatSync(fPath).isDirectory()) {
@@ -46,8 +45,8 @@ const f: typeof defineRepoTherapyImport = <T = object> (
       const ext = extname(fPath)
       if (
         !tsImported &&
-      extname(__filename) === '.js' &&
-      extname(fPath) === '.ts'
+        extname(__filename) === '.js' &&
+        extname(fPath) === '.ts'
       ) {
         register({ transpileOnly: true })
         tsImported = true
@@ -55,16 +54,19 @@ const f: typeof defineRepoTherapyImport = <T = object> (
       // todo force type
       let lib: T | undefined
       try {
-        if (['.js', '.ts'].includes(ext)) {
+        if (['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx'].includes(ext)) {
+          if (!options.accept) {
+            throw new Error('No file defination configured for js/ts')
+          }
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           const x = require(fPath)
           lib = Object.fromEntries(
-            Object.entries(accept).map(([k, v]) => {
+            Object.entries(options.accept).map(([k, v]) => {
               const _v = (typeof v === 'string' ? [v] : v) as Array<string>
               if (!_v.includes(x[k].slug)) {
                 throw new Error(`Defination for ${
-                x[k].slug
-              } found instead of ${JSON.stringify(_v)}`)
+                  x[k].slug
+                } found instead of ${JSON.stringify(_v)}`)
               }
               return [k, x[k]]
             })
@@ -102,14 +104,14 @@ const f: typeof defineRepoTherapyImport = <T = object> (
       if (!existsSync(fPath)) { return [] }
       const d = readdirSync(fPath, { recursive: true, encoding: 'utf-8' })
       const r: Array<{
-      dir: string
-      relativePath: string
-    } & RepoTherapy.ImportObject<T>> = []
+        dir: string
+        relativePath: string
+      } & RepoTherapy.ImportObject<T>> = []
       for (let i = 0; i < d.length; i++) {
         r.push({
           dir: path,
           relativePath: d[i],
-          ...await importScript(join(path, d[i]), option)
+          ...await importScript(join(path, d[i]) as U, option)
         })
       }
       return r
