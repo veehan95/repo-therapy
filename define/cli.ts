@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import { defineRepoTherapy } from './index'
+import { type PackageJson } from 'type-fest'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { startCase } from 'lodash'
+import { defineRepoTherapy } from './index'
 import _p from '../package.json'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import { type PackageJson } from 'type-fest'
 const p = _p as PackageJson
 
 export const f: typeof defineRepoTherapyCli = (

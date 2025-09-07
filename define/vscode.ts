@@ -1,9 +1,10 @@
 import { join } from 'path'
+import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyJson } from './json'
 import { defineRepoTherapyGitignore } from './gitignore'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { extension, settingConfig } from '../config/vscode'
 
 export const f: typeof defineRepoTherapyVsCode = (
   {
@@ -18,47 +19,16 @@ export const f: typeof defineRepoTherapyVsCode = (
 
   const currentSettings = await defineRepoTherapyImport()()
     .importScript(settingsPath, { soft: true })
-  const vscodeIgnore = [
-    '.git',
-    '.gitlab',
-    '.husky',
-    '.npmignore',
-    '.vscode',
-    'package-lock.json',
-    'yarn.lock',
-    ...gitignore
-  ].map(s => [s.replace(/\./g, '\\\\.'), { default: true, type: 'boolean' }])
   // todo add all config
-  const jsonSettings = defineRepoTherapyJson({
-    'editor\\\\.tabSize': { default: 2, type: 'number' },
-    'editor\\\\.trimAutoWhitespace': { default: true, type: 'boolean' },
-    'eslint\\\\.enable': { default: true, type: 'boolean' },
-    'eslint\\\\.format\\\\.enable': { default: true, type: 'boolean' },
-    'editor\\\\.codeActionsOnSave.source\\\\.fixAll\\\\.eslint': {
-      default: 'explicit'
-    },
-    'editor\\\\.formatOnSave': { default: true, type: 'boolean' },
-    'editor\\\\.defaultFormatter': { default: 'esbenp.prettier-vscode' },
-    'files\\\\.eol': { default: '\n' },
-    ...Object.fromEntries(
-      vscodeIgnore.map(([k, v]) => [`files\\\\.exclude.${k}`, v])
-    ),
-    ...Object.fromEntries(
-      vscodeIgnore.map(([k, v]) => [`files\\\\.watcherExclude.${k}`, v])
-    ),
-    ...Object.fromEntries(
-      vscodeIgnore.map(([k, v]) => [`files\\\\.exclude.${k}`, v])
-    )
-  })(currentSettings.import || {})
+  const jsonSettings = defineRepoTherapyJson(
+    settingConfig(gitignore)
+  )(currentSettings.import || {})
 
   const currentExtensions = await defineRepoTherapyImport()()
     .importScript(extensionsPath, { soft: true })
-  const jsonExtensions = defineRepoTherapyJson({
-    recommendations: {
-      default: ['dbaeumer.vscode-eslint', 'eamodio.gitlens'],
-      type: 'Array<string>'
-    }
-  })(currentExtensions.import || {})
+  const jsonExtensions = defineRepoTherapyJson(
+    extension
+  )(currentExtensions.import || {})
 
   return {
     config: {

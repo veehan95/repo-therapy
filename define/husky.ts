@@ -1,6 +1,6 @@
 import { dirname, join } from 'path'
-import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { mkdirSync, writeFileSync } from 'fs'
+import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
 const f: typeof defineRepoTherapyHusky = ({
   packageManager = 'yarn'

@@ -1,9 +1,9 @@
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'fs'
 import { dirname, extname, join } from 'path'
 import { register } from 'ts-node'
+import { findUp } from 'find-up'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyCsv } from './csv'
-import { findUp } from 'find-up'
 
 let tsImported = false
 

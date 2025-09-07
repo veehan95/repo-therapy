@@ -1,58 +1,18 @@
-import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import eslint from '@eslint/js'
 import { type Linter } from 'eslint'
 import tseslint from 'typescript-eslint'
 import standard from 'eslint-config-standard'
 import * as i from 'eslint-plugin-import'
 import n from 'eslint-plugin-n'
 import p from 'eslint-plugin-promise'
+import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyVsCode } from './vscode'
+import { rules, presetFiles } from '../config/lint'
 
 const {
   parserOptions,
   env,
-  globals,
-  rules: standarRules
+  globals
 } = standard
-
-const rules = {
-  ...eslint.configs.recommended.rules,
-  ...standarRules,
-  ...tseslint.configs.recommended
-    .reduce((acc, cur) => {
-      if (!cur.rules) { return acc }
-      Object.assign(acc, cur.rules)
-      return acc
-    }, {}),
-  'max-len': [
-    'error',
-    {
-      code: 80
-    }
-  ],
-  '@typescript-eslint/no-unused-vars': [
-    'error',
-    { argsIgnorePattern: '^_' }
-  ],
-  // todo not vue
-  'vue/multi-word-component-names': 'off'
-}
-
-const presetFilesBase = [
-  '**/*.ts',
-  '**/*.js',
-  '**/*.mjs',
-  '**/*.cjs',
-  // todo not vue
-  '**/*.vue'
-]
-
-const presetFiles = {
-  // todo not vue
-  frontend: presetFilesBase,
-  backend: presetFilesBase,
-  'npm-lib': presetFilesBase
-}
 
 const f: typeof defineRepoTherapyLint = ({
   projectType = 'npm-lib',
