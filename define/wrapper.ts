@@ -1,17 +1,16 @@
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-const f: typeof defineRepoTherapyWrapper = <T extends Function> (
-  slug: string,
-  handler: T,
-  warpperClient = 'repo-therapy'
-) => {
-  const h = handler as ReturnType<typeof defineRepoTherapyWrapper<T>>
-  h.warpperClient = warpperClient
-  h.slug = slug
-  h.validate = (s: string) => {
-    if (s === slug) { return }
-    throw new Error(`Defination for ${slug} is required but received ${s}`)
-  }
-  return h
+const f: typeof defineRepoTherapyWrapper = <
+  T extends `define-${string}`,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  U extends Function
+> (slug: T, handler: U, warpperClient = 'repo-therapy') => {
+  return handler.bind({
+    warpperClient,
+    slug,
+    validate: (s: string) => {
+      if (s === slug) { return }
+      throw new Error(`Defination for ${slug} is required but received ${s}`)
+    }
+  })
 }
 
 export { f as defineRepoTherapyWrapper }

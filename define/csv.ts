@@ -52,7 +52,7 @@ const f: typeof defineRepoTherapyCsv = <
     readParse = (x: U | undefined) => x as T | undefined,
     writeParse = (x: T | undefined) => x as U | undefined,
     autoGenerate = false
-  } = {}) => wrapper('repo-therapy-csv', (path: string) => {
+  } = {}) => wrapper('define-csv', (path: string) => {
     const csvPath = join(__dirname.replace(/\/node_modules\/.*$/, ''), path)
 
     if (autoGenerate && !existsSync(csvPath)) {

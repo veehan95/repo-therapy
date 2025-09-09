@@ -10,7 +10,7 @@ export const f: typeof defineRepoTherapyVsCode = (
   {
     path = '.vscode'
   } = {}
-) => wrapper('define-gitignore', async (libTool) => {
+) => wrapper('define-vscode', async (libTool) => {
   const settingsPath = join(path, 'settings.json')
   const extensionsPath = join(path, 'extensions.json')
 

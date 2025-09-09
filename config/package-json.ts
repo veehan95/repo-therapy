@@ -16,6 +16,8 @@ export function config (
   const gitUrl = 'git+' + url.replace(domainRegExp, `https://${domain}/`)
     .replace(/.git$/, '')
 
+  const scriptRunner = packageManager === 'yarn' ? 'yarn' : 'npm run'
+
   return {
     name: { default: env.project },
     version: { default: '0.0.1' },
@@ -24,8 +26,13 @@ export function config (
     ...(
       projectType === 'npm-lib'
         ? {
-            'scripts.pre-publish': { default: 'rm -rf bin && tsc' },
-            'scripts.publish': { default: 'yarn pre-publish && npm publish' },
+            'scripts.build': { default: `${scriptRunner} clean && tsc` },
+            'scripts.clean': { default: 'rm -rf bin' },
+            // 'scripts.postpublish': {
+            //   default: `${scriptRunner} notify && ${
+            // scriptRunner} update-docs`
+            // },
+            'scripts.prepack': { default: `${scriptRunner} build` },
             main: { default: './bin/index.js' },
             types: { default: './bin/index.d.ts' },
             files: {

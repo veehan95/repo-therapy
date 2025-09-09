@@ -159,14 +159,10 @@ const f: typeof defineRepoTherapy = ({
     lint: () => defineRepoTherapyLint()(libTool),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     wrapper: <T extends Function> (
-      slug: string,
+      slug: `define-${string}`,
       func: T,
       warpperClient?: string
-    ) => wrapper(
-      `define-${packageJsonCache.json.name}-${slug}`,
-      func,
-      warpperClient
-    ),
+    ) => wrapper(slug, func, warpperClient),
     import: <T = object, U = string> (
       options: RepoTherapyUtil.DeepPartial<{
         encoding: BufferEncoding
