@@ -338,7 +338,6 @@ declare global {
       error: Record<string, RepoTherapyUtil.CustomError<object>>
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
       lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
-      wrapper: typeof defineRepoTherapyWrapper
       import: <T = object, U = string> (
         options: RepoTherapyUtil.DeepPartial<{
           encoding: BufferEncoding

@@ -157,12 +157,6 @@ const f: typeof defineRepoTherapy = ({
     newError: defineRepoTherapyError,
     logger: libTool.logger,
     lint: () => defineRepoTherapyLint()(libTool),
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    wrapper: <T extends Function> (
-      slug: `define-${string}`,
-      func: T,
-      warpperClient?: string
-    ) => wrapper(slug, func, warpperClient),
     import: <T = object, U = string> (
       options: RepoTherapyUtil.DeepPartial<{
         encoding: BufferEncoding
