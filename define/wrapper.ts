@@ -1,9 +1,9 @@
 const f: typeof defineRepoTherapyWrapper = <
   T extends `define-${string}`,
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  U extends Function
-> (slug: T, handler: U, warpperClient = 'repo-therapy') => {
-  return handler.bind({
+  U,
+  V extends Array<RepoTherapyUtil.GenericType> = []
+> (slug: T, handler: (...argv: V) => U, warpperClient = 'repo-therapy') => {
+  return Object.assign(handler, {
     warpperClient,
     slug,
     validate: (s: string) => {

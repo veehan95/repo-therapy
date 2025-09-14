@@ -173,7 +173,7 @@ const f: typeof defineRepoTherapy = ({
     ) => defineRepoTherapyScript(...o)(libTool, scriptname),
     json: defineRepoTherapyJson,
     packageJson: packageJsonCache.json
-  }
+  } as Awaited<ReturnType<ReturnType< typeof defineRepoTherapy>>>
 })
 
 export { f as defineRepoTherapy }
