@@ -2,8 +2,11 @@ const f: typeof defineRepoTherapyWrapper = <
   T extends `define-${string}`,
   U,
   V extends Array<RepoTherapyUtil.GenericType> = []
-> (slug: T, handler: (...argv: V) => U, warpperClient = 'repo-therapy') => {
-  return Object.assign(handler, {
+> (
+    slug: T,
+    handler: (...argv: V) => U,
+    warpperClient = 'repo-therapy'
+  ) => Object.assign(handler, {
     warpperClient,
     slug,
     validate: (s: string) => {
@@ -11,6 +14,5 @@ const f: typeof defineRepoTherapyWrapper = <
       throw new Error(`Defination for ${slug} is required but received ${s}`)
     }
   })
-}
 
 export { f as defineRepoTherapyWrapper }

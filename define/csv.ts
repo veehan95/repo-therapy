@@ -48,11 +48,14 @@ function write <T, U = T> (
 const f: typeof defineRepoTherapyCsv = <
   T extends object,
   U extends object = T
-> (header: Array<string>, {
-    readParse = (x: U | undefined) => x as T | undefined,
-    writeParse = (x: T | undefined) => x as U | undefined,
-    autoGenerate = false
-  } = {}) => wrapper('define-csv', (path: string) => {
+> (
+    header: Array<string> = [],
+    {
+      readParse = (x: U | undefined) => x as T | undefined,
+      writeParse = (x: T | undefined) => x as U | undefined,
+      autoGenerate = false
+    } = {}
+  ) => wrapper('define-csv', (path: string) => {
     const csvPath = join(__dirname.replace(/\/node_modules\/.*$/, ''), path)
 
     if (autoGenerate && !existsSync(csvPath)) {

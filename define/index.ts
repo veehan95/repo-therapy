@@ -158,7 +158,7 @@ const f: typeof defineRepoTherapy = ({
     logger: libTool.logger,
     lint: () => defineRepoTherapyLint()(libTool),
     import: <T = object, U = string> (
-      options: RepoTherapyUtil.DeepPartial<{
+      options: Partial<{
         encoding: BufferEncoding
         headers: U extends `${string}.csv` ? Array<string> : undefined
         accept: U extends `${string}.${

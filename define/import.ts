@@ -8,16 +8,16 @@ import { defineRepoTherapyCsv } from './csv'
 let tsImported = false
 
 const f: typeof defineRepoTherapyImport = <T = object, U = string> (
-  options: RepoTherapyUtil.DeepPartial<{
-    packageJsonPath: string
-    encoding: BufferEncoding
-    headers: U extends `${string}.csv` ? Array<string> : undefined
-    accept: U extends `${string}.${
-      'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
-    }`
-      ? Record<string, keyof T | Array<keyof T>>
-      : undefined
-  }> = {}
+  options: Partial<{
+      packageJsonPath: string
+      encoding: BufferEncoding
+      headers: U extends `${string}.csv` ? Array<string> : undefined
+      accept: U extends `${string}.${
+        'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+      }`
+        ? Record<string, keyof T | Array<keyof T>>
+        : undefined
+    }> = {}
 ) => wrapper('define-import', () => {
     const rootPath: Promise<string> = (new Promise<string>((resolve) => {
       if (options.packageJsonPath) {
