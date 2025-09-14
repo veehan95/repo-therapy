@@ -32,7 +32,7 @@ export function config (
             //   default: `${scriptRunner} notify && ${
             // scriptRunner} update-docs`
             // },
-            'scripts.prepack': { default: `${scriptRunner} build` },
+            'scripts.prepack': { default: `git push && ${scriptRunner} build` },
             main: { default: './bin/index.js' },
             types: { default: './bin/index.d.ts' },
             files: {

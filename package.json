@@ -1,12 +1,12 @@
 {
   "name": "repo-therapy",
-  "version": "0.2.20",
+  "version": "0.2.22",
   "scripts": {
     "lint": "eslint .",
     "postinstall": "husky",
     "build": "yarn clean && tsc",
     "clean": "rm -rf bin",
-    "prepack": "yarn build"
+    "prepack": "git push && yarn build"
   },
   "main": "./bin/index.js",
   "types": "./bin/index.d.ts",
