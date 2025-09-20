@@ -2,7 +2,8 @@ declare global {
   namespace RepoTherapyUtil {
     type Slug = RepoTherapyUtil.Slug
 
-    type GenericType = string | number | boolean | object | Array<GenericType>
+    type GenericType = string | number | boolean | object | undefined |
+      Array<GenericType>
 
     type DeepPartial<T> = {
       [P in keyof T]?: T[P] extends object ? DeepPartial<Partial<T[P]>> : T[P]
@@ -212,6 +213,7 @@ declare global {
     }
 
     interface DefineLibTool {
+      project: string
       rootPath: string
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
       env: Env
@@ -233,8 +235,14 @@ declare global {
       T extends RepoTherapyUtil.Slug,
       U extends Array<RepoTherapyUtil.GenericType> = [],
       V extends RepoTherapyUtil.GenericType = object,
-      W extends keyof DefinationFunctionParams = 'none'
-    > = typeof DefinationFunction<T, U, V, DefinationFunctionParams[W]>
+      W extends keyof DefinationFunctionParams = 'none',
+      X extends Array<RepoTherapyUtil.GenericType> = []
+    > = typeof RepoTherapy.DefinationFunction<
+      T,
+      U,
+      V,
+      [...DefinationFunctionParams[W], ...X]
+    >
   }
 
   const defineRepoTherapyLint: RepoTherapy.DefinationFunctionGeneric<
@@ -330,11 +338,12 @@ declare global {
 
   const defineRepoTherapyCli: RepoTherapy.DefinationFunctionGeneric<
     'define-cli',
-    [(yargs: yargs.Argv<
-      { project: string | undefined } &
-      { type: string | undefined }
-    >) => void | Promise<void>],
-    Promise<{ cli: undefined }>
+    [
+      Record<string, Array<string> | string>,
+      ReturnType<typeof defineRepoTherapy>,
+      string
+    ],
+    Promise<void>
   >
 
   const defineRepoTherapy: RepoTherapy.DefinationFunctionGeneric<
@@ -363,28 +372,11 @@ declare global {
       error: Record<string, RepoTherapyUtil.CustomError<object>>
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
       lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
-      import: <T = object, U = string> (
-        options: RepoTherapyUtil.DeepPartial<{
-          encoding: BufferEncoding
-          headers: U extends `${string}.csv` ? Array<string> : undefined
-          accept: U extends `${string}.${
-            'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
-          }`
-            ? Record<string, keyof T | Array<keyof T>>
-            : undefined
-        }>
-      ) => ReturnType<typeof defineRepoTherapyImport<T, U>>
-      script: (
-        handler: (libTool: RepoTherapy.DefineLibTool, args: T) => void,
-        builder?: (
-          libTool: RepoTherapy.DefineLibTool,
-          argv: import('yargs').Argv<T>
-        ) => void | import('yargs').Argv<T>
-      ) => (scriptName: string) => ReturnType<
-        ReturnType<typeof defineRepoTherapyScript>
-      >
+      import: typeof defineRepoTherapyImport
       json: typeof defineRepoTherapyJson
-      packageJson: import('type-fest').PackageJson.PackageJsonStandard
+      packageJson: Awaited<
+        ReturnType<ReturnType<typeof defineRepoTherapyPackageJson>>
+      >
     }>
   >
 
@@ -452,7 +444,7 @@ declare global {
     difference: (data: T) => RepoTherapyUtil.DeepPartial<T>
   }>, [T]>
 
-  const defineRepoTherapyTsconfig : RepoTherapy.DefinationFunctionGeneric<
+  const defineRepoTherapyTsconfig: RepoTherapy.DefinationFunctionGeneric<
     'define-tsconfig',
     [Partial<{
       path: string

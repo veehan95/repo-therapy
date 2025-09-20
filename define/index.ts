@@ -9,11 +9,11 @@ import { defineRepoTherapyJson } from './json'
 import { defineRepoTherapyLint } from './lint'
 import { defineRepoTherapyLogger } from './logger'
 import { defineRepoTherapyPackageJson } from './package-json'
-import { defineRepoTherapyScript } from './script'
 import { defineRepoTherapyTsconfig } from './tsconfig'
 import { defineRepoTherapyVsCode } from './vscode'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defaultServerCodes } from '../config/index'
+import { kebabCase, startCase } from 'lodash'
 
 const f: typeof defineRepoTherapy = ({
   project,
@@ -39,21 +39,35 @@ const f: typeof defineRepoTherapy = ({
       )
     })
   }
+
   const p = await defineRepoTherapyImport<{ name: string }>()()
     .importScript('package.json')
   let _projectType: RepoTherapy.ProjectType | undefined = projectType
   const rootPath = await defineRepoTherapyImport()().rootPath
-  const libTool = { rootPath } as unknown as RepoTherapy.DefineLibTool
+  const libTool: RepoTherapy.DefineLibTool = {
+    project: kebabCase(project || p.import?.name || 'undefined-project'),
+    rootPath,
+    env: {
+      nodeEnv: '',
+      project: ''
+    },
+    logger: undefined as unknown as ReturnType<
+      ReturnType<typeof defineRepoTherapyLogger>
+    >['logger']
+  }
+
   const definEnv = await defineRepoTherapyEnv((...x) => ({
+    typeName: startCase(libTool.project).replace(/\s/g, '') + 'Env',
     ...((envConfig ? envConfig(...x) : undefined) || {}),
-    project: project || p.import?.name
+    project: libTool.project
   }))(libTool)
-  Object.assign(libTool, { env: definEnv.env })
-  Object.assign(libTool, { logger: logger(libTool).logger })
   // todo cleanup log
   if (definEnv.warning.length > 0) {
     definEnv.warning.forEach(async (x) => libTool.logger.warn(x))
   }
+
+  libTool.env = definEnv.env
+  libTool.logger = logger(libTool).logger
 
   const serverResponse = Object.entries(
     defaultServerCodes
@@ -71,6 +85,7 @@ const f: typeof defineRepoTherapy = ({
         }] as [number, RepoTherapyUtil.ServerCodeConfig]
       })
   })
+
   const errorList = Object.fromEntries(([
     ...Object.entries(error),
     ...serverResponse.filter(([, v]) => v.isError)
@@ -106,6 +121,7 @@ const f: typeof defineRepoTherapy = ({
       packageManager = 'pnpm'
     } catch {}
   }
+
   let _framework: Array<RepoTherapy.Framework> | undefined = framework
   const frameworkList: Record<
     RepoTherapy.ProjectType,
@@ -115,6 +131,7 @@ const f: typeof defineRepoTherapy = ({
     backend: ['next.js', 'serverless', 'dynamodb', 'knexpresso'],
     'npm-lib': []
   }
+
   const packageJsonCache = await defineRepoTherapyPackageJson(
     { projectType: _projectType || 'npm-lib', packageManager }
   )(libTool)
@@ -149,31 +166,16 @@ const f: typeof defineRepoTherapy = ({
   }
 
   return {
+    ...libTool,
     init,
-    rootPath: libTool.rootPath,
-    env: libTool.env,
     serverCode: Object.fromEntries(serverResponse),
     error: errorList,
     newError: defineRepoTherapyError,
-    logger: libTool.logger,
     lint: () => defineRepoTherapyLint()(libTool),
-    import: <T = object, U = string> (
-      options: Partial<{
-        encoding: BufferEncoding
-        headers: U extends `${string}.csv` ? Array<string> : undefined
-        accept: U extends `${string}.${
-          'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
-        }`
-          ? Record<string, keyof T | Array<keyof T>>
-          : undefined
-      }>
-    ) => defineRepoTherapyImport(options),
-    script: (...o) => (
-      scriptname
-    ) => defineRepoTherapyScript(...o)(libTool, scriptname),
+    import: defineRepoTherapyImport,
     json: defineRepoTherapyJson,
-    packageJson: packageJsonCache.json
-  } as Awaited<ReturnType<ReturnType< typeof defineRepoTherapy>>>
+    packageJson: packageJsonCache
+  }
 })
 
 export { f as defineRepoTherapy }

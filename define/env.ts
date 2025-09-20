@@ -104,7 +104,7 @@ const f: typeof defineRepoTherapyEnv = (
     projectLang: { type: 'string', default: 'en' },
     tz: {
       type: 'string',
-      optional: true,
+      default: 'Asia/Kuala_Lumpur',
       generate: false,
       force: process.env.TZ
     },

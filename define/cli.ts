@@ -1,20 +1,22 @@
 #!/usr/bin/env node
-import { type PackageJson } from 'type-fest'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { startCase } from 'lodash'
 import { defineRepoTherapy } from './index'
-import _p from '../package.json'
+import repoTherapyPackageJson from '../package.json'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-const p = _p as PackageJson
 
 export const f: typeof defineRepoTherapyCli = (
-  handler = () => {}
+  scriptDir,
+  repoTherapy = defineRepoTherapy(),
+  packageJsonPath
 ) => wrapper('define-cli', async () => {
-  let repoTherapy: Awaited<
-    ReturnType<ReturnType<typeof defineRepoTherapy>> | undefined
-  >
-  function init () {
+  const p = packageJsonPath
+    ? defineRepoTherapyPackageJson({ path: packageJsonPath })
+    : repoTherapyPackageJson
+
+  let rt = await repoTherapy()
+
+  function cliAsync () {
     return yargs(hideBin(process.argv))
       .scriptName(p.name || '')
       .parserConfiguration({ 'strip-aliased': true })
@@ -34,63 +36,78 @@ export const f: typeof defineRepoTherapyCli = (
       .strict()
   }
 
-  const cli = init()
+  const selectedProject = (await cliAsync().argv).project
+  if (
+    selectedProject &&
+    rt.env.project !== selectedProject
+  ) {
+    await defineRepoTherapy({ project: selectedProject })()
+    rt = await repoTherapy()
+  }
 
-  cli.middleware(async (argv) => {
-    repoTherapy = await defineRepoTherapy({
-      project: argv.project,
-      projectType: argv.type as RepoTherapy.ProjectType
-    })()
-    await repoTherapy.init()
-    repoTherapy.logger.info('')
-    repoTherapy.logger.info(startCase(p.name))
-    repoTherapy.logger.info('')
-  })
+  console.log()
 
-  // todo
-  cli.fail(async (msg) => {
-    if (!msg) { return }
-    const argv = await init().argv
-    if (!repoTherapy) {
-      repoTherapy = await defineRepoTherapy({
-        project: argv.project,
-        projectType: argv.type as RepoTherapy.ProjectType
-      })()
-    }
-    repoTherapy.logger.info('')
-    repoTherapy.logger.info(startCase(p.name))
-    repoTherapy.logger.info('')
-    await cli.getHelp()
-      .then(x => x.split(/\n/).map(y => repoTherapy!.logger.info(y)))
-    repoTherapy.logger.info('')
-    repoTherapy.logger.error('')
-    repoTherapy.logger.error(msg)
-    repoTherapy.logger.error('')
-    process.exit(1)
-  })
+  // function init () {
+  //   console.log(process.argv)
+  //   return
+  // }
 
-  handler(cli)
+  // const cli = init()
 
-  cli.command({
-    command: 'init',
-    describe: 'Initialize repository',
-    handler: async () => {
-      if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
-      repoTherapy.logger.info('Initiated')
-      repoTherapy.logger.info(`  project: ${repoTherapy.env.project}`)
-      repoTherapy.logger.info(`  env: ${repoTherapy.env.nodeEnv}`)
-    }
-  })
+  // cli.middleware(async (argv) => {
+  //   repoTherapy = await defineRepoTherapy({
+  //     project: argv.project,
+  //     projectType: argv.type as RepoTherapy.ProjectType
+  //   })()
+  //   repoTherapy.logger.info('')
+  //   repoTherapy.logger.info(_name)
+  //   repoTherapy.logger.info('')
+  // })
 
-  cli.help('h').alias('h', 'help')
-  cli.version('v').alias('v', 'version')
-  cli.epilog(`For more information, visit ${
-    typeof p.repository === 'string' ? p.repository : p.repository?.url
-  }`)
-  await cli.argv
-  if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
-  repoTherapy.logger.info('')
-  return { cli: undefined }
+  // // todo
+  // // cli.fail(async (msg) => {
+  // //   if (!msg) { return }
+  // //   const argv = await init().argv
+  // //   if (!repoTherapy) {
+  // //     repoTherapy = await defineRepoTherapy({
+  // //       project: argv.project,
+  // //       projectType: argv.type as RepoTherapy.ProjectType
+  // //     })()
+  // //   }
+  // //   repoTherapy.logger.info('')
+  // //   repoTherapy.logger.info(_name)
+  // //   repoTherapy.logger.info('')
+  // //   await cli.getHelp()
+  // //     .then(x => x.split(/\n/).map(y => repoTherapy!.logger.info(y)))
+  // //   repoTherapy.logger.info('')
+  // //   repoTherapy.logger.error('')
+  // //   repoTherapy.logger.error(msg)
+  // //   repoTherapy.logger.error('')
+  // //   process.exit(1)
+  // // })
+
+  // // handler(cli)
+  // // scriptDir
+
+  // cli.command({
+  //   command: 'init',
+  //   describe: 'Initialize repository',
+  //   handler: async () => {
+  //     if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
+  //     repoTherapy.logger.info('Initiated')
+  //     repoTherapy.logger.info(`  project: ${repoTherapy.env.project}`)
+  //     repoTherapy.logger.info(`  env: ${repoTherapy.env.nodeEnv}`)
+  //   }
+  // })
+
+  // cli.help('h').alias('h', 'help')
+  // cli.version('v').alias('v', 'version')
+  // cli.epilog(`For more information, visit ${
+  //   typeof p.repository === 'string' ? p.repository : p.repository?.url
+  // }`)
+  // await cli.argv
+  // if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
+  // repoTherapy.logger.info('')
 })
 
 export { f as defineRepoTherapyCli }
