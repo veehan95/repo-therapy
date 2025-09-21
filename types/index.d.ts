@@ -184,8 +184,8 @@ declare global {
     T extends RepoTherapyUtil.Slug,
     U extends RepoTherapyUtil.GenericType,
     V extends Array<RepoTherapyUtil.GenericType> = []
-  > (slug: T, handler: (...argv: Partial<V>) => U, warpperClient?: string): (
-    (...argv: Partial<V>) => U
+  > (slug: T, handler: (...argv: V) => U, warpperClient?: string): (
+    (...argv: V) => U
   ) & {
     slug: T
     warpperClient: string
@@ -380,6 +380,19 @@ declare global {
   >
 
   function defineRepoTherapyImport <T = object, U = string> (
+    options?: Partial<{
+      packageJsonPath: string
+      encoding: BufferEncoding
+      headers: U extends `${string}.csv` ? Array<string> : undefined
+      accept: Record<string, string>
+      // todo fix
+      // accept: U extends `${string}.${
+      //   'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+      // }`
+      //   ? Record<string, keyof T | Array<keyof T>>
+      //   : undefined
+      match: RegExp
+    }>
   ): ReturnType<typeof defineRepoTherapyWrapper<'define-import', {
     rootPath: Promise<string>
     importScript: (
@@ -396,21 +409,7 @@ declare global {
         validator?: (_: Partial<T>) => void
       } & RepoTherapy.ImportObject<T>>
     >
-  }, [
-    Partial<{
-      packageJsonPath: string
-      encoding: BufferEncoding
-      headers: U extends `${string}.csv` ? Array<string> : undefined
-      accept: Record<string, string>
-      // todo fix
-      // accept: U extends `${string}.${
-      //   'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
-      // }`
-      //   ? Record<string, keyof T | Array<keyof T>>
-      //   : undefined
-      match: RegExp
-    }>
-  ]>>
+  }>>
 
   function defineRepoTherapyScript <T extends object> (
     describe: string,
