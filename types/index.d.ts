@@ -338,7 +338,7 @@ declare global {
   const defineRepoTherapyCli: RepoTherapy.DefinationFunctionGeneric<
     'define-cli',
     [
-      Record<'lib' | 'custom', Array<string> | string>,
+      Partial<Record<'lib' | 'custom', Array<string> | string>>,
       ReturnType<typeof defineRepoTherapy>,
       string
     ],
