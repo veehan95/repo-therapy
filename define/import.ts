@@ -8,14 +8,15 @@ import { defineRepoTherapyCsv } from './csv'
 let tsImported = false
 
 const f: typeof defineRepoTherapyImport = <T = object, U = string> (
-  options: Partial<{
-    packageJsonPath: string
-    encoding: BufferEncoding
-    headers: U extends `${string}.csv` ? Array<string> : undefined
-    accept: Record<string, string>
-    match?: RegExp
-  }> = {}
-) => wrapper('define-import', () => {
+) => wrapper('define-import', (
+    options: Partial<{
+      packageJsonPath: string
+      encoding: BufferEncoding
+      headers: U extends `${string}.csv` ? Array<string> : undefined
+      accept: Record<string, string>
+      match?: RegExp
+    }> = {}
+  ) => {
     const rootPath: Promise<string> = (new Promise<string>((resolve) => {
       if (options.packageJsonPath) {
         resolve(options.packageJsonPath)
