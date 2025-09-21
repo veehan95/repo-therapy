@@ -205,7 +205,8 @@ const f: typeof defineRepoTherapy = ({
     lint: () => defineRepoTherapyLint()(libTool),
     import: defineRepoTherapyImport,
     json: defineRepoTherapyJson,
-    packageJson: packageJsonCache
+    packageJson: packageJsonCache,
+    isLocal: !['production', 'staging', 'dev'].includes(libTool.env.nodeEnv)
   }
 })
 

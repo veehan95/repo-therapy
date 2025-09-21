@@ -375,6 +375,7 @@ declare global {
       packageJson: Awaited<
         ReturnType<ReturnType<typeof defineRepoTherapyPackageJson>>
       >
+      isLocal: boolean
     }>
   >
 
