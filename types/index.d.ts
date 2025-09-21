@@ -364,15 +364,11 @@ declare global {
       // todo move to @types
       manualModuleTyping: Array<string>
     }>],
-    Promise<{
-      project: string
+    Promise<RepoTherapy.DefineLibTool & {
       init: () => Promise<void>
-      rootPath: string
-      env: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyEnv>>>['env']
-      newError: typeof defineRepoTherapyError
       serverCode: Record<string, RepoTherapyUtil.ServerCodeConfig>
       error: Record<string, RepoTherapyUtil.CustomError<object>>
-      logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
+      newError: typeof defineRepoTherapyError
       lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
       import: typeof defineRepoTherapyImport
       json: typeof defineRepoTherapyJson
