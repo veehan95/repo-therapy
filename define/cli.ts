@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import { defineRepoTherapy } from './index'
@@ -45,14 +44,18 @@ export const f: typeof defineRepoTherapyCli = (
   rt.logger.info(`Env: ${rt.env.nodeEnv}`)
   rt.logger.info('')
 
-  const libScript = scriptDir
-    ? typeof scriptDir.lib === 'string' ? [scriptDir.lib] : scriptDir.lib
-    : []
-  const customScript = scriptDir
-    ? typeof scriptDir.custom === 'string'
-      ? [scriptDir.custom]
-      : scriptDir.custom
-    : []
+  const libScript = (
+    scriptDir
+      ? typeof scriptDir.lib === 'string' ? [scriptDir.lib] : scriptDir.lib
+      : []
+  ) || []
+  const customScript = (
+    scriptDir
+      ? typeof scriptDir.custom === 'string'
+        ? [scriptDir.custom]
+        : scriptDir.custom
+      : []
+  ) || []
   const fullScriptDir = Object
     .entries({
       lib: [join(__dirname, '../cli'), ...libScript],
@@ -68,67 +71,22 @@ export const f: typeof defineRepoTherapyCli = (
     }>({
       accept: { default: 'define-script' }
     })().importScriptFromDir(dir)
+    const obj: Record<
+      string,
+      Awaited<ReturnType<ReturnType<typeof defineRepoTherapyScript>>>
+    > = {}
     for (let j = 0; j < f.length; j++) {
       const fImport = f[j].import
       if (!fImport) { throw new Error(`Empty script found ${f[j].path}`) }
       const s = await fImport
         .default(rt, f[j].path, category as 'lib' | 'custom')
-      actualCli.command(s.command, s.describe, s.builder, s.handler)
+      obj[s.command] = s
     }
+    Object.values(obj).forEach((x) => {
+      actualCli.command(x.command, x.describe, x.builder, x.handler)
+    })
   }
   await actualCli.argv
-
-  // function init () {
-  //   console.log(process.argv)
-  //   return
-  // }
-
-  // const cli = init()
-
-  // // todo
-  // // cli.fail(async (msg) => {
-  // //   if (!msg) { return }
-  // //   const argv = await init().argv
-  // //   if (!repoTherapy) {
-  // //     repoTherapy = await defineRepoTherapy({
-  // //       project: argv.project,
-  // //       projectType: argv.type as RepoTherapy.ProjectType
-  // //     })()
-  // //   }
-  // //   repoTherapy.logger.info('')
-  // //   repoTherapy.logger.info(_name)
-  // //   repoTherapy.logger.info('')
-  // //   await cli.getHelp()
-  // //     .then(x => x.split(/\n/).map(y => repoTherapy!.logger.info(y)))
-  // //   repoTherapy.logger.info('')
-  // //   repoTherapy.logger.error('')
-  // //   repoTherapy.logger.error(msg)
-  // //   repoTherapy.logger.error('')
-  // //   process.exit(1)
-  // // })
-
-  // // handler(cli)
-  // // scriptDir
-
-  // cli.command({
-  //   command: 'init',
-  //   describe: 'Initialize repository',
-  //   handler: async () => {
-  //     if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
-  //     repoTherapy.logger.info('Initiated')
-  //     repoTherapy.logger.info(`  project: ${repoTherapy.env.project}`)
-  //     repoTherapy.logger.info(`  env: ${repoTherapy.env.nodeEnv}`)
-  //   }
-  // })
-
-  // cli.help('h').alias('h', 'help')
-  // cli.version('v').alias('v', 'version')
-  // cli.epilog(`For more information, visit ${
-  //   typeof p.repository === 'string' ? p.repository : p.repository?.url
-  // }`)
-  // await cli.argv
-  // if (!repoTherapy) { throw new Error('RepoTherapy not configured.') }
-  // repoTherapy.logger.info('')
 })
 
 export { f as defineRepoTherapyCli }
