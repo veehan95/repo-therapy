@@ -12,11 +12,8 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
     packageJsonPath: string
     encoding: BufferEncoding
     headers: U extends `${string}.csv` ? Array<string> : undefined
-    accept: U extends `${string}.${
-      'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
-    }`
-      ? Record<string, keyof T | Array<keyof T>>
-      : undefined
+    accept: Record<string, string>
+    match?: RegExp
   }> = {}
 ) => wrapper('define-import', () => {
     const rootPath: Promise<string> = (new Promise<string>((resolve) => {
@@ -53,11 +50,12 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
       }
       // todo force type
       let lib: T | undefined
-      try {
-        if (['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx'].includes(ext)) {
-          if (!options.accept) {
-            throw new Error('No file defination configured for js/ts')
-          }
+      const scriptExt = ['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx']
+      if (scriptExt.includes(ext)) {
+        if (!options.accept) {
+          throw new Error('Script accepted definition not defined ')
+        }
+        try {
           // eslint-disable-next-line @typescript-eslint/no-require-imports
           const x = require(fPath)
           lib = Object.fromEntries(
@@ -65,25 +63,28 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
               const _v = (typeof v === 'string' ? [v] : v) as Array<string>
               if (!_v.includes(x[k].slug)) {
                 throw new Error(`Defination for ${
-                  x[k].slug
-                } found instead of ${JSON.stringify(_v)}`)
+                x[k].slug
+              } found instead of ${JSON.stringify(_v)}`)
               }
               return [k, x[k]]
             })
           ) as T
-        } else if (ext === '.json') {
+        } catch {}
+      } else if (ext === '.json') {
+        try {
           lib = (await import(fPath, { with: { type: 'json' } })).default
-        } else if (ext === '.csv') {
-          const headers = options.headers as Array<string>
-          if (!headers) { throw new Error('Reading a csv must have header') }
+        } catch {}
+      } else if (ext === '.csv') {
+        const headers = options.headers as Array<string>
+        if (!headers) { throw new Error('Reading a csv must have header') }
+        try {
           lib = await defineRepoTherapyCsv(headers)(fPath).read() as T
-        } else {
-          lib = readFileSync(
-            fPath,
-            options.encoding || 'binary'
-          ) as unknown as T
-        }
-      } catch {}
+        } catch {}
+      } else {
+        try {
+          lib = readFileSync(fPath, options.encoding || 'utf-8') as unknown as T
+        } catch {}
+      }
 
       return {
         ext,
@@ -95,12 +96,11 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
 
     async function importScriptFromDir (
       path: string,
-      option?: RepoTherapyUtil.DeepPartial<{
-      soft?: boolean
-      accept?: Record<string, keyof T | Array<keyof T>>
-    }>
+      localOption?: RepoTherapyUtil.DeepPartial<{ soft?: boolean }>
     ) {
-      const fPath = join(await rootPath, path)
+      const awaitedRootPath = await rootPath
+      const cleanPath = path.replace(new RegExp(`^${awaitedRootPath}`), '')
+      const fPath = join(awaitedRootPath, cleanPath)
       if (!existsSync(fPath)) { return [] }
       const d = readdirSync(fPath, { recursive: true, encoding: 'utf-8' })
       const r: Array<{
@@ -108,10 +108,11 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
         relativePath: string
       } & RepoTherapy.ImportObject<T>> = []
       for (let i = 0; i < d.length; i++) {
+        if (options.match && !options.match.test(d[i])) { continue }
         r.push({
-          dir: path,
+          dir: cleanPath,
           relativePath: d[i],
-          ...await importScript(join(path, d[i]) as U, option)
+          ...await importScript(join(cleanPath, d[i]) as U, localOption)
         })
       }
       return r

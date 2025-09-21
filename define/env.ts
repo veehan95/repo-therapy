@@ -5,6 +5,9 @@ import { kebabCase, snakeCase } from 'lodash'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyImport } from './import'
 
+const path = '.env'
+const pathPostfix = '.local'
+
 const f: typeof defineRepoTherapyEnv = (
   handler = () => ({})
 ) => wrapper('define-env', async (libTool) => {
@@ -126,7 +129,7 @@ const f: typeof defineRepoTherapyEnv = (
   const postgres = JSON.parse(JSON.stringify(database))
   postgres.port.default = 5432
 
-  // rodo object overrides existing env
+  // todo object overrides existing env
   function recursiveEnv (
     key: string,
     value: RepoTherapyEnv.Detail,
@@ -274,7 +277,6 @@ const f: typeof defineRepoTherapyEnv = (
   }
 
   const config = handler({ envPreset })
-  const warning: Array<string> = []
 
   let envConfig = config.env || {}
   Object.entries(envPreset.base).reverse().forEach(([k, v]) => {
@@ -310,71 +312,50 @@ const f: typeof defineRepoTherapyEnv = (
   //   }
   // }
 
-  const path = '.env'
-  let envInit: Awaited<ReturnType<ReturnType<
-    ReturnType<typeof defineRepoTherapyImport<string>>
-  >['importScript']>> = await defineRepoTherapyImport<string>()().importScript(
-    `${path}${config.project ? `.${config.project}.local` : ''}`,
-    { soft: true }
-  )
-  if (
-    !envInit?.import ||
-    config.project !== dotenv.parse(envInit.import).PROJECT
-  ) {
-    envInit = await defineRepoTherapyImport<string>()()
-      .importScript('.env.local', { soft: true })
-  }
-  const envDefault: Awaited<ReturnType<ReturnType<
-    ReturnType<typeof defineRepoTherapyImport<string>>
-  >['importScript']>> = await defineRepoTherapyImport<string>()()
+  const defaultEnv = await defineRepoTherapyImport<string>()()
     .importScript('.env', { soft: true })
-  if (
-    envDefault?.import &&
-    config.project === dotenv.parse(envDefault.import).PROJECT
-  ) { envInit = envDefault }
-
-  if (envInit.import === undefined) {
-    warning.push(`Env for ${config.project} not found`)
-    warning.push('Created new .env')
-    const newEnv = envSample()
-    newEnv.PROJECT = config.project || '<undefined project>'
-    const newEnvStr = Object.entries(newEnv)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('\n')
-
-    const postfix = envDefault?.import === undefined
-      ? ''
-      : `.${newEnv.PROJECT}.local`
-    const targetPath = `${envDefault?.fullPath}${postfix}`
-    writeFileSync(targetPath, newEnvStr)
-    envInit = await defineRepoTherapyImport<string>()()
-      .importScript(`${path}${postfix}`)
+  const defaultEnvProject = dotenv.parse(defaultEnv.import || '').PROJECT
+  if (config.project && defaultEnvProject !== config.project) {
+    if (defaultEnv.import) {
+      writeFileSync(
+        join(libTool.rootPath, `${path}.${defaultEnvProject}${pathPostfix}`),
+        defaultEnv.import || ''
+      )
+    }
+    writeFileSync(
+      join(libTool.rootPath, path),
+      await defineRepoTherapyImport<string>()()
+        .importScript(`${path}.${config.project}${pathPostfix}`, { soft: true })
+        .then(x => x.import || '')
+    )
   }
+  const envInit = await defineRepoTherapyImport<string>()()
+    .importScript('.env', { soft: true })
 
   dotenv.config({ path: envInit.fullPath })
+  if (!process.env.PROJECT) { process.env.PROJECT = config.project }
 
   const rootEnv = recursiveEnv('env', envConfig)
   const env = recursiveEnv('env', envConfig, undefined, false, rootEnv).env
-  if (envInit.import) {
-    const envSampleObj = envSample(env)
-    const envSampleKey = Object.keys(envSampleObj)
-      .map(x => new RegExp(`^${x}=`))
-    const customEnv = envInit.import.split(/\n/g)
-      .filter(x => x && !envSampleKey.find(y => y.test(x)))
-    const customEnvStr: Array<string> = []
-    if (customEnv.length > 0) {
-      customEnvStr.push('')
-      customEnvStr.push('')
-      customEnvStr.push('# ================================')
-      customEnvStr.push('# Unconfigured env')
-      customEnvStr.push('# ================================')
-      customEnvStr.push(...customEnv)
-    }
-    const str = Object.entries(envSampleObj)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('\n') + customEnvStr.join('\n') + '\n'
-    writeFileSync(envInit.fullPath, str)
+  const envSampleObj = envSample(env)
+  const envSampleKey = Object.keys(envSampleObj)
+    .map(x => new RegExp(`^${x}=`))
+  const customEnv = envInit.import?.split(/\n/g).filter(
+    x => x && !envSampleKey.find(y => y.test(x)) && !/^# /.test(x)
+  ) || []
+  const customEnvStr: Array<string> = []
+  if (customEnv.length > 0) {
+    customEnvStr.push('')
+    customEnvStr.push('')
+    customEnvStr.push('# ================================')
+    customEnvStr.push('# Unconfigured env')
+    customEnvStr.push('# ================================')
+    customEnvStr.push(...customEnv)
   }
+  const str = Object.entries(envSampleObj)
+    .map(([k, v]) => `${k}=${v}`)
+    .join('\n') + customEnvStr.join('\n') + '\n'
+  writeFileSync(envInit.fullPath, str)
 
   const paths = {
     configPath: config.paths?.configPath || 'repo-therapy.ts',
@@ -407,8 +388,7 @@ const f: typeof defineRepoTherapyEnv = (
         `declare global {\n  ${envType().replace(/\n/g, '\n  ')}\n}`
       )
     },
-    config: { env: envConfig },
-    warning
+    config: { env: envConfig }
   }
 })
 

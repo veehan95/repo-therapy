@@ -13,7 +13,7 @@ import { defineRepoTherapyTsconfig } from './tsconfig'
 import { defineRepoTherapyVsCode } from './vscode'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defaultServerCodes } from '../config/index'
-import { kebabCase, startCase } from 'lodash'
+import { startCase } from 'lodash'
 
 const f: typeof defineRepoTherapy = ({
   project,
@@ -23,6 +23,7 @@ const f: typeof defineRepoTherapy = ({
   env: envConfig,
   serverCode = {},
   error = {},
+  silent = false,
   // todo move to @types
   manualModuleTyping = []
 } = {}) => wrapper('define-repo-therapy', async () => {
@@ -40,34 +41,64 @@ const f: typeof defineRepoTherapy = ({
     })
   }
 
-  const p = await defineRepoTherapyImport<{ name: string }>()()
-    .importScript('package.json')
   let _projectType: RepoTherapy.ProjectType | undefined = projectType
   const rootPath = await defineRepoTherapyImport()().rootPath
   const libTool: RepoTherapy.DefineLibTool = {
-    project: kebabCase(project || p.import?.name || 'undefined-project'),
+    project: project as string,
     rootPath,
     env: {
       nodeEnv: '',
-      project: ''
+      project: project as string
     },
     logger: undefined as unknown as ReturnType<
       ReturnType<typeof defineRepoTherapyLogger>
     >['logger']
   }
 
+  const loggerCache: Record<
+    'complete' | 'error' | 'info' | 'success' | 'warn',
+    Array<string>
+  > = {
+    complete: [],
+    error: [],
+    info: [],
+    success: [],
+    warn: []
+  }
+
   const definEnv = await defineRepoTherapyEnv((...x) => ({
     typeName: startCase(libTool.project).replace(/\s/g, '') + 'Env',
     ...((envConfig ? envConfig(...x) : undefined) || {}),
     project: libTool.project
-  }))(libTool)
-  // todo cleanup log
-  if (definEnv.warning.length > 0) {
-    definEnv.warning.forEach(async (x) => libTool.logger.warn(x))
-  }
+  }))({
+    ...libTool,
+    logger: Object.fromEntries(
+      Object.keys(loggerCache).map(x => [x, (s: string) => loggerCache[
+        x as keyof typeof loggerCache
+      ].push(s)])
+    ) as unknown as ReturnType<
+      ReturnType<typeof defineRepoTherapyLogger>
+    >['logger']
+  })
 
   libTool.env = definEnv.env
-  libTool.logger = logger(libTool).logger
+  libTool.project = definEnv.env.project
+  libTool.logger = silent
+    ? Object.fromEntries(
+      Object.keys(loggerCache).map(x => [x, () => {}])
+    ) as unknown as ReturnType<
+      ReturnType<typeof defineRepoTherapyLogger>
+    >['logger']
+    : logger(libTool).logger
+
+  if (!silent) {
+    Object.entries(loggerCache).forEach(([k, v]) => {
+      if (v.length === 0) { return }
+      v.forEach(s => {
+        libTool.logger[k as keyof typeof libTool.logger](s)
+      })
+    })
+  }
 
   const serverResponse = Object.entries(
     defaultServerCodes

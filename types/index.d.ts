@@ -318,7 +318,6 @@ declare global {
       config: {
         env: Record<string, RepoTherapyEnv.Detail>
       }
-      warning: Array<string>
     }>,
     'tool'
   >
@@ -339,7 +338,7 @@ declare global {
   const defineRepoTherapyCli: RepoTherapy.DefinationFunctionGeneric<
     'define-cli',
     [
-      Record<string, Array<string> | string>,
+      Record<'lib' | 'custom', Array<string> | string>,
       ReturnType<typeof defineRepoTherapy>,
       string
     ],
@@ -349,6 +348,7 @@ declare global {
   const defineRepoTherapy: RepoTherapy.DefinationFunctionGeneric<
     'define-repo-therapy',
     [Partial<{
+      libName: string
       project: string
       projectType: RepoTherapy.ProjectType
       framework: Array<RepoTherapy.Framework>
@@ -360,10 +360,12 @@ declare global {
         // todo stricter type declaration
         // defaultProp: object
       }>
+      silent: boolean
       // todo move to @types
       manualModuleTyping: Array<string>
     }>],
     Promise<{
+      project: string
       init: () => Promise<void>
       rootPath: string
       env: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyEnv>>>['env']
@@ -385,17 +387,20 @@ declare global {
       packageJsonPath: string
       encoding: BufferEncoding
       headers: U extends `${string}.csv` ? Array<string> : undefined
-      accept: U extends `${string}.${
-        'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
-      }`
-        ? Record<string, keyof T | Array<keyof T>>
-        : undefined
+      accept: Record<string, string>
+      // todo fix
+      // accept: U extends `${string}.${
+      //   'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'
+      // }`
+      //   ? Record<string, keyof T | Array<keyof T>>
+      //   : undefined
+      match: RegExp
     }>
   ): ReturnType<typeof defineRepoTherapyWrapper<'define-import', {
     rootPath: Promise<string>
     importScript: (
       path: U,
-      options?: RepoTherapyUtil.DeepPartial<{ soft: booleanm}>
+      options?: RepoTherapyUtil.DeepPartial<{ soft: boolean }>
     ) => Promise<RepoTherapy.ImportObject<T>>
     importScriptFromDir: (
       path: string,
@@ -410,16 +415,18 @@ declare global {
   }>>
 
   function defineRepoTherapyScript <T extends object> (
+    describe: string,
     handler: (libTool: RepoTherapy.DefineLibTool, args: T) => void,
     builder?: (
       libTool: RepoTherapy.DefineLibTool,
       argv: import('yargs').Argv<T>
     ) => void | import('yargs').Argv<T>
   ): ReturnType<typeof defineRepoTherapyWrapper<'define-script', Promise<{
+    describe: string
     builder: (argv: import('yargs').Argv<T>) => void | import('yargs').Argv<T>
     handler: (args: T) => void
-    scriptName: string
-  }>, [RepoTherapy.DefineLibTool, string]>>
+    command: string
+  }>, [RepoTherapy.DefineLibTool, string, 'lib' | 'custom']>>
 
   const defineRepoTherapyPackageJson: RepoTherapy.DefinationFunctionGeneric<
     'define-package-json',

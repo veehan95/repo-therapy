@@ -4,6 +4,7 @@ import { hideBin } from 'yargs/helpers'
 import { defineRepoTherapy } from './index'
 import repoTherapyPackageJson from '../package.json'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
+import { join } from 'path'
 
 export const f: typeof defineRepoTherapyCli = (
   scriptDir,
@@ -13,8 +14,6 @@ export const f: typeof defineRepoTherapyCli = (
   const p = packageJsonPath
     ? defineRepoTherapyPackageJson({ path: packageJsonPath })
     : repoTherapyPackageJson
-
-  let rt = await repoTherapy()
 
   function cliAsync () {
     return yargs(hideBin(process.argv))
@@ -37,15 +36,47 @@ export const f: typeof defineRepoTherapyCli = (
   }
 
   const selectedProject = (await cliAsync().argv).project
-  if (
-    selectedProject &&
-    rt.env.project !== selectedProject
-  ) {
-    await defineRepoTherapy({ project: selectedProject })()
-    rt = await repoTherapy()
-  }
+  await defineRepoTherapy({ project: selectedProject })()
+  const rt = await repoTherapy()
 
-  console.log()
+  rt.logger.info('')
+  rt.logger.info(p.name)
+  rt.logger.info(`Project: ${rt.project}`)
+  rt.logger.info(`Env: ${rt.env.nodeEnv}`)
+  rt.logger.info('')
+
+  const libScript = scriptDir
+    ? typeof scriptDir.lib === 'string' ? [scriptDir.lib] : scriptDir.lib
+    : []
+  const customScript = scriptDir
+    ? typeof scriptDir.custom === 'string'
+      ? [scriptDir.custom]
+      : scriptDir.custom
+    : []
+  const fullScriptDir = Object
+    .entries({
+      lib: [join(__dirname, '../cli'), ...libScript],
+      custom: customScript
+    })
+    .flatMap(([category, v]) => v.map(dir => ({ category, dir })))
+
+  const actualCli = cliAsync()
+  for (let i = 0; i < fullScriptDir.length; i++) {
+    const { category, dir } = fullScriptDir[i]
+    const f = await rt.import<{
+      default: ReturnType<typeof defineRepoTherapyScript>
+    }>({
+      accept: { default: 'define-script' }
+    })().importScriptFromDir(dir)
+    for (let j = 0; j < f.length; j++) {
+      const fImport = f[j].import
+      if (!fImport) { throw new Error(`Empty script found ${f[j].path}`) }
+      const s = await fImport
+        .default(rt, f[j].path, category as 'lib' | 'custom')
+      actualCli.command(s.command, s.describe, s.builder, s.handler)
+    }
+  }
+  await actualCli.argv
 
   // function init () {
   //   console.log(process.argv)
@@ -53,16 +84,6 @@ export const f: typeof defineRepoTherapyCli = (
   // }
 
   // const cli = init()
-
-  // cli.middleware(async (argv) => {
-  //   repoTherapy = await defineRepoTherapy({
-  //     project: argv.project,
-  //     projectType: argv.type as RepoTherapy.ProjectType
-  //   })()
-  //   repoTherapy.logger.info('')
-  //   repoTherapy.logger.info(_name)
-  //   repoTherapy.logger.info('')
-  // })
 
   // // todo
   // // cli.fail(async (msg) => {
