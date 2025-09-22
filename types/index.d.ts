@@ -215,8 +215,21 @@ declare global {
     interface DefineLibTool {
       project: string
       rootPath: string
+      projectPath: string
+      projectRoot: string
+      buildPath: string
+      buildRoot: string
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
       env: Env
+      import: <T = object, U = string> (
+        options: Partial<{
+          packageJsonPath: string
+          encoding: BufferEncoding
+          headers: U extends `${string}.csv` ? Array<string> : undefined
+          accept: Record<string, string>
+          match?: RegExp
+        }> = {}
+      ) => ReturnType<ReturnType<typeof defineRepoTherapyImport<T, U>>>
     }
 
     function DefinationFunction <
@@ -370,7 +383,6 @@ declare global {
       error: Record<string, RepoTherapyUtil.CustomError<object>>
       newError: typeof defineRepoTherapyError
       lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
-      import: typeof defineRepoTherapyImport
       json: typeof defineRepoTherapyJson
       packageJson: Awaited<
         ReturnType<ReturnType<typeof defineRepoTherapyPackageJson>>
@@ -384,7 +396,7 @@ declare global {
       packageJsonPath: string
       encoding: BufferEncoding
       headers: U extends `${string}.csv` ? Array<string> : undefined
-      accept: Record<string, string>
+      accept: Record<string, string | Array<string>>
       // todo fix
       // accept: U extends `${string}.${
       //   'js' | 'cjs' | 'mjs' | 'jsx' | 'ts' | 'tsx'

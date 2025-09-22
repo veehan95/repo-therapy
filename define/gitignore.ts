@@ -1,17 +1,15 @@
 import { join } from 'path'
 import { writeFileSync } from 'fs'
-import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { baseGitignore, frameworkGitignore } from '../config/gitignore'
 
 export const f: typeof defineRepoTherapyGitignore = (
   options = {}
-) => wrapper('define-gitignore', async ({ rootPath }) => {
+) => wrapper('define-gitignore', async (libTool) => {
   const path = options.path || '.gitignore'
 
-  const currentConfig = await defineRepoTherapyImport<string>({
-    encoding: 'utf-8'
-  })().importScript(path).then(x => x.import || '')
+  const currentConfig = await libTool.import<string>()
+    .importScript(path).then(x => x.import || '')
 
   const baseConfig = [
     ...Object.entries(baseGitignore).map(([k, v]) => [k, v]),
@@ -43,7 +41,7 @@ export const f: typeof defineRepoTherapyGitignore = (
     path,
     write: () => {
       writeFileSync(
-        join(rootPath, path),
+        join(libTool.rootPath, path),
         config.map(([k, v]) => [k, v.map(x => x.trim())])
           .filter(([, v]) => v.length > 0)
           .map(([k, v]) => [

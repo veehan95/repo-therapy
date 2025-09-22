@@ -3,7 +3,6 @@ import dotenv from 'dotenv'
 import { join } from 'path'
 import { kebabCase, snakeCase } from 'lodash'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import { defineRepoTherapyImport } from './import'
 
 const path = '.env'
 const pathPostfix = '.local'
@@ -312,7 +311,7 @@ const f: typeof defineRepoTherapyEnv = (
   //   }
   // }
 
-  const defaultEnv = await defineRepoTherapyImport<string>()()
+  const defaultEnv = await libTool.import<string>()
     .importScript('.env', { soft: true })
   const defaultEnvProject = dotenv.parse(defaultEnv.import || '').PROJECT
   if (config.project && defaultEnvProject !== config.project) {
@@ -324,12 +323,12 @@ const f: typeof defineRepoTherapyEnv = (
     }
     writeFileSync(
       join(libTool.rootPath, path),
-      await defineRepoTherapyImport<string>()()
+      await libTool.import<string>()
         .importScript(`${path}.${config.project}${pathPostfix}`, { soft: true })
         .then(x => x.import || '')
     )
   }
-  const envInit = await defineRepoTherapyImport<string>()()
+  const envInit = await libTool.import<string>()
     .importScript('.env', { soft: true })
 
   dotenv.config({ path: envInit.fullPath })

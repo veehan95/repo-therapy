@@ -1,6 +1,5 @@
 import { writeFileSync } from 'fs'
 import { cloneDeep, merge } from 'lodash'
-import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyJson } from './json'
 import { config as tsConfigConfig } from '../config/tsconfig'
@@ -10,8 +9,7 @@ export const f: typeof defineRepoTherapyTsconfig = (
 ) => wrapper('define-tsconfig', async (libTool) => {
   const path = options.path || 'tsconfig.json'
 
-  const x = await defineRepoTherapyImport()()
-    .importScript(path, { soft: true })
+  const x = await libTool.import().importScript(path, { soft: true })
   const config: RepoTherapyUtil.DeepPartial<
     RepoTherapyUtil.TsConfigJson
   > = x.import || {}

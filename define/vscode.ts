@@ -1,6 +1,5 @@
 import { join } from 'path'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
-import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyJson } from './json'
 import { defineRepoTherapyGitignore } from './gitignore'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
@@ -15,14 +14,14 @@ export const f: typeof defineRepoTherapyVsCode = (
   const gitignore = await defineRepoTherapyGitignore()(libTool)
     .then(x => Object.values(x.config).flat())
 
-  const currentSettings = await defineRepoTherapyImport()()
+  const currentSettings = await libTool.import()
     .importScript(settingsPath, { soft: true })
   // todo add all config
   const jsonSettings = defineRepoTherapyJson(
     settingConfig(gitignore)
   )(currentSettings.import || {})
 
-  const currentExtensions = await defineRepoTherapyImport()()
+  const currentExtensions = await libTool.import()
     .importScript(extensionsPath, { soft: true })
   const jsonExtensions = defineRepoTherapyJson(
     extension

@@ -70,7 +70,7 @@ export const f: typeof defineRepoTherapyCli = (
       default: ReturnType<typeof defineRepoTherapyScript>
     }>({
       accept: { default: 'define-script' }
-    })().importScriptFromDir(dir)
+    }).importScriptFromDir(dir)
     const obj: Record<
       string,
       Awaited<ReturnType<ReturnType<typeof defineRepoTherapyScript>>>

@@ -43,16 +43,30 @@ const f: typeof defineRepoTherapy = ({
 
   let _projectType: RepoTherapy.ProjectType | undefined = projectType
   const rootPath = await defineRepoTherapyImport()().rootPath
+  const buildPath = 'dist'
   const libTool: RepoTherapy.DefineLibTool = {
-    project: project as string,
+    project: project || '',
     rootPath,
+    projectPath: '',
+    projectRoot: '',
+    buildPath,
+    buildRoot: join(rootPath, buildPath),
     env: {
       nodeEnv: '',
       project: project as string
     },
     logger: undefined as unknown as ReturnType<
       ReturnType<typeof defineRepoTherapyLogger>
-    >['logger']
+    >['logger'],
+    import: <T = object, U = string> (
+      options: Partial<{
+        packageJsonPath: string
+        encoding: BufferEncoding
+        headers: U extends `${string}.csv` ? Array<string> : undefined
+        accept: Record<string, string | Array<string>>
+        match?: RegExp
+      }> = {}
+    ) => { return defineRepoTherapyImport<T, U>(options)() }
   }
 
   const loggerCache: Record<
@@ -83,6 +97,9 @@ const f: typeof defineRepoTherapy = ({
 
   libTool.env = definEnv.env
   libTool.project = definEnv.env.project
+  libTool.projectPath = `./project/${libTool.project}`
+  libTool.projectRoot = join(rootPath, libTool.projectPath)
+
   libTool.logger = silent
     ? Object.fromEntries(
       Object.keys(loggerCache).map(x => [x, () => {}])
@@ -140,9 +157,7 @@ const f: typeof defineRepoTherapy = ({
 
   let packageManager: RepoTherapy.PackageManager = 'yarn'
   try {
-    await defineRepoTherapyImport()()
-      .importScript('package-lock.json')
-      .then(x => x.import)
+    await libTool.import().importScript('package-lock.json').then(x => x.import)
     packageManager = 'npm'
   } catch {
     try {
@@ -203,7 +218,6 @@ const f: typeof defineRepoTherapy = ({
     error: errorList,
     newError: defineRepoTherapyError,
     lint: () => defineRepoTherapyLint()(libTool),
-    import: defineRepoTherapyImport,
     json: defineRepoTherapyJson,
     packageJson: packageJsonCache,
     isLocal: !['production', 'staging', 'dev'].includes(libTool.env.nodeEnv)

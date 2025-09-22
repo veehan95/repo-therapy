@@ -1,7 +1,6 @@
 import { type PackageJson } from 'type-fest'
 import { writeFileSync } from 'fs'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyJson } from './json'
 import { config as packageJsonConfig } from '../config/package-json'
 
@@ -9,12 +8,12 @@ const f: typeof defineRepoTherapyPackageJson = ({
   path,
   projectType = 'npm-lib',
   packageManager = 'yarn'
-} = {}) => wrapper('define-package-json', async ({ env }) => {
+} = {}) => wrapper('define-package-json', async (libTool) => {
   const jsonPath = path || 'package.json'
-  const packageJson = await defineRepoTherapyImport()()
+  const packageJson = await libTool.import()
     .importScript(jsonPath, { soft: true })
 
-  const config = packageJsonConfig(env, projectType, packageManager)
+  const config = packageJsonConfig(libTool.env, projectType, packageManager)
   const data = defineRepoTherapyJson(config)(packageJson.import || {})
     .json as PackageJson.PackageJsonStandard
 

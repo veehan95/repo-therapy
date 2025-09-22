@@ -22,11 +22,13 @@ const f: typeof defineRepoTherapyLint = ({
   const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
   let lintWrap = (x: Linter.Config) => x
   if (framework === 'nuxt-monorepo' || framework === 'nuxt.js') {
-    lintWrap = await defineRepoTherapyImport<(
-      x: Linter.Config
-    ) => Linter.Config>()()
+    lintWrap = await libTool.import<{
+      default(
+        x: Linter.Config
+      ): Linter.Config
+    }>()
       .importScript('./.nuxt/eslint.config.mjs', { soft: true })
-      .then(x => x.import) || ((x: Linter.Config) => x)
+      .then(x => x.import?.default || ((x: Linter.Config) => x))
   }
 
   return {

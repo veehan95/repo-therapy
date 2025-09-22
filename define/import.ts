@@ -12,7 +12,7 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
     packageJsonPath: string
     encoding: BufferEncoding
     headers: U extends `${string}.csv` ? Array<string> : undefined
-    accept: Record<string, string>
+    accept: Record<string, string | Array<string>>
     match?: RegExp
   }> = {}
 ) => wrapper('define-import', () => {
