@@ -214,11 +214,15 @@ declare global {
 
     interface DefineLibTool {
       project: string
-      rootPath: string
-      projectPath: string
-      projectRoot: string
-      buildPath: string
-      buildRoot: string
+      path: {
+        project: string
+        build: string
+      }
+      root: {
+        root: string
+        project: string
+        build: string
+      }
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
       env: Env
       import: <T = object, U = string> (

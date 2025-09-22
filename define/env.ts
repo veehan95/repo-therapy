@@ -317,12 +317,12 @@ const f: typeof defineRepoTherapyEnv = (
   if (config.project && defaultEnvProject !== config.project) {
     if (defaultEnv.import) {
       writeFileSync(
-        join(libTool.rootPath, `${path}.${defaultEnvProject}${pathPostfix}`),
+        join(libTool.root.root, `${path}.${defaultEnvProject}${pathPostfix}`),
         defaultEnv.import || ''
       )
     }
     writeFileSync(
-      join(libTool.rootPath, path),
+      join(libTool.root.root, path),
       await libTool.import<string>()
         .importScript(`${path}.${config.project}${pathPostfix}`, { soft: true })
         .then(x => x.import || '')
@@ -382,7 +382,7 @@ const f: typeof defineRepoTherapyEnv = (
     ),
     generateTypeDeclaration: () => {
       writeFileSync(
-        join(libTool.rootPath, paths.typeDeclarationPath),
+        join(libTool.root.root, paths.typeDeclarationPath),
         // todo fix spacing when have extends
         `declare global {\n  ${envType().replace(/\n/g, '\n  ')}\n}`
       )

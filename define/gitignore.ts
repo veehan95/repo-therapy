@@ -41,7 +41,7 @@ export const f: typeof defineRepoTherapyGitignore = (
     path,
     write: () => {
       writeFileSync(
-        join(libTool.rootPath, path),
+        join(libTool.root.root, path),
         config.map(([k, v]) => [k, v.map(x => x.trim())])
           .filter(([, v]) => v.length > 0)
           .map(([k, v]) => [

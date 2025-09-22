@@ -46,11 +46,15 @@ const f: typeof defineRepoTherapy = ({
   const buildPath = 'dist'
   const libTool: RepoTherapy.DefineLibTool = {
     project: project || '',
-    rootPath,
-    projectPath: '',
-    projectRoot: '',
-    buildPath,
-    buildRoot: join(rootPath, buildPath),
+    path: {
+      project: '',
+      build: buildPath
+    },
+    root: {
+      root: rootPath,
+      project: '',
+      build: join(rootPath, buildPath)
+    },
     env: {
       nodeEnv: '',
       project: project as string
@@ -97,8 +101,8 @@ const f: typeof defineRepoTherapy = ({
 
   libTool.env = definEnv.env
   libTool.project = definEnv.env.project
-  libTool.projectPath = `./project/${libTool.project}`
-  libTool.projectRoot = join(rootPath, libTool.projectPath)
+  libTool.path.project = `./project/${libTool.project}`
+  libTool.root.project = join(rootPath, libTool.path.project)
 
   libTool.logger = silent
     ? Object.fromEntries(

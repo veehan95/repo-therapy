@@ -4,8 +4,8 @@ import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 
 const f: typeof defineRepoTherapyHusky = ({
   packageManager = 'yarn'
-} = {}) => wrapper('define-husky', ({ rootPath }) => {
-  const path = join(rootPath, '.husky')
+} = {}) => wrapper('define-husky', (libTool) => {
+  const path = join(libTool.root.root, '.husky')
   const preCommit = join(path, 'pre-commit')
   return {
     path: { preCommit },
