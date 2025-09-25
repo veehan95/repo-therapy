@@ -225,6 +225,12 @@ declare global {
       }
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
       env: Env
+      getOriginalEnv: Awaited<
+        ReturnType<ReturnType<typeof defineRepoTherapyEnv>>
+      >['getOriginalEnv']
+      generateTypeDeclaration: Awaited<
+        ReturnType<ReturnType<typeof defineRepoTherapyEnv>>
+      >['generateTypeDeclaration']
       import: <T = object, U = string> (
         options: Partial<{
           packageJsonPath: string

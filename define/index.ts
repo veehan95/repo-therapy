@@ -59,6 +59,12 @@ const f: typeof defineRepoTherapy = ({
       nodeEnv: '',
       project: project as string
     },
+    getOriginalEnv: undefined as unknown as Awaited<
+      ReturnType<ReturnType<typeof defineRepoTherapyEnv>>
+    >['getOriginalEnv'],
+    generateTypeDeclaration: undefined as unknown as Awaited<
+      ReturnType<ReturnType<typeof defineRepoTherapyEnv>>
+    >['generateTypeDeclaration'],
     logger: undefined as unknown as ReturnType<
       ReturnType<typeof defineRepoTherapyLogger>
     >['logger'],
@@ -101,6 +107,8 @@ const f: typeof defineRepoTherapy = ({
 
   libTool.env = definEnv.env
   libTool.project = definEnv.env.project
+  libTool.getOriginalEnv = definEnv.getOriginalEnv
+  libTool.generateTypeDeclaration = definEnv.generateTypeDeclaration
   libTool.path.project = `./project/${libTool.project}`
   libTool.root.project = join(rootPath, libTool.path.project)
 
