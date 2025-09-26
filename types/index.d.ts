@@ -422,7 +422,7 @@ declare global {
       options?: RepoTherapyUtil.DeepPartial<{ soft: boolean }>
     ) => Promise<RepoTherapy.ImportObject<T>>
     importScriptFromDir: (
-      path: string,
+      path: string | Array<string>,
       options?: RepoTherapyUtil.DeepPartial<{ soft: boolean }>
     ) => Promise<
       Array<{

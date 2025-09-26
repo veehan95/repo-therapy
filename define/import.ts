@@ -95,24 +95,27 @@ const f: typeof defineRepoTherapyImport = <T = object, U = string> (
     }
 
     async function importScriptFromDir (
-      path: string,
+      path: string | Array<string>,
       localOption?: RepoTherapyUtil.DeepPartial<{ soft?: boolean }>
     ) {
       const awaitedRootPath = await rootPath
-      const cleanPath = path.replace(new RegExp(`^${awaitedRootPath}`), '')
-      const fPath = join(awaitedRootPath, cleanPath)
-      if (!existsSync(fPath)) { return [] }
-      const d = readdirSync(fPath, { recursive: true, encoding: 'utf-8' })
+      const d = (typeof path === 'string' ? [path] : path).flatMap(x => {
+        const cleanPath = x.replace(new RegExp(`^${awaitedRootPath}`), '')
+        const fPath = join(awaitedRootPath, cleanPath)
+        if (!existsSync(fPath)) { return [] }
+        return readdirSync(fPath, { recursive: true, encoding: 'utf-8' })
+          .map(path => ({ dir: cleanPath, path }))
+      })
       const r: Array<{
         dir: string
         relativePath: string
       } & RepoTherapy.ImportObject<T>> = []
       for (let i = 0; i < d.length; i++) {
-        if (options.match && !options.match.test(d[i])) { continue }
+        if (options.match && !options.match.test(d[i].path)) { continue }
         r.push({
-          dir: cleanPath,
-          relativePath: d[i],
-          ...await importScript(join(cleanPath, d[i]) as U, localOption)
+          dir: d[i].dir,
+          relativePath: d[i].path,
+          ...await importScript(join(d[i].dir, d[i].path) as U, localOption)
         })
       }
       return r
