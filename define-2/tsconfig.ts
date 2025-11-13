@@ -1,8 +1,8 @@
-import { writeFileSync } from 'fs'
+import { writeFileSync } from 'node:fs'
 import { cloneDeep, merge } from 'lodash'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyJson } from './json'
-import { config as tsConfigConfig } from '../config/tsconfig'
+import { config as tsConfigConfig } from '../configs/tsconfig'
 
 export const f: typeof defineRepoTherapyTsconfig = (
   options = {}

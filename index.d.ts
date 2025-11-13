@@ -9,6 +9,14 @@ declare global {
       [P in keyof T]?: T[P] extends object ? DeepPartial<Partial<T[P]>> : T[P]
     }
 
+    type RootPath <T extends Record<string, string>, U extends string> = {
+      [P in keyof T]: `${U}${T[P]}`
+    }
+
+    type RawCsvRow <T = object> = {
+      [P in keyof T]: string
+    }
+
     interface CustomError <T extends object> extends Error {
       name: string
       props: T
@@ -94,17 +102,17 @@ declare global {
       boolean: boolean
     }
 
-    type Attribute <T extends keyof AttributeType = string> = {
+    type Attribute <T extends keyof AttributeType = keyof AttributeType> = {
       type: T
       optional?: boolean
-      // todo
-      // default: AttributeType[T] | (
-      //   (_: RepoTherapyUtil.DeepPartial<RepoTherapyEnv>) => AttributeType[T]
-      // )
       generate?: boolean
       alias?: Array<string>
       force?: AttributeType<T>
-      default?: AttributeType<T>
+      default?: AttributeType<T> | (
+        () => Optional extends true
+          ? undefined | AttributeType<T>
+          : AttributeType<T>
+      )
     } | T
 
     interface Detail {
@@ -166,12 +174,11 @@ declare global {
       mailgun: PresetMailer
     }
 
-    type Handler = (_: {
+    type Handler <T extends RepoTherapyEnv.Detail> = (_: {
       envPreset: RepoTherapyEnv.Preset
     }) => RepoTherapyUtil.DeepPartial<{
       project: string
-      // skip?; boolean
-      env?: Record<string, RepoTherapyEnv.Detail>
+      env?: Record<string, T>
       paths: {
         configPath: string
         typeDeclarationPath: string
@@ -207,24 +214,29 @@ declare global {
       import?: T
     }
 
-    interface Env {
-      nodeEnv: string
-      project: string
+    type Env <T extends RepoTherapyEnv.Detail> = {
+      [P in keyof T]: T[P] extends RepoTherapyEnv.Attribute<infer U>
+        ? U
+        : Env<T[P]>
     }
 
-    interface DefineLibTool {
+    interface DefineLibTool <
+      T extends RepoTherapyEnv.Detail,
+      U extends Record<string, string>,
+      Z1 extends {
+        project: string
+        build: string
+      } & U = {
+        project: string
+        build: string
+      } & U,
+      Z2 extends string = string
+    > {
       project: string
-      path: {
-        project: string
-        build: string
-      }
-      root: {
-        root: string
-        project: string
-        build: string
-      }
+      path: Z1
+      root: { root: Z2 } & RepoTherapyUtil.RootPath<Z1, Z2>
       logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
-      env: Env
+      env: Env<T>
       getOriginalEnv: Awaited<
         ReturnType<ReturnType<typeof defineRepoTherapyEnv>>
       >['getOriginalEnv']
@@ -249,9 +261,12 @@ declare global {
       W extends Array<RepoTherapyUtil.GenericType> = []
     >(...args: Partial<U>): ReturnType<typeof defineRepoTherapyWrapper<T, V, W>>
 
-    interface DefinationFunctionParams {
+    interface DefinationFunctionParams <
+      T extends RepoTherapyEnv.Detail,
+      U extends Record<string, string>,
+    > {
       none: []
-      tool: [RepoTherapy.DefineLibTool]
+      tool: [RepoTherapy.DefineLibTool<T, U>]
     }
 
     type DefinationFunctionGeneric <
@@ -312,6 +327,16 @@ declare global {
     'tool'
   >
 
+  // function defineRepoTherapyEnum <
+  //   T extends object = object
+  // > (enumObj: T): ReturnType<RepoTherapy.DefinationFunctionGeneric<
+  //   'define-enum',
+  //   T,
+  //   T & {
+  //     ValueType: Record<'String' | 'Number' | 'Boolean'>
+  //   }
+  // >>
+
   function defineRepoTherapyError <
     T extends object,
     U extends [string | {
@@ -329,54 +354,68 @@ declare global {
     RepoTherapyUtil.CustomError<object>
   >>
 
-  const defineRepoTherapyEnv: RepoTherapy.DefinationFunctionGeneric<
+  function defineRepoTherapyEnv <
+    T extends RepoTherapyEnv.Detail
+  > (
+    handler: RepoTherapyEnv.Handler<T>
+  ): ReturnType<typeof defineRepoTherapyWrapper<
     'define-env',
-    [RepoTherapyEnv.Handler],
     Promise<{
       envSample: () => Record<string, string>
       envType: () => string
       getOriginalEnv: () => Record<string, string>
       generateTypeDeclaration: () => void
-      env: RepoTherapy.Env
-      config: {
-        env: Record<string, RepoTherapyEnv.Detail>
-      }
+      env: RepoTherapy.Env<T>
     }>,
     'tool'
-  >
+  >>
 
   // todo better typing
-  function defineRepoTherapyCsv <T extends object, U extends object = T> (
+  function defineRepoTherapyCsv <
+    RowType extends object,
+    RawRowType extends RepoTherapyUtil.RawCsvRow<RowType> =
+      RepoTherapyUtil.RawCsvRow<RowType>
+  > (
     header: Array<string>,
     option?: {
-      readParse: (x: U | undefined) => T | undefined
-      writeParse: (x: T | undefined) => U | undefined
+      readParse: (x: RawRowType | undefined) => RowType | undefined
+      writeParse: (x: RowType) => RawRowType
       autoGenerate: false
     }
   ): ReturnType<typeof defineRepoTherapyWrapper<'define-csv', {
-    read: () => Promise<Array<T>>
-    write: (data: Array<T>) => Promise<void>
+    read: () => Promise<Array<RowType>>
+    write: (data: Array<RowType>) => Promise<void>
   }, [string]>>
 
-  const defineRepoTherapyCli: RepoTherapy.DefinationFunctionGeneric<
-    'define-cli',
-    [
-      Partial<Record<'lib' | 'custom', Array<string> | string>>,
-      ReturnType<typeof defineRepoTherapy>,
-      string
-    ],
-    Promise<void>
-  >
+  // const defineRepoTherapyCli: RepoTherapy.DefinationFunctionGeneric<
+  //   'define-cli',
+  //   [
+  //     Partial<Record<'lib' | 'custom', Array<string> | string>>,
+  //     ReturnType<typeof defineRepoTherapy>,
+  //     string
+  //   ],
+  //   Promise<void>
+  // >
 
-  const defineRepoTherapy: RepoTherapy.DefinationFunctionGeneric<
-    'define-repo-therapy',
-    [Partial<{
+  function defineRepoTherapy <
+    T extends RepoTherapyEnv.Detail,
+    U extends Record<string, string>,
+    Z1 extends {
+      project: string
+      build: string
+    } & U = {
+      project: string
+      build: string
+    } & U,
+    Z2 extends string = string
+  > (options?: Partial<{
       libName: string
       project: string
+      path: U
       projectType: RepoTherapy.ProjectType
       framework: Array<RepoTherapy.Framework>
       logger: ReturnType<typeof defineRepoTherapyLogger>
-      env: RepoTherapyEnv.Handler
+      env: RepoTherapyEnv.Handler<T>
       serverCode: RepoTherapyUtil.DeepPartial<RepoTherapyUtil.ServerCode>
       error: Record<string, string | {
         defaultMessage: string
@@ -386,20 +425,40 @@ declare global {
       silent: boolean
       // todo move to @types
       manualModuleTyping: Array<string>
-    }>],
-    Promise<RepoTherapy.DefineLibTool & {
-      init: () => Promise<void>
-      serverCode: Record<string, RepoTherapyUtil.ServerCodeConfig>
-      error: Record<string, RepoTherapyUtil.CustomError<object>>
-      newError: typeof defineRepoTherapyError
-      lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
-      json: typeof defineRepoTherapyJson
-      packageJson: Awaited<
-        ReturnType<ReturnType<typeof defineRepoTherapyPackageJson>>
-      >
-      isLocal: boolean
-    }>
-  >
+    }>): ReturnType<RepoTherapy.DefinationFunctionGeneric<
+      'define-repo-therapy',
+      Partial<{
+        libName: string
+        project: string
+        path: U
+        projectType: RepoTherapy.ProjectType
+        framework: Array<RepoTherapy.Framework>
+        logger: ReturnType<typeof defineRepoTherapyLogger>
+        env: RepoTherapyEnv.Handler<T>
+        serverCode: RepoTherapyUtil.DeepPartial<RepoTherapyUtil.ServerCode>
+        error: Record<string, string | {
+          defaultMessage: string
+          // todo stricter type declaration
+          // defaultProp: object
+        }>
+        silent: boolean
+        // todo move to @types
+        manualModuleTyping: Array<string>
+      }>,
+      Promise<RepoTherapy.DefineLibTool<T, U, Z1, Z2> & {
+        init: () => Promise<void>
+        serverCode: Record<string, RepoTherapyUtil.ServerCodeConfig>
+        error: Record<string, RepoTherapyUtil.CustomError<object>>
+        newError: typeof defineRepoTherapyError
+        lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
+        json: typeof defineRepoTherapyJson
+        packageJson: Awaited<
+          ReturnType<ReturnType<typeof defineRepoTherapyPackageJson>>
+        >
+        isLocal: boolean
+        enum: ReturnType<ReturnType<defineRepoTherapyEnum>>
+      }>
+    >>
 
   function defineRepoTherapyImport <T = object, U = string> (
     options?: Partial<{
@@ -433,11 +492,15 @@ declare global {
     >
   }>>
 
-  function defineRepoTherapyScript <T extends object> (
+  function defineRepoTherapyScript <
+    T extends object,
+    U extends RepoTherapyEnv.Detail,
+    V extends Record<string, string>
+  > (
     describe: string,
-    handler: (libTool: RepoTherapy.DefineLibTool, args: T) => void,
+    handler: (libTool: RepoTherapy.DefineLibTool<U, V>, args: T) => void,
     builder?: (
-      libTool: RepoTherapy.DefineLibTool,
+      libTool: RepoTherapy.DefineLibTool<U, V>,
       argv: import('yargs').Argv<T>
     ) => void | import('yargs').Argv<T>
   ): ReturnType<typeof defineRepoTherapyWrapper<'define-script', Promise<{
@@ -445,7 +508,7 @@ declare global {
     builder: (argv: import('yargs').Argv<T>) => void | import('yargs').Argv<T>
     handler: (args: T) => void
     command: string
-  }>, [RepoTherapy.DefineLibTool, string, 'lib' | 'custom']>>
+  }>, [RepoTherapy.DefineLibTool<U, V>, string, 'lib' | 'custom']>>
 
   const defineRepoTherapyPackageJson: RepoTherapy.DefinationFunctionGeneric<
     'define-package-json',
@@ -486,7 +549,10 @@ declare global {
     'tool'
   >
 
-  function defineRepoTherapyGitignore (handler?: Partial<{
+  function defineRepoTherapyGitignore <
+    T extends RepoTherapyEnv.Detail,
+    U extends Record<string, string>
+  > (handler?: Partial<{
     path: string
     framework: Array<RepoTherapy.Framework>
     custom: (s: Array<string>) => Array<string>
@@ -494,9 +560,12 @@ declare global {
     config: Record<string, Array<string>>
     path: string
     write: () => void
-  }>, [RepoTherapy.DefineLibTool]>>
+  }>, [RepoTherapy.DefineLibTool<T, U>]>>
 
-  function defineRepoTherapyVsCode (
+  function defineRepoTherapyVsCode <
+    T extends RepoTherapyEnv.Detail,
+    U extends Record<string, string>
+  >(
     handler?: Partial<{
       path: string
       gitignorePath: string
@@ -515,7 +584,7 @@ declare global {
       extensions: string
     }
     write: () => void
-  }>, [RepoTherapy.DefineLibTool]>>
+  }>, [RepoTherapy.DefineLibTool<T, U>]>>
 }
 
 export {}

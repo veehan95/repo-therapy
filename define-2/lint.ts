@@ -6,7 +6,7 @@ import n from 'eslint-plugin-n'
 import p from 'eslint-plugin-promise'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyVsCode } from './vscode'
-import { rules, presetFiles } from '../config/lint'
+import { rules, presetFiles } from '../configs/lint'
 
 const {
   parserOptions,

@@ -1,7 +1,7 @@
-import { join } from 'path'
-import { writeFileSync } from 'fs'
+import { join } from 'node:path'
+import { writeFileSync } from 'node:fs'
 import { defineRepoTherapyWrapper as wrapper } from './wrapper'
-import { baseGitignore, frameworkGitignore } from '../config/gitignore'
+import { baseGitignore, frameworkGitignore } from '../configs/gitignore'
 
 export const f: typeof defineRepoTherapyGitignore = (
   options = {}

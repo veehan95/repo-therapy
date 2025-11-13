@@ -1,4 +1,3 @@
-#!/usr/bin/env node
-import { defineRepoTherapyCli } from './define/cli'
+import { cli } from './index'
 
-defineRepoTherapyCli()().then()
+cli()

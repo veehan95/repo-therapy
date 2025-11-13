@@ -102,3 +102,6 @@ out
 *.tsbuildinfo
 *.js.map
 *.d.ts.map
+
+.env.*
+types/_*
