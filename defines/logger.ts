@@ -1,7 +1,7 @@
 import winston, { type transport as Transport } from 'winston'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { ConsolePrefix } from '../enums'
-import { type GenericType, type Util } from '../types/repo-therapy'
+import { type Util } from '../types/repo-therapy'
 
 export function defineRepoTherapyLogger ({
   service = 'main',
@@ -14,7 +14,7 @@ export function defineRepoTherapyLogger ({
   transportConfig?: Array<'file' | 'console' | import('winston').transport>
   transportFormat?: winston.Logform.Format
 } = {}) {
-  return wrapper('define-logger', ({ env }: { env: Util.BaseEnv }) => {
+  return wrapper('logger', ({ env }: { env: Util.BaseEnv }) => {
     const _transports: Array<Transport> = []
 
     let serviceName = service
@@ -24,12 +24,10 @@ export function defineRepoTherapyLogger ({
     }
 
     function printString (
-      level: keyof typeof ConsolePrefix,
-      message: GenericType | undefined | unknown
+      level: ConsolePrefix,
+      message: Util.GenericType | undefined | unknown
     ) {
-      return `${(
-        ConsolePrefix[level] || `\x1b[44m ${level} \x1b[49m<serviceName> |`
-      ).replace(/<serviceName>/, serviceName)}${
+      return `${level.replace(/<serviceName>/, serviceName)}${
         (typeof message === 'object' ? JSON.stringify(message) : message) || ''
       }`
     }
@@ -40,7 +38,7 @@ export function defineRepoTherapyLogger ({
         const level = (
           params[Symbol.for('level')]?.toString() || 'unknown'
         ) as keyof typeof ConsolePrefix
-        return printString(level, params.message)
+        return printString(ConsolePrefix[level], params.message)
       })
     )
 

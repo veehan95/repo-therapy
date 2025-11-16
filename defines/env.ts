@@ -8,9 +8,10 @@ import {
   ValueDefination
 } from './value-parse'
 import { Util } from '../types/repo-therapy'
-import { lstatSync, readdirSync, writeFileSync } from 'node:fs'
+import { lstatSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { NodeEnvOptions } from '../enums'
+import { Content } from './script'
 
 function envKey (k: Array<string>) {
   return k.flatMap(s => s.split(/(?=[A-Z\s])/g))
@@ -29,25 +30,30 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
   env?: EnvCallback<T>,
   {
     project,
+    nodeEnv,
     interfaceName = startCase(project).replace(/\s/g, ''),
     skip = false
   }: {
     project?: string
+    nodeEnv?: NodeEnvOptions,
     interfaceName?: string
     skip?: boolean
   } = {}
 ) {
-  return wrapper('define-env', async ({ importLib, absolutePath, value }) => {
+  return wrapper('env', async (libTool) => {
+    let envValue: Awaited<ReturnType<typeof getEnv>>
     async function getEnv (
       currentProject?: typeof project,
-      nodeEnv?: keyof typeof NodeEnvOptions
+      nodeEnv?: NodeEnvOptions
     ) {
       let fileName: Util.Path = '/.env'
-      if (currentProject) { fileName += `.${currentProject}` }
-      if (nodeEnv) { fileName += `.${NodeEnvOptions[nodeEnv]}` }
+      if (currentProject) {
+        fileName += `.${currentProject}`
+        if (nodeEnv) { fileName += `.${nodeEnv}` }
+      }
       try {
-        return await importLib
-          .importScript<string>(fileName as Util.Path)
+        return await libTool.importLib
+          .importStatic(fileName as Util.Path)
           .then(x => {
             const v = dotenvx.parse(x.import)
             if (!v.PROJECT && project) { v.PROJECT = project }
@@ -56,18 +62,15 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       } catch { /* todo only target file not found */ }
     }
 
-    let envValue: Awaited<ReturnType<typeof getEnv>>
     if (!skip) {
-      const projectList = project ? [project, undefined] : [project]
-      const envPostfix = [
-        ...Object.keys(NodeEnvOptions) as Array<keyof typeof NodeEnvOptions>,
-        undefined
-      ]
+      if (nodeEnv && !project) {
+        throw new Error(
+          'NodeEnv can only be configured when there is a target project'
+        )
+      }
+      const projectList = project ? [project, undefined] : [undefined]
       for (const i in projectList) {
-        for (const j in envPostfix) {
-          envValue = await getEnv(projectList[i], envPostfix[j])
-          if (envValue) { break }
-        }
+        envValue = await getEnv(projectList[i], nodeEnv)
         if (envValue) { break }
       }
     }
@@ -77,11 +80,11 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       nodeEnv: ValueCallback
     } & T
     const envParser = defineRepoTherapyValueParse<EnvDefinationType>({
-      project: value('Project name').isString(/^[a-z0-9-]*$/g),
-      nodeEnv: value('Node environment')
+      project: libTool.value('Project name').isString(/^[a-z0-9-]*$/g),
+      nodeEnv: libTool.value('Node environment')
         .isOneOf(NodeEnvOptions)
         .defaultTo(NodeEnvOptions.local),
-      ...(env ? env(value) : {})
+      ...(env ? env(libTool.value) : {})
     } as EnvDefinationType, {
       query: (v, k) => v[envKey(k)],
       interfaceName: `${interfaceName}Env`
@@ -94,6 +97,11 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       if (project && cacheEnv.project !== project) {
         throw new Error(`Project expected ${project} instead of ${
           cacheEnv.project
+        } which is configured in ${envValue.path}`)
+      }
+      if (nodeEnv && cacheEnv.nodeEnv !== nodeEnv) {
+        throw new Error(`NodeEnv expected ${nodeEnv} instead of ${
+          cacheEnv.nodeEnv
         } which is configured in ${envValue.path}`)
       }
     }
@@ -111,51 +119,54 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       })
     }
 
-    function generateType () {
-      const p = join(absolutePath.typeDeclaration, '_env.d.ts')
-      writeFileSync(p, envParser.getType())
-      return p
+    async function generateType () {
+      return await libTool.importLib.writeStatic(
+        join(libTool.path.typeDeclaration, '_env.d.ts') as Util.Path,
+        envParser.getType
+      )
     }
 
     return {
       get: () => cacheEnv,
       generate: async (path: Util.Path, { nodeEnv, defaultValues, overwrite }: {
-        nodeEnv?: keyof typeof NodeEnvOptions
+        nodeEnv?: NodeEnvOptions
         defaultValues?: boolean
         overwrite?: boolean
       } = {}) => {
-        const projectList = readdirSync(absolutePath.projectRoot)
-        const envCreation: Array<{
-          path: string
-          write: boolean
-        }> = []
+        const projectList = readdirSync(libTool.absolutePath.projectRoot)
+        const envCreation: Array<Content> = []
         for (const i in projectList) {
-          const absoluteP = join(absolutePath.projectRoot, projectList[i])
+          const absoluteP = join(
+            libTool.absolutePath.projectRoot,
+            projectList[i]
+          )
           if (!lstatSync(absoluteP).isDirectory()) { continue }
           const projectName = kebabCase(projectList[i])
-          const envName: Util.Path = `${path}.${projectName}`
-          const targetImport = await importLib
-            .importScript<string>(envName, { soft: true })
-          envCreation.push({ path: envName, write: false })
-          if (targetImport.import && !overwrite) { continue }
-          envCreation[envCreation.length - 1].write = true
-          let str = reverseValue(envParser.generateSample({
-            ...parse(targetImport.import),
-            PROJECT: projectName,
-            NODE_ENV: nodeEnv && NodeEnvOptions[nodeEnv]
-          })).join('\n')
-          if (!defaultValues) {
-            str = str.split(/\n/).filter(s => !/^# /.test(s)).join('\n')
-          }
-          str += '\n'
-          writeFileSync(join(absolutePath.root, envName), str)
+          const envName: Util.Path = `${path}.${projectName}.${
+            nodeEnv || NodeEnvOptions.local
+          }`
+          envCreation.push(
+            await libTool.importLib
+              .writeStatic(envName, (s) => {
+                let str = reverseValue(envParser.generateSample({
+                  ...parse(s || ''),
+                  PROJECT: projectName,
+                  NODE_ENV: nodeEnv
+                })).join('\n')
+                if (!defaultValues) {
+                  str = str.split(/\r|\n/)
+                    .filter(s => !/^# /.test(s))
+                    .join('\n')
+                }
+                str += '\n'
+                return str
+              }, { overwrite })
+          )
         }
 
-        return { envCreation, typePath: generateType() }
+        return { envCreation, typePath: await generateType() }
       },
       generateType
-      // todo
-      // fix: () => {}
     }
   })
 }

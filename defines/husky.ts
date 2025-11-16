@@ -1,58 +1,64 @@
 import { join } from 'node:path'
-import { mkdirSync, writeFileSync } from 'node:fs'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { RunCommand } from 'enums'
+import { GitHook } from '../enums'
+import { Util } from '../types/repo-therapy'
+import { Content } from './script'
 
-export function defineRepoTherapyHusky ({
-  preCommit: preCommitSetup = true,
-  commitMessage: commitMessageSetup = true,
-  prePush: prePushSetup = true
-} = {}) {
-  return wrapper('define-husky', (libTool) => {
-    const config = {
-      preCommit: {
-        enable: preCommitSetup,
-        path: join(libTool.absolutePath.husky, 'pre-commit'),
-        content: [
-          `${`${RunCommand[libTool.packageManager]} lint`};`,
-          '# Check for modified/untracked files',
-          'if ! git diff --quiet; then',
-          (
-            '  echo "Error: There are uncommitted changes in the ' +
-            'working directory."'
-          ),
-          '  echo "Please commit or stash them before running this script."',
-          '  exit 1',
-          'fi'
-        ]
-      },
-      commitMessage: {
-        enable: commitMessageSetup,
-        path: join(libTool.absolutePath.husky, 'commit-message'),
-        content: []
-      },
-      prePush: {
-        enable: prePushSetup,
-        path: join(libTool.absolutePath.husky, 'pre-push'),
-        content: []
-      }
-    }
+export interface HuskyOptions {
+  preCommit?: boolean
+  commitMessage?: boolean
+  prePush?: boolean
+}
 
-    function setup (key: keyof typeof config) {
-      if (!config[key].enable) { return }
-      writeFileSync(
-        config[key].path,
-        ['#!/bin/sh', ...config[key].content, ''].join('\n')
-      )
-      return config[key].path
-    }
-
+export function defineRepoTherapyHusky (options: HuskyOptions = {}) {
+  return wrapper('husky', (libTool) => {
     return {
-      setup: () => {
-        mkdirSync(libTool.absolutePath.husky, { recursive: true })
-        return (Object.keys(config) as Array<keyof typeof config>)
-          .map(k => ({ path: setup(k), created: true }))
-          .filter(({ path }) => path)
+      setup: async (): Promise<Array<Content>> => {
+        const config = {
+          preCommit: {
+            enable: options.preCommit,
+            path: GitHook.preCommit,
+            content: [
+              `${`${libTool.packageManager} lint`};`,
+              '# Check for modified/untracked files',
+              'if ! git diff --quiet; then',
+              (
+                '  echo "Error: There are uncommitted changes in the working ' +
+                'directory."'
+              ),
+              (
+                '  echo "Please commit or stash them before running this ' +
+                'script."'
+              ),
+              '  exit 1',
+              'fi'
+            ]
+          },
+          commitMessage: {
+            enable: options.commitMessage,
+            path: GitHook.commitMessage,
+            // todo
+            content: []
+          },
+          prePush: {
+            enable: options.prePush,
+            path: GitHook.prePush,
+            // todo
+            content: []
+          }
+        }
+
+        return (await Promise.all(
+          (Object.keys(config) as Array<keyof typeof config>)
+            .map(async (key) => await libTool
+              .importLib
+              .writeStatic(
+                join('/.husky', config[key].path) as Util.Path,
+                () => ['#!/bin/sh', ...config[key].content, ''].join('\n'),
+                { overwrite: true }
+              )
+            )
+        )).filter(({ path }) => path)
       }
     }
   })

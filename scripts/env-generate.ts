@@ -1,9 +1,8 @@
-import { NodeEnvOptions } from '../enums'
 import { defineRepoTherapyScript } from '../defines/script'
+import { NodeEnvOptions } from '../enums'
 
 export default defineRepoTherapyScript<{
-  // todo fix keyof typeof NodeEnvOptions
-  env?: string
+  env: NodeEnvOptions
   defaultValues?: boolean
   overwrite?: boolean
 }>([
@@ -11,36 +10,20 @@ export default defineRepoTherapyScript<{
   '* Overwrite all existing env if overwrite flag is true.'
 ], async (a, libTool) => {
   const r = await libTool.generateEnv('/.env', {
-    nodeEnv: a.env as keyof typeof NodeEnvOptions,
+    nodeEnv: a.env as NodeEnvOptions,
     defaultValues: a.defaultValues,
     overwrite: a.overwrite
   })
 
-  if (a.env) { libTool.logger.info(`Env: ${a.env}`) }
-
   libTool.logger.info('')
-  libTool.logger.info(`Type declaration: ${r.typePath}`)
+  libTool.logger.info(`Env: ${a.env}`)
 
-  const newWrite = r.envCreation.filter(x => x.write)
-  if (newWrite.length > 0) {
-    libTool.logger.info('')
-    libTool.logger.info('Generated env at:')
-    newWrite.forEach(p => { libTool.logger.info(`  ${p.path}`) })
-  }
+  libTool.printList('Type declaration', r.typePath)
 
-  const skipped = r.envCreation.filter(x => !x.write)
-  if (skipped.length > 0) {
-    libTool.logger.info('')
-    libTool.logger.info('Skipped env:')
-    skipped.forEach(p => { libTool.logger.info(`  ${p.path}`) })
-  }
+  libTool.printList('Env', r.envCreation)
 }, {
-  command: 'env:generate [env]',
+  command: 'env:generate',
   builder: (a) => a
-    .positional('env', {
-      describe: 'Node environment',
-      choices: Object.keys(NodeEnvOptions)
-    })
     .option('default-values', {
       describe: 'Show default values in the .env file',
       alias: 'd',

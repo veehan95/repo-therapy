@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyStreamSync } from './stream-sync'
 
-export type Option <
+export type CsvOption <
   RowType,
   RawRowType extends RawCsvRow<object> = RawCsvRow<RowType>
 > = {
@@ -19,12 +19,11 @@ export type RawCsvRow <T = object> = {
   [P in keyof T]: string
 }
 
-// const f: typeof defineRepoTherapyCsv = <
 export function defineRepoTherapyCsv <
   RowType,
   RawRowType extends RawCsvRow<object> = RawCsvRow<RowType>
-> (option: Option<RowType, RawRowType> = []) {
-  return wrapper('define-csv', ({ absolutePath }) => {
+> (option: CsvOption<RowType, RawRowType> = []) {
+  return wrapper('csv', ({ absolutePath }) => {
     return async (path: `${string}.csv`) => {
       const {
         headers,

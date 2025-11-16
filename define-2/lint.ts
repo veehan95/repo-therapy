@@ -18,7 +18,7 @@ const f: typeof defineRepoTherapyLint = ({
   projectType = 'npm-lib',
   framework,
   vsCode = defineRepoTherapyVsCode()
-} = {}) => wrapper('define-lint', async (libTool) => {
+} = {}) => wrapper('lint', async (libTool) => {
   const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
   let lintWrap = (x: Linter.Config) => x
   if (framework === 'nuxt-monorepo' || framework === 'nuxt.js') {

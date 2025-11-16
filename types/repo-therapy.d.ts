@@ -1,8 +1,5 @@
 import { defineRepoTherapyImport } from '../defines/import'
 
-export type GenericType = string | number | boolean | object | undefined |
-  Array<GenericType>
-
 export namespace Env {
   type NodeEnv = 'production' | 'staging' | 'dev'
 
@@ -25,6 +22,9 @@ export namespace Env {
 }
 
 export namespace Util {
+  type GenericType = string | number | boolean | object | undefined |
+    null | Array<GenericType>
+
   type Env <T extends RepoTherapyEnv.Detail> = {
     [P in keyof T]: T[P] extends RepoTherapyEnv.Attribute<infer U>
       ? U
@@ -38,6 +38,10 @@ export namespace Util {
   } & T>
 
   type Path = `/${string}`
+
+  type ScriptPath = `${Util.Path}${NodeJavaScriptExt | NodeTypeScriptExt}`
+
+  type JsonPath = `${Util.Path}.json`
 
   type LinkPath = Record<string, Path>
 

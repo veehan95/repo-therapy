@@ -1,7 +1,7 @@
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { defineRepoTherapyValue } from './value'
 import lodash, { startCase } from 'lodash'
-import { GenericType } from '../types/repo-therapy'
+import { type Util } from '../types/repo-therapy'
 
 type ValueBase = ReturnType<ReturnType<typeof defineRepoTherapyValue>>
 
@@ -17,22 +17,22 @@ type ValueDefinationRecursive <T extends ValueDefination> = {
       : never
 }
 
-export interface Option {
-  query?: (v: Record<string, GenericType>, arr: Array<string>) => GenericType
-  interfaceName: string
+export interface ValueParseOptions {
+  query?: (
+    v: Record<string, Util.GenericType>,
+    arr: Array<string>
+  ) => Util.GenericType
+  interfaceName?: string
 }
 
 export function defineRepoTherapyValueParse <
   DefinedDefination extends ValueDefination = ValueDefination
-> (
-  defination: DefinedDefination,
-  {
-    query = (o, kList) => lodash.get(o, kList),
-    interfaceName
-  }: Option
-) {
+> (defination: DefinedDefination, {
+  query = (o, kList) => lodash.get(o, kList),
+  interfaceName
+}: ValueParseOptions = {}) {
   function get (
-    value: Record<string, GenericType>,
+    value: Record<string, Util.GenericType>,
     sample = false
   ) {
     function recursiveObject <T extends ValueDefination> (
@@ -67,6 +67,8 @@ export function defineRepoTherapyValueParse <
   }
 
   function getType () {
+    if (!interfaceName) { throw new Error('Misisng interface name.') }
+
     const predefine: Array<string> = []
     function recursiveObjectType <T extends ValueDefination> (
       o: T
@@ -118,17 +120,17 @@ export function defineRepoTherapyValueParse <
       interfaceStr
   }
 
-  return wrapper('define-env', () => {
-    return {
-      getType,
-      generateSample: (sampleValue = {}) => get(sampleValue, true),
-      get: (value: Record<string, GenericType>) => get(value),
-      isOptional: (kList: Array<string>) => (
+  const r = {
+    getType,
+    generateSample: (sampleValue = {}) => get(sampleValue, true),
+    get: (value: Record<string, Util.GenericType>) => get(value),
+    isOptional: (kList: Array<string>) => (
         lodash.get(defination, kList) as ValueCallback
-      ).getConfig().optional,
-      defaultValue: (kList: Array<string>) => (
+    ).getConfig().optional,
+    defaultValue: (kList: Array<string>) => (
         lodash.get(defination, kList) as ValueCallback
-      ).getConfig().defaultValue
-    }
-  })
+    ).getConfig().defaultValue
+  }
+
+  return wrapper<typeof r, undefined, false>('env', () => r)
 }

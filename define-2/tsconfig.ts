@@ -6,7 +6,7 @@ import { config as tsConfigConfig } from '../configs/tsconfig'
 
 export const f: typeof defineRepoTherapyTsconfig = (
   options = {}
-) => wrapper('define-tsconfig', async (libTool) => {
+) => wrapper('tsconfig', async (libTool) => {
   const path = options.path || 'tsconfig.json'
 
   const x = await libTool.import().importScript(path, { soft: true })

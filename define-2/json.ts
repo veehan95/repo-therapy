@@ -128,7 +128,7 @@ function recursiveMatch <
 export const f: typeof defineRepoTherapyJson = <
   T extends object
 > (objDefination: RepoTherapyUtil.JsonDefination) => wrapper(
-    'define-json',
+    'json',
     (data: T) => {
       const json = recursiveParse(
         '',

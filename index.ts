@@ -1,11 +1,15 @@
+import { dirname, join } from 'node:path'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { join } from 'node:path'
-import { defineRepoTherapy } from './defines/index'
 import { type Util } from './types/repo-therapy'
+import { defineRepoTherapy } from './defines/index'
 import { defineRepoTherapyScript } from './defines/script'
+import { NodeEnvOptions } from './enums'
+import { genericImport } from './defines/import'
+import { findUp } from 'find-up'
+import { existsSync } from 'node:fs'
 
-export { defineRepoTherapy } from './defines/index'
+export { defineRepoTherapy }
 export { defineRepoTherapyCsv } from './defines/csv'
 export { defineRepoTherapyEnv } from './defines/env'
 export { defineRepoTherapyImport } from './defines/import'
@@ -14,27 +18,16 @@ export { defineRepoTherapyWrapper } from './defines/wrapper'
 
 interface Option {
   libName: string
-  repoTherapy: (project?: string, option?: {
-    envSkip?: boolean
-  }) => ReturnType<typeof defineRepoTherapy>
   scriptDir: Array<Util.Path | {
     lib: boolean
     path: Util.Path
+    absolute?: boolean
   }>
   commandIgnoreEnv: Array<string>
 }
 
 export async function cli ({
   libName = 'RepoTherapy',
-  repoTherapy = (project?: string, option: {
-    envSkip?: boolean
-  } = {}) => defineRepoTherapy({
-    // todo remove
-    env: (v) => ({ test: v(['test only', 'haha']).isString() }),
-    project,
-    envInterfaceName: 'RepoTherapy',
-    envSkip: option.envSkip
-  }),
   scriptDir = [],
   commandIgnoreEnv: commandIgnoreEnvCustom
 }: Partial<Option> = {}) {
@@ -53,12 +46,28 @@ export async function cli ({
       describe: 'Project name',
       type: 'string'
     })
+    .option('env', {
+      alias: 'e',
+      describe: 'Node environment',
+      choices: Object.values(NodeEnvOptions),
+      default: NodeEnvOptions.local
+    })
+
   const initArgv = await y.parseAsync()
   const command = initArgv._[0]?.toString()
-  const libTool = (await repoTherapy(
-    initArgv.project,
-    { envSkip: commandIgnoreEnv.includes(command) }
-  ))()
+
+  const dr = await findUp('package.json')
+  const repoTherapySettingPath = join(
+    dr ? dirname(dr) : process.cwd(),
+    '/repo-therapy.ts'
+  )
+  const rp = existsSync(repoTherapySettingPath)
+    ? await genericImport<ReturnType<typeof defineRepoTherapy>>(
+      repoTherapySettingPath
+    )
+    : defineRepoTherapy()
+  if (!rp) { throw new Error('Misisng /repo-thnerapy.ts configurations') }
+  const libTool = await rp()({ skipEnv: commandIgnoreEnv.includes(command) })
 
   if (command && !initArgv.h) {
     libTool.logger.info('')
@@ -76,7 +85,8 @@ export async function cli ({
 
   const scriptDirList = [{
     lib: true,
-    path: join(__dirname, './scripts') as Util.Path
+    path: join(__dirname, './scripts') as Util.Path,
+    absolute: true
   }, ...scriptDir.map(
     path => typeof path === 'string' ? { path, lib: false } : path
   )]
@@ -84,10 +94,14 @@ export async function cli ({
   for (const i in scriptDirList) {
     const dirScripts = await libTool.importLib.importScriptFromDir<{
       default: ReturnType<typeof defineRepoTherapyScript>
-    }>(scriptDirList[i].path)
+    }>(scriptDirList[i].path, {
+      absolute: scriptDirList[i].absolute,
+      accept: { default: ['define-repo-therapy-script'] }
+    })
+
     for (const j in dirScripts) {
-      const s = await dirScripts[j].import.default(
-        libTool,
+      if (!dirScripts[j].import) { continue }
+      const s = (await dirScripts[j].import.default())(
         dirScripts[j].path,
         scriptDirList[i].lib ? 'lib' : 'custom'
       )

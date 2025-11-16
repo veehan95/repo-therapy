@@ -1,7 +1,10 @@
 {
   "recommendations": [
-    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "esbenp.prettier-vscode",
     "eamodio.gitlens",
-    "xxx.x"
-  ]
+    "dbaeumer.vscode-eslint",
+    "mechatroner.rainbow-csv"
+  ],
+  "unwantedRecommendations": []
 }

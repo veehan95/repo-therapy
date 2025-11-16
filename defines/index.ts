@@ -1,25 +1,28 @@
-import { dirname, join } from 'node:path'
-import lodash from 'lodash'
 import { findUp } from 'find-up'
+import lodash from 'lodash'
+import { dirname, join } from 'node:path'
+import { type PackageJson } from 'type-fest'
+import { NodeEnvOptions, PackageManager, ProjectType } from '../enums'
+import { type LibTool } from '../types/lib-tool'
 import { type Util } from '../types/repo-therapy'
+import { defineRepoTherapyCsv, type CsvOption, type RawCsvRow } from './csv'
+import { defineRepoTherapyEnum, EnumDefination } from './enum'
+import { defineRepoTherapyEnv, type EnvCallback } from './env'
+import { defineRepoTherapyGitIgnore, type GitignoreOptions } from './gitignore'
+import { defineRepoTherapyHusky, type HuskyOptions } from './husky'
 import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyLogger } from './logger'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { defineRepoTherapyEnv, type EnvCallback } from './env'
-import {
-  defineRepoTherapyCsv,
-  type Option as CsvOption,
-  type RawCsvRow
-} from './csv'
+import { defineRepoTherapyPackageJson } from './package-json'
+import { defineRepoTherapyStreamSync } from './stream-sync'
+import { defineRepoTherapyString } from './string'
+import { defineRepoTherapyValue } from './value'
 import {
   defineRepoTherapyValueParse,
-  type Option as ValueParseOption,
-  type ValueDefination
+  type ValueDefination,
+  type ValueParseOptions
 } from './value-parse'
-import { defineRepoTherapyValue } from './value'
-import { defineRepoTherapyStreamSync } from './stream-sync'
-import { type LibTool } from '../types/lib-tool'
-import { defineRepoTherapyHusky } from './husky'
+import { defineRepoTherapyVsCode, type VSCodeOptions } from './vscode'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
   private _pathList: LinkPath
@@ -28,12 +31,16 @@ class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
 
   private _project = 'unknown'
 
+  private _build: Util.Path
+
+  private _buildCache: Util.Path
+
   get pathList () {
     const r = {
       projectRoot: '/project' as Util.Path,
       ...this._pathList,
-      build: '/dist' as Util.Path,
-      husky: '/.husky' as Util.Path,
+      build: this._build,
+      buildCache: this._buildCache,
       typeDeclaration: '/types' as Util.Path,
       project: '' as Util.Path
     }
@@ -50,9 +57,14 @@ class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
     }
   }
 
-  constructor (rootPath: RootPath, pathList: LinkPath) {
+  constructor (rootPath: RootPath, pathList: LinkPath, { build, buildCache }: {
+    build?: Util.Path
+    buildCache?: Util.Path
+  } = {}) {
     this._rootPath = rootPath
     this._pathList = pathList
+    this._build = build || '/dist'
+    this._buildCache = buildCache || '/.repo-therapy'
   }
 }
 
@@ -60,35 +72,30 @@ function value (description: string | Array<string>) {
   return defineRepoTherapyValue(description)()
 }
 
-export async function defineRepoTherapy <
+export function defineRepoTherapy <
   VD extends ValueDefination,
-  RootPath extends Util.Path = Util.Path,
-  LinkPath extends Util.LinkPath = Util.LinkPath
-> ({
-  project,
-  // projectType = 'npm-lib',
-  // framework,
-  rootPath: basePath,
-  linkPath = {} as LinkPath,
-  logger: loggerFunc,
-  env,
-  envInterfaceName,
-  envSkip = false
-  // serverCode = {},
-  // error = {},
-  // silent = false,
-  // todo move to @types
-  // manualModuleTyping = []
-}: Partial<{
-  project: string
-  rootPath: RootPath
-  linkPath: LinkPath
+  LinkPath extends Util.LinkPath = Util.LinkPath,
+  EnumConfig extends Record<
+    string,
+    EnumDefination
+  > = object & Record<string, EnumDefination>,
+  RootPath extends Util.Path = Util.Path
+> (options: {
+  project?: string
+  rootPath?: RootPath
+  nodeEnv?: NodeEnvOptions
+  linkPath?: LinkPath
+  projectType?: ProjectType
+  enumPaths?: Array<Util.Path>
+  enumConfigs?: EnumConfig
+  husky?: HuskyOptions
+  gitignore?: GitignoreOptions
+  vsCode?: VSCodeOptions
   // projectType: RepoTherapy.ProjectType
   // framework: Array<RepoTherapy.Framework>
-  logger: ReturnType<typeof defineRepoTherapyLogger>
+  logger?: ReturnType<typeof defineRepoTherapyLogger>
   env?: EnvCallback<VD>
   envInterfaceName?: string
-  envSkip?: boolean
   // env: Env.Detail
   // serverCode: RepoTherapyUtil.DeepPartial<RepoTherapyUtil.ServerCode>
   // error: Record<string, string | {
@@ -99,91 +106,135 @@ export async function defineRepoTherapy <
   // silent: boolean
   // // todo move to @types
   // manualModuleTyping: Array<string>
-}> = {}) {
-  // const p = packageJsonPath
-  //   ? defineRepoTherapyPackageJson({ path: packageJsonPath })
-  //   : repoTherapyPackageJson
-  // if (/\/node_modules\//.test(__dirname)) {
-  //   const nodeModuleDir = __dirname
-  //     .replace(/\/node_modules\/.*/g, '/node_modules')
-  //   const typesDir = join(nodeModuleDir, '@types')
-  //   if (!existsSync(typesDir)) { mkdirSync(typesDir) }
-  //   ;['repo-therapy', ...manualModuleTyping].forEach((x) => {
-  //     cpSync(
-  //       join(__dirname, '../../types/'),
-  //       join(typesDir, x),
-  //       { recursive: true }
-  //     )
-  //   })
-  // }
+} = {}) {
+  async function r ({ skipEnv }: {
+    skipEnv?: boolean
+  } = {}) {
+    // const p = packageJsonPath
+    //   ? defineRepoTherapyPackageJson({ path: packageJsonPath })
+    //   : repoTherapyPackageJson
+    // if (/\/node_modules\//.test(__dirname)) {
+    //   const nodeModuleDir = __dirname
+    //     .replace(/\/node_modules\/.*/g, '/node_modules')
+    //   const typesDir = join(nodeModuleDir, '@types')
+    //   if (!existsSync(typesDir)) { mkdirSync(typesDir) }
+    //   ;['repo-therapy', ...manualModuleTyping].forEach((x) => {
+    //     cpSync(
+    //       join(__dirname, '../../types/'),
+    //       join(typesDir, x),
+    //       { recursive: true }
+    //     )
+    //   })
+    // }
 
-  const defaultRoot = await findUp('package.json')
-  const pathObj = new PathObj<RootPath, LinkPath>((
-    basePath ||
-    (defaultRoot ? dirname(defaultRoot) : undefined) ||
-    process.cwd()
-  ) as RootPath, linkPath)
+    const optionWithDefault = Object.assign({
+    // framework,
+      projectType: ProjectType.npmLib,
+      linkPath: {} as LinkPath
+    // serverCode = {},
+    // error = {},
+    // silent = false,
+    // todo move to @types
+    // manualModuleTyping = []
+    }, options)
 
-  type LibToolType = LibTool<VD, RootPath, LinkPath>
-  const libTool: LibToolType = {
-    packageManager: 'npm',
+    const defaultRoot = await findUp('package.json')
+    const pathObj = new PathObj<RootPath, LinkPath>((
+      optionWithDefault.rootPath ||
+      (defaultRoot ? dirname(defaultRoot) : undefined) ||
+      process.cwd()
+    ) as RootPath, optionWithDefault.linkPath, {
+      build: optionWithDefault.projectType === ProjectType.npmLib
+        ? '/bin'
+        : '/dist',
+      buildCache: optionWithDefault.linkPath!.buildCache || '/.repo-therapy'
+    })
+
+    const libTool = {
+      projectType: optionWithDefault.projectType,
+      packageManager: PackageManager.NPM,
+      absolutePath: pathObj.absolutePath,
+      path: pathObj.pathList,
+      streamSync: (stream, option) => defineRepoTherapyStreamSync(
+        stream,
+        option
+      )(),
+      valueParser: <T extends ValueDefination> (
+        defination: T,
+        option?: ValueParseOptions
+      ) => defineRepoTherapyValueParse(defination, option)(),
+      value,
+      string: () => defineRepoTherapyString()()
     // todo fix as
-    absolutePath: pathObj.absolutePath as LibToolType['absolutePath'],
-    path: pathObj.pathList,
-    importLib: undefined as unknown as LibToolType['importLib'],
-    env: undefined as unknown as LibToolType['env'],
-    generateEnv: undefined as unknown as LibToolType['generateEnv'],
-    logger: undefined as unknown as LibToolType['logger'],
-    loggerPrint: undefined as unknown as LibToolType['loggerPrint'],
-    csv: undefined as unknown as LibToolType['csv'],
-    husky: undefined as unknown as LibToolType['husky'],
-    streamSync: (stream, option) => defineRepoTherapyStreamSync(
-      stream,
-      option
-    )(),
-    valueParser: <T extends ValueDefination> (
-      defination: T,
-      option: ValueParseOption
-    ) => defineRepoTherapyValueParse(defination, option)(),
-    value
+    } as LibTool<VD, LinkPath, EnumConfig, RootPath>
+
+    libTool.importLib = await defineRepoTherapyImport()(libTool)
+
+    if (
+      (await libTool.importLib.importStatic('/yarn.lock', { soft: true }))
+        .import
+    ) { libTool.packageManager = PackageManager.Yarn }
+    if (
+      (await libTool.importLib.importStatic('/pnpm-lock.yaml', { soft: true }))
+        .import
+    ) { libTool.packageManager = PackageManager.PNPM }
+    if (
+      (await libTool.importLib.importStatic('/bun.lock', { soft: true })).import
+    ) { libTool.packageManager = PackageManager.Bun }
+
+    const envParser = await defineRepoTherapyEnv<VD>(optionWithDefault.env, {
+      project: optionWithDefault.project,
+      nodeEnv: optionWithDefault.nodeEnv,
+      interfaceName: optionWithDefault.envInterfaceName,
+      skip: skipEnv
+    })(libTool)
+    libTool.env = envParser.get()
+    libTool.generateEnv = envParser.generate
+
+    const logger = (
+      optionWithDefault.logger ||
+    defineRepoTherapyLogger()
+    )(libTool)
+    libTool.logger = logger.logger
+    libTool.loggerPrint = logger.printString
+
+    libTool.csv = <
+      RowType,
+      RawRowType extends RawCsvRow<object> = RawCsvRow<RowType>
+    >(option: CsvOption<RowType, RawRowType>) => defineRepoTherapyCsv<
+      RowType,
+      RawRowType
+    >(option)(libTool)
+
+    const enums = await defineRepoTherapyEnum<EnumConfig>(
+      options.enumPaths
+    )(libTool)
+    libTool.enum = enums.enum
+    libTool.enumKeys = enums.availableKey
+
+    libTool.husky = () => defineRepoTherapyHusky(
+      options.husky
+    )(libTool)
+
+    libTool.packageJson = (
+      config: Partial<PackageJson> = {}
+    ) => defineRepoTherapyPackageJson(
+      libTool.projectType,
+      config
+    )(libTool)
+
+    libTool.gitignore = () => defineRepoTherapyGitIgnore(
+      options.gitignore
+    )(libTool)
+
+    libTool.vsCode = () => defineRepoTherapyVsCode(
+      options.vsCode
+    )(libTool)
+
+    return libTool
   }
 
-  libTool.importLib = await defineRepoTherapyImport()(libTool)
-
-  if (
-    (await libTool.importLib.importScript('/yarn.lock', { soft: true })).import
-  ) { libTool.packageManager = 'yarn' }
-  if (
-    (await libTool.importLib.importScript('/pnpm-lock.yaml', { soft: true }))
-      .import
-  ) { libTool.packageManager = 'pnpm' }
-  if (
-    (await libTool.importLib.importScript('/bun.lockb', { soft: true })).import
-  ) { libTool.packageManager = 'bun' }
-
-  const envParser = await defineRepoTherapyEnv<VD>(env, {
-    project,
-    interfaceName: envInterfaceName,
-    skip: envSkip
-  })(libTool)
-  libTool.env = envParser.get()
-  libTool.generateEnv = envParser.generate
-
-  const logger = (loggerFunc || defineRepoTherapyLogger())(libTool)
-  libTool.logger = logger.logger
-  libTool.loggerPrint = logger.printString
-
-  libTool.csv = <
-    RowType,
-    RawRowType extends RawCsvRow<object> = RawCsvRow<RowType>
-  >(option: CsvOption<RowType, RawRowType>) => defineRepoTherapyCsv<
-    RowType,
-    RawRowType
-  >(option)(libTool)
-
-  libTool.husky = () => defineRepoTherapyHusky()(libTool)
-
-  return wrapper('define-repo-therapy', () => {
+  return wrapper<typeof r, undefined, false>('', () => {
     //   const libTool: RepoTherapy.DefineLibTool<T, U, Z1, Z2> = {
     //     project: project || '',
     //     path: pathList,
@@ -385,6 +436,6 @@ export async function defineRepoTherapy <
     //     isLocal: !['production', 'staging', 'de
     // v'].includes(libTool.env.nodeEnv)
     //   }
-    return libTool
+    return r
   })
 }

@@ -1,13 +1,13 @@
-import { GenericType } from '../types/repo-therapy'
+import { type Util } from '../types/repo-therapy'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
-export function defineRepoTherapyValue <T extends GenericType> (
+export function defineRepoTherapyValue <T extends Util.GenericType> (
   description: string | Array<string>
 ) {
   function isCustom (
-    validator: (v: GenericType) => void,
+    validator: (v: Util.GenericType) => void,
     { size, sizeUnit, typeDeclaration }: {
-      size?: (v: GenericType) => number
+      size?: (v: Util.GenericType) => number
       sizeUnit?: string
       typeDeclaration: string
 
@@ -22,7 +22,7 @@ export function defineRepoTherapyValue <T extends GenericType> (
       description: string | Array<string>
     } = { typeDeclaration, description }
 
-    function validate (p: string, v?: GenericType): T {
+    function validate (p: string, v?: Util.GenericType): T {
       const value = v || config.defaultValue
       try {
         if (!config.nullable && value === undefined) {
@@ -70,7 +70,7 @@ export function defineRepoTherapyValue <T extends GenericType> (
   }
 
   function isNumber (callback?: (v: number) => number) {
-    return isCustom((v: GenericType) => {
+    return isCustom((v: Util.GenericType) => {
       const parseV = Number(v)
       if (typeof parseV !== 'number' || isNaN(parseV)) {
         throw new Error('not a number')
@@ -89,59 +89,59 @@ export function defineRepoTherapyValue <T extends GenericType> (
     })
   }
 
-  return wrapper('define-env', () => {
-    return {
-      isCustom,
-      isString: (
-        match?: RegExp,
-        typeDeclaration = 'string'
-      ) => isCustom((v: GenericType) => {
-        if (typeof v !== 'string') { throw new Error('not a string') }
-        if (match && !match.test(v)) {
-          throw new Error(`doesn't match ${match}`)
-        }
-        return v
-      }, {
-        size (v) { return v!.toString().length },
-        sizeUnit: 'length',
-        typeDeclaration
-      }),
-      isNumber: () => isNumber(),
-      isPositiveNumber: () => isNumber((n) => {
-        if (n < 0) { throw new Error('not a positive number') }
-        return n
-      }),
-      isNegativeNumber: () => isNumber((n) => {
-        if (n > 0) { throw new Error('not a positive number') }
-        return n
-      }),
-      isInteger: () => isInteger(),
-      isPositiveInteger: () => isInteger((n) => {
-        if (n < 0) { throw new Error('not a positive integer') }
-        return n
-      }),
-      isNegativeInteger: () => isInteger((n) => {
-        if (n > 0) { throw new Error('not a positive integer') }
-        return n
-      }),
-      isBoolean: () => isCustom((v: GenericType) => {
-        if (typeof v !== 'boolean') { throw new Error('not a boolean') }
-        return v
-      }, { typeDeclaration: 'boolean' }),
-      isOneOf: <Value extends Record<string, string | number | boolean>> (
-        enumObj: Value
-      ) => isCustom((v: GenericType) => {
-        if (!enumObj[v as keyof Value]) {
-          throw new Error(`not a value in ${
+  const r = {
+    isCustom,
+    isString: (
+      match?: RegExp,
+      typeDeclaration = 'string'
+    ) => isCustom((v: Util.GenericType) => {
+      if (typeof v !== 'string') { throw new Error('not a string') }
+      if (match && !match.test(v)) {
+        throw new Error(`doesn't match ${match}`)
+      }
+      return v
+    }, {
+      size (v) { return v!.toString().length },
+      sizeUnit: 'length',
+      typeDeclaration
+    }),
+    isNumber: () => isNumber(),
+    isPositiveNumber: () => isNumber((n) => {
+      if (n < 0) { throw new Error('not a positive number') }
+      return n
+    }),
+    isNegativeNumber: () => isNumber((n) => {
+      if (n > 0) { throw new Error('not a positive number') }
+      return n
+    }),
+    isInteger: () => isInteger(),
+    isPositiveInteger: () => isInteger((n) => {
+      if (n < 0) { throw new Error('not a positive integer') }
+      return n
+    }),
+    isNegativeInteger: () => isInteger((n) => {
+      if (n > 0) { throw new Error('not a positive integer') }
+      return n
+    }),
+    isBoolean: () => isCustom((v: Util.GenericType) => {
+      if (typeof v !== 'boolean') { throw new Error('not a boolean') }
+      return v
+    }, { typeDeclaration: 'boolean' }),
+    isOneOf: <Value extends Record<string, string | number | boolean>> (
+      enumObj: Value
+    ) => isCustom((v: Util.GenericType) => {
+      if (!enumObj[v as keyof Value]) {
+        throw new Error(`not a value in ${
             Object.values(enumObj).join(' | ')
           }`)
-        }
-        return v
-      }, {
-        typeDeclaration: ((
-          JSON.stringify(Object.values(enumObj)).match(/^\[(.*)\]$/) || []
-        )[1] || '').replace(/"/g, '\'').replace(/,/g, ' | ')
-      })
-    }
-  })
+      }
+      return v
+    }, {
+      typeDeclaration: ((
+        JSON.stringify(Object.values(enumObj)).match(/^\[(.*)\]$/) || []
+      )[1] || '').replace(/"/g, '\'').replace(/,/g, ' | ')
+    })
+  }
+
+  return wrapper<typeof r, undefined, false>('env', () => r)
 }

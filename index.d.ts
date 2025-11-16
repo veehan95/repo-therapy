@@ -284,7 +284,7 @@ declare global {
   }
 
   const defineRepoTherapyLint: RepoTherapy.DefinationFunctionGeneric<
-    'define-lint',
+    'lint',
     [Partial<{
       projectType: RepoTherapy.ProjectType
       framework: RepoTherapy.Framework
@@ -295,7 +295,7 @@ declare global {
   >
 
   const defineRepoTherapyHusky: RepoTherapy.DefinationFunctionGeneric<
-    'define-husky',
+    'husky',
     [Partial<{
       packageManager: RepoTherapy.PackageManager
       // todo
@@ -309,7 +309,7 @@ declare global {
   >
 
   const defineRepoTherapyLogger: RepoTherapy.DefinationFunctionGeneric<
-    'define-logger',
+    'logger',
     [Partial<{
       service: string
       transportConfig: Array<'file' | 'console' | import('winston').transport>
@@ -330,7 +330,7 @@ declare global {
   // function defineRepoTherapyEnum <
   //   T extends object = object
   // > (enumObj: T): ReturnType<RepoTherapy.DefinationFunctionGeneric<
-  //   'define-enum',
+  //   'enum',
   //   T,
   //   T & {
   //     ValueType: Record<'String' | 'Number' | 'Boolean'>
@@ -349,7 +349,7 @@ declare global {
       defaultProp?: T
     }]
   > (...args: U): ReturnType<RepoTherapy.DefinationFunctionGeneric<
-    'define-error',
+    'error',
     U,
     RepoTherapyUtil.CustomError<object>
   >>
@@ -359,7 +359,7 @@ declare global {
   > (
     handler: RepoTherapyEnv.Handler<T>
   ): ReturnType<typeof defineRepoTherapyWrapper<
-    'define-env',
+    'env',
     Promise<{
       envSample: () => Record<string, string>
       envType: () => string
@@ -382,13 +382,13 @@ declare global {
       writeParse: (x: RowType) => RawRowType
       autoGenerate: false
     }
-  ): ReturnType<typeof defineRepoTherapyWrapper<'define-csv', {
+  ): ReturnType<typeof defineRepoTherapyWrapper<'csv', {
     read: () => Promise<Array<RowType>>
     write: (data: Array<RowType>) => Promise<void>
   }, [string]>>
 
   // const defineRepoTherapyCli: RepoTherapy.DefinationFunctionGeneric<
-  //   'define-cli',
+  //   'cli',
   //   [
   //     Partial<Record<'lib' | 'custom', Array<string> | string>>,
   //     ReturnType<typeof defineRepoTherapy>,
@@ -426,7 +426,7 @@ declare global {
       // todo move to @types
       manualModuleTyping: Array<string>
     }>): ReturnType<RepoTherapy.DefinationFunctionGeneric<
-      'define-repo-therapy',
+      '',
       Partial<{
         libName: string
         project: string
@@ -474,7 +474,7 @@ declare global {
       //   : undefined
       match: RegExp
     }>
-  ): ReturnType<typeof defineRepoTherapyWrapper<'define-import', {
+  ): ReturnType<typeof defineRepoTherapyWrapper<'import', {
     rootPath: Promise<string>
     importScript: (
       path: U,
@@ -503,7 +503,7 @@ declare global {
       libTool: RepoTherapy.DefineLibTool<U, V>,
       argv: import('yargs').Argv<T>
     ) => void | import('yargs').Argv<T>
-  ): ReturnType<typeof defineRepoTherapyWrapper<'define-script', Promise<{
+  ): ReturnType<typeof defineRepoTherapyWrapper<'script', Promise<{
     describe: string
     builder: (argv: import('yargs').Argv<T>) => void | import('yargs').Argv<T>
     handler: (args: T) => void
@@ -511,7 +511,7 @@ declare global {
   }>, [RepoTherapy.DefineLibTool<U, V>, string, 'lib' | 'custom']>>
 
   const defineRepoTherapyPackageJson: RepoTherapy.DefinationFunctionGeneric<
-    'define-package-json',
+    'package-json',
     [RepoTherapyUtil.DeepPartial<{
       path: string
       projectType: RepoTherapy.ProjectType
@@ -527,14 +527,14 @@ declare global {
 
   function defineRepoTherapyJson <T extends object> (
     objDefination: RepoTherapyUtil.JsonDefination
-  ): ReturnType<typeof defineRepoTherapyWrapper<'define-json', {
+  ): ReturnType<typeof defineRepoTherapyWrapper<'json', {
     json: T
     match: (data: T) => Array<string>
     difference: (data: T) => RepoTherapyUtil.DeepPartial<T>
   }>, [T]>
 
   const defineRepoTherapyTsconfig: RepoTherapy.DefinationFunctionGeneric<
-    'define-tsconfig',
+    'tsconfig',
     [Partial<{
       path: string
       extends: string
@@ -556,7 +556,7 @@ declare global {
     path: string
     framework: Array<RepoTherapy.Framework>
     custom: (s: Array<string>) => Array<string>
-  }>): ReturnType<typeof defineRepoTherapyWrapper<'define-gitignore', Promise<{
+  }>): ReturnType<typeof defineRepoTherapyWrapper<'gitignore', Promise<{
     config: Record<string, Array<string>>
     path: string
     write: () => void
@@ -573,7 +573,7 @@ declare global {
       packageManager: RepoTherapy.PackageManager
       custom: (s: Array<string>) => Array<string>
     }>
-  ): ReturnType<typeof defineRepoTherapyWrapper<'define-vscode', Promise<{
+  ): ReturnType<typeof defineRepoTherapyWrapper<'vscode', Promise<{
     config: {
       // todo
       settings: object
