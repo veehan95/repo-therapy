@@ -1,5 +1,5 @@
 # ================================
-# OS Generated
+# General: OS Generated
 # ================================
 .DS_Store
 .DS_Store?
@@ -10,9 +10,8 @@ ehthumbs.db
 Thumbs.db
 
 # ================================
-# Ide & Editor
+# General: Ide & Editor
 # ================================
-.vscode
 .idea
 *.swp
 *.swo
@@ -20,7 +19,7 @@ Thumbs.db
 .workspace
 
 # ================================
-# Temporary Files
+# General: Temporary Files
 # ================================
 tmp
 temp
@@ -28,7 +27,7 @@ temp
 *.temp
 
 # ================================
-# Misc
+# General: Misc
 # ================================
 *.tgz
 *.tar.gz
@@ -37,37 +36,29 @@ temp
 *.7z
 
 # ================================
-# Dependencies
+# General: Dependencies
 # ================================
 node_modules
 .npm
-.yarn
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
+.npmignore
 
 # ================================
-# Runtime & Environment
+# General: Runtim & Environment
 # ================================
 .env
-.env.local
-.env.*.local
+.env.*
+.env.*.*
 .husky/_
 
 # ================================
-# Logs
+# General: Logs
 # ================================
 logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.log*
 lerna-debug.log*
 
 # ================================
-# Coverage & Testing
+# General: Coverage & Testing
 # ================================
 coverage
 .nyc_output
@@ -76,7 +67,7 @@ coverage
 vitest-report.html
 
 # ================================
-# Build Tools
+# General: Build Tools
 # ================================
 .cache
 .parcel-cache
@@ -88,12 +79,12 @@ vitest-report.html
 .rts2_cache_umd
 
 # ================================
-# esLint
+# General: Es Lint
 # ================================
 .eslintcache
 
 # ================================
-# Typescript Specific
+# General: Typescript Specific
 # ================================
 dist
 bin
@@ -103,5 +94,29 @@ out
 *.js.map
 *.d.ts.map
 
-.env.*
+# ================================
+# Package Manager: Yarn
+# ================================
+.yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+yarn-debug.log*
+yarn-error.log*
+
+# ================================
+# Custom: Settings
+# ================================
+
+
+# ================================
+# Custom: Not via setting
+# ================================
+.vscode
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
 types/_*

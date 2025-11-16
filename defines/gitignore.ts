@@ -1,5 +1,4 @@
 import { startCase } from 'lodash'
-import { GenerateStatus } from '../enums'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export interface GitignoreOptions {
@@ -53,8 +52,8 @@ export function defineRepoTherapyGitIgnore (
         path: currentConfigImport.path,
         fullPath: currentConfigImport.fullPath,
         status: currentConfigImport.import
-          ? GenerateStatus.updated
-          : GenerateStatus.created,
+          ? libTool.enum.GenerateStatus.updated
+          : libTool.enum.GenerateStatus.created,
         content: libTool.string().toScript(
           chunk.flatMap(r => [
             ...(option.clean

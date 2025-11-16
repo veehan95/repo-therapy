@@ -6,7 +6,10 @@
     "postinstall": "husky",
     "build": "yarn clean && tsc",
     "clean": "rm -rf bin",
-    "prepack": "git push && yarn build"
+    "prepack": "git push && yarn build",
+    "start": "node index.js",
+    "test": "jest",
+    "dev": "nodemon index.js"
   },
   "main": "./bin/index.js",
   "types": "./bin/index.d.ts",

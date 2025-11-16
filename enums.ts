@@ -117,7 +117,7 @@ export enum GitHook {
 export enum GitIgnore {
   OSGenerated = '.DS_Store\n.DS_Store?\n._*\n.Spotlight-V100\n.Trashes\n' +
     'ehthumbs.db\nThumbs.db',
-  IdeNEditor = '.idea\n*.swp\n*.swo\n*~\n.workspace',
+  IdeNEditor = '.idea\n*.swp\n*.swo\n*~\n.workspace\n.husky\n.vscode',
   TemporaryFiles = 'tmp\ntemp\n*.tmp\n*.temp',
   Misc = '*.tgz\n*.tar.gz\n*.zip\n*.rar\n*.7z',
   Dependencies = 'node_modules\n.npm\n.npmignore',

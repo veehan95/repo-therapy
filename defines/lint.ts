@@ -15,6 +15,25 @@ export function defineRepoTherapyLint (
     const eslintPath = join(libTool.path.root, 'eslint.config.ts')
     console.log(libTool.path.buildCache)
     console.log(eslintPath)
+    const str = libTool.string().toScript([
+      'import { defineConfig } from \'eslint/config\';',
+      '',
+      'export default defineConfig([',
+      [
+        '{',
+        [
+          'rules: {',
+          [
+            'semi: \'error\',',
+            '\'prefer-const\': \'error\''
+          ],
+          '}'
+        ],
+        '}'
+      ],
+      ']);'
+    ])
+    console.log(str)
     // const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
     // let lintWrap = (x: Linter.Config) => x
     // if (framework === 'nuxt-monorepo' || framework === 'nuxt.js') {
