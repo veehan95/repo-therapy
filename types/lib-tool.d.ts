@@ -1,3 +1,4 @@
+import { defineRepoTherapyLint } from 'defines/lint'
 import { defineRepoTherapyVsCode } from 'defines/vscode'
 import { type Transform, type Writable } from 'stream'
 import { type PackageJson } from 'type-fest'
@@ -40,6 +41,7 @@ export interface LibTool <
   > = object,
   RootPath extends Util.Path = Util.Path
 > {
+  libName: string
   projectType: ProjectType
   packageManager: PackageManager
   absolutePath: { root: RootPath } & LinkPathPredefined<LinkPath>
@@ -85,4 +87,5 @@ export interface LibTool <
   >>['availableKey']
   gitignore: () => ReturnType<ReturnType<typeof defineRepoTherapyGitIgnore>>
   vsCode: () => ReturnType<ReturnType<typeof defineRepoTherapyVsCode>>
+  lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
 }

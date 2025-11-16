@@ -11,6 +11,7 @@ import { defineRepoTherapyEnv, type EnvCallback } from './env'
 import { defineRepoTherapyGitIgnore, type GitignoreOptions } from './gitignore'
 import { defineRepoTherapyHusky, type HuskyOptions } from './husky'
 import { defineRepoTherapyImport } from './import'
+import { defineRepoTherapyLint } from './lint'
 import { defineRepoTherapyLogger } from './logger'
 import { defineRepoTherapyPackageJson } from './package-json'
 import { defineRepoTherapyStreamSync } from './stream-sync'
@@ -72,7 +73,7 @@ function value (description: string | Array<string>) {
   return defineRepoTherapyValue(description)()
 }
 
-export function defineRepoTherapy <
+export interface RepoTherapyOptions<
   VD extends ValueDefination,
   LinkPath extends Util.LinkPath = Util.LinkPath,
   EnumConfig extends Record<
@@ -80,17 +81,22 @@ export function defineRepoTherapy <
     EnumDefination
   > = object & Record<string, EnumDefination>,
   RootPath extends Util.Path = Util.Path
-> (options: {
+> {
+  libName?: string
   project?: string
+  // todo
+  // description: string
   rootPath?: RootPath
   nodeEnv?: NodeEnvOptions
   linkPath?: LinkPath
   projectType?: ProjectType
   enumPaths?: Array<Util.Path>
   enumConfigs?: EnumConfig
+  packageJsonConfig?: Partial<Omit<PackageJson, 'description'>>
   husky?: HuskyOptions
   gitignore?: GitignoreOptions
   vsCode?: VSCodeOptions
+  lint?: any
   // projectType: RepoTherapy.ProjectType
   // framework: Array<RepoTherapy.Framework>
   logger?: ReturnType<typeof defineRepoTherapyLogger>
@@ -106,7 +112,17 @@ export function defineRepoTherapy <
   // silent: boolean
   // // todo move to @types
   // manualModuleTyping: Array<string>
-} = {}) {
+}
+
+export function defineRepoTherapy <
+  VD extends ValueDefination,
+  LinkPath extends Util.LinkPath = Util.LinkPath,
+  EnumConfig extends Record<
+    string,
+    EnumDefination
+  > = object & Record<string, EnumDefination>,
+  RootPath extends Util.Path = Util.Path
+> (options: RepoTherapyOptions<VD, LinkPath, EnumConfig, RootPath> = {}) {
   async function r ({ skipEnv }: {
     skipEnv?: boolean
   } = {}) {
@@ -151,6 +167,7 @@ export function defineRepoTherapy <
     })
 
     const libTool = {
+      libName: options.libName || 'RepoTherapy',
       projectType: optionWithDefault.projectType,
       packageManager: PackageManager.NPM,
       absolutePath: pathObj.absolutePath,
@@ -216,11 +233,12 @@ export function defineRepoTherapy <
       options.husky
     )(libTool)
 
-    libTool.packageJson = (
-      config: Partial<PackageJson> = {}
-    ) => defineRepoTherapyPackageJson(
+    libTool.packageJson = () => defineRepoTherapyPackageJson(
       libTool.projectType,
-      config
+      {
+        ...options.packageJsonConfig
+        // description: options.description
+      }
     )(libTool)
 
     libTool.gitignore = () => defineRepoTherapyGitIgnore(
@@ -229,6 +247,14 @@ export function defineRepoTherapy <
 
     libTool.vsCode = () => defineRepoTherapyVsCode(
       options.vsCode
+    )(libTool)
+
+    libTool.vsCode = () => defineRepoTherapyVsCode(
+      options.vsCode
+    )(libTool)
+
+    libTool.lint = () => defineRepoTherapyLint(
+      options.lint
     )(libTool)
 
     return libTool

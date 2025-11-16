@@ -95,6 +95,15 @@ out
 *.d.ts.map
 
 # ================================
+# General: RepoTherapy
+# ================================
+.husky
+.vscode
+eslint.config.ts
+bin
+.repo-therapy
+
+# ================================
 # Package Manager: Yarn
 # ================================
 .yarn
@@ -114,7 +123,6 @@ yarn-error.log*
 # ================================
 # Custom: Not via setting
 # ================================
-.vscode
 .env.local
 .env.*.local
 *.log

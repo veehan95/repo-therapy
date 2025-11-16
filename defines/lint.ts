@@ -1,5 +1,4 @@
 import standard from 'eslint-config-standard'
-import { join } from 'node:path'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 const {
@@ -7,33 +6,14 @@ const {
   env,
   globals
 } = standard
-
+// todo
 export function defineRepoTherapyLint (
-  // framework
+  o: any// framework
 ) {
-  return wrapper('lint', async (libTool) => {
-    const eslintPath = join(libTool.path.root, 'eslint.config.ts')
+  return wrapper('lint', (libTool) => {
+    // const eslintPath = join(libTool.path.root, 'eslint.config.ts')
     console.log(libTool.path.buildCache)
-    console.log(eslintPath)
-    const str = libTool.string().toScript([
-      'import { defineConfig } from \'eslint/config\';',
-      '',
-      'export default defineConfig([',
-      [
-        '{',
-        [
-          'rules: {',
-          [
-            'semi: \'error\',',
-            '\'prefer-const\': \'error\''
-          ],
-          '}'
-        ],
-        '}'
-      ],
-      ']);'
-    ])
-    console.log(str)
+    // console.log(eslintPath)
     // const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
     // let lintWrap = (x: Linter.Config) => x
     // if (framework === 'nuxt-monorepo' || framework === 'nuxt.js') {
@@ -47,6 +27,19 @@ export function defineRepoTherapyLint (
     // }
 
     return {
+      generate: async () => {
+        await libTool.importLib.writeStatic(
+          '/eslint.config.ts',
+          () => libTool.string().toScript([
+            'import { defineConfig } from \'eslint/config\'',
+            `import config from '.${
+              libTool.path.buildCache
+            }/eslint.config'`,
+            '',
+            'export default defineConfig(config)'
+          ])
+        )
+      }
       // lint: () => lintWrap({
       //   rules,
       //   ignores: Object.keys((vsCodeSettings as {

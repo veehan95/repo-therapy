@@ -117,7 +117,7 @@ export enum GitHook {
 export enum GitIgnore {
   OSGenerated = '.DS_Store\n.DS_Store?\n._*\n.Spotlight-V100\n.Trashes\n' +
     'ehthumbs.db\nThumbs.db',
-  IdeNEditor = '.idea\n*.swp\n*.swo\n*~\n.workspace\n.husky\n.vscode',
+  IdeNEditor = '.idea\n*.swp\n*.swo\n*~\n.workspace',
   TemporaryFiles = 'tmp\ntemp\n*.tmp\n*.temp',
   Misc = '*.tgz\n*.tar.gz\n*.zip\n*.rar\n*.7z',
   Dependencies = 'node_modules\n.npm\n.npmignore',
@@ -128,7 +128,8 @@ export enum GitIgnore {
     '.rpt2_cache\n.rts2_cache_cjs\n.rts2_cache_es\n.rts2_cache_umd',
   EsLint = '.eslintcache',
   TypescriptSpecific = 'dist\nbin\nbuild\nout\n*.tsbuildinfo\n*.js.map\n' +
-    '*.d.ts.map'
+    '*.d.ts.map',
+  RepoTherapy = '.husky\n.vscode\neslint.config.ts\n<build>\n<buildCache>'
 }
 
 export enum GitIgnorePackageManager {

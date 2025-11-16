@@ -1,20 +1,20 @@
+import { findUp } from 'find-up'
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { type Util } from './types/repo-therapy'
+import { genericImport } from './defines/import'
 import { defineRepoTherapy } from './defines/index'
 import { defineRepoTherapyScript } from './defines/script'
 import { NodeEnvOptions } from './enums'
-import { genericImport } from './defines/import'
-import { findUp } from 'find-up'
-import { existsSync } from 'node:fs'
+import { type Util } from './types/repo-therapy'
 
-export { defineRepoTherapy }
 export { defineRepoTherapyCsv } from './defines/csv'
 export { defineRepoTherapyEnv } from './defines/env'
 export { defineRepoTherapyImport } from './defines/import'
 export { defineRepoTherapyLogger } from './defines/logger'
 export { defineRepoTherapyWrapper } from './defines/wrapper'
+export { defineRepoTherapy }
 
 interface Option {
   libName: string
@@ -27,7 +27,6 @@ interface Option {
 }
 
 export async function cli ({
-  libName = 'RepoTherapy',
   scriptDir = [],
   commandIgnoreEnv: commandIgnoreEnvCustom
 }: Partial<Option> = {}) {
@@ -38,7 +37,6 @@ export async function cli ({
   ]
 
   const y = yargs(hideBin(process.argv))
-    .scriptName(libName)
     .parserConfiguration({ 'strip-aliased': true })
     .usage('Usage: $0 <command> [options]')
     .option('project', {
@@ -69,9 +67,11 @@ export async function cli ({
   if (!rp) { throw new Error('Misisng /repo-thnerapy.ts configurations') }
   const libTool = await rp()({ skipEnv: commandIgnoreEnv.includes(command) })
 
+  y.scriptName(libTool.libName)
+
   if (command && !initArgv.h) {
     libTool.logger.info('')
-    libTool.logger.info(`* ${libName} *`)
+    libTool.logger.info(`* ${libTool.libName} *`)
     if (libTool.env) {
       if (libTool.env.project) {
         libTool.logger.info(`Project\t${libTool.env.project}`)

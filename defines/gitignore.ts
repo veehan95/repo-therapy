@@ -29,8 +29,16 @@ export function defineRepoTherapyGitIgnore (
       }).reduce((acc, [section, data]) => {
         Object.entries(data).forEach(([name, content]) => {
           acc.push({
-            title: `${startCase(section)}: ${startCase(name)}`,
-            content: content.split(/\r|\n/)
+            title: `${startCase(section)}: ${
+              name === 'RepoTherapy' ? libTool.libName : startCase(name)
+            }`,
+            content: content
+              .replace(/<build>/, libTool.path.build.replace(/^\//, ''))
+              .replace(
+                /<buildCache>/,
+                libTool.path.buildCache.replace(/^\//, '')
+              )
+              .split(/\r|\n/)
           })
         })
         return acc
