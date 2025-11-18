@@ -122,14 +122,14 @@ export enum GitIgnore {
   Misc = '*.tgz\n*.tar.gz\n*.zip\n*.rar\n*.7z',
   Dependencies = 'node_modules\n.npm\n.npmignore',
   RuntimNEnvironment = '.env\n.env.*\n.env.*.*\n.husky/_',
-  Logs = 'logs\n*.log*\nlerna-debug.log*',
+  Logs = 'logs\n*.log\n*.log*\nlerna-debug.log*',
   CoverageNTesting = 'coverage\n.nyc_output\n*.lcov\n.jest\nvitest-report.html',
   BuildTools = '.cache\n.parcel-cache\n.eslintcache\n.stylelintcache\n' +
     '.rpt2_cache\n.rts2_cache_cjs\n.rts2_cache_es\n.rts2_cache_umd',
   EsLint = '.eslintcache',
   TypescriptSpecific = 'dist\nbin\nbuild\nout\n*.tsbuildinfo\n*.js.map\n' +
     '*.d.ts.map',
-  RepoTherapy = '.husky\n.vscode\neslint.config.ts\n<build>\n<buildCache>'
+  RepoTherapy = '.husky\n.vscode\neslint.config.ts\ntypes/_*\n<build>\n<buildCache>'
 }
 
 export enum GitIgnorePackageManager {

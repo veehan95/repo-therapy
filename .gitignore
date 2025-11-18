@@ -54,7 +54,7 @@ node_modules
 # General: Logs
 # ================================
 logs
-*.log*
+*.log
 lerna-debug.log*
 
 # ================================
@@ -123,8 +123,4 @@ yarn-error.log*
 # ================================
 # Custom: Not via setting
 # ================================
-.env.local
-.env.*.local
-*.log
-npm-debug.log*
 types/_*

@@ -6,7 +6,8 @@ export default defineRepoTherapyScript('Setup project.', async (a, libTool) => {
   libTool.printList('Husky hook', await libTool.husky().setup())
   libTool.printList('gitignore', await libTool.gitignore().generate())
   libTool.printList('VSCode', await libTool.vsCode().generate())
-  await libTool.lint()
+  console.log(await libTool.tsConfig())
+  // await libTool.lint()
 }, {
   command: 'project:setup'
 })

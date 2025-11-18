@@ -1,4 +1,5 @@
 import { defineRepoTherapyLint } from 'defines/lint'
+import { defineRepoTherapyTsConfig } from 'defines/tsconfig'
 import { defineRepoTherapyVsCode } from 'defines/vscode'
 import { type Transform, type Writable } from 'stream'
 import { type PackageJson } from 'type-fest'
@@ -88,4 +89,5 @@ export interface LibTool <
   gitignore: () => ReturnType<ReturnType<typeof defineRepoTherapyGitIgnore>>
   vsCode: () => ReturnType<ReturnType<typeof defineRepoTherapyVsCode>>
   lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
+  tsConfig: () => ReturnType<ReturnType<typeof defineRepoTherapyTsConfig>>
 }

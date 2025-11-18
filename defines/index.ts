@@ -16,6 +16,7 @@ import { defineRepoTherapyLogger } from './logger'
 import { defineRepoTherapyPackageJson } from './package-json'
 import { defineRepoTherapyStreamSync } from './stream-sync'
 import { defineRepoTherapyString } from './string'
+import { defineRepoTherapyTsConfig } from './tsconfig'
 import { defineRepoTherapyValue } from './value'
 import {
   defineRepoTherapyValueParse,
@@ -249,7 +250,7 @@ export function defineRepoTherapy <
       options.vsCode
     )(libTool)
 
-    libTool.vsCode = () => defineRepoTherapyVsCode(
+    libTool.tsConfig = () => defineRepoTherapyTsConfig(
       options.vsCode
     )(libTool)
 
@@ -434,7 +435,7 @@ export function defineRepoTherapy <
     //     )(libTool).then(x => x.write())
     //     await defineRepoTherapyGitignore({ framework: _framework })(libTool)
     //       .then(x => x.write())
-    //     await defineRepoTherapyTsconfig
+    //     await defineRepoTherapyTsConfig
     // ({ projectType: _projectType })(libTool)
     //       .then(x => x.write())
     //     await defineRepoTherapyVsCode({
