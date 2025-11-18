@@ -124,3 +124,7 @@ yarn-error.log*
 # Custom: Not via setting
 # ================================
 types/_*
+
+.vscode
+.husky
+eslint.config.ts
