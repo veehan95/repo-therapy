@@ -22,7 +22,7 @@ import {
   type ValueDefination,
   type ValueParseOptions
 } from '../defines/value-parse'
-import { PackageManager, ProjectType } from '../enums'
+import { PackageManager, ProjectType } from '../statics/enums'
 import { Util } from './repo-therapy.d'
 
 type LinkPathPredefined <PO extends Util.LinkPath> = {
@@ -33,6 +33,20 @@ type LinkPathPredefined <PO extends Util.LinkPath> = {
   project: Util.Path
 } & PO
 
+type ImportConfigPredefined = 'env' | 'logger' | 'enum' | 'husky' |
+  'packageJson' | 'gitignore' | 'vsCode' | 'tsConfig' | 'lint'
+
+interface ImportConfigMeta {
+  file: string
+  defination: Array<string>
+  default: any
+}
+
+type ImportConfigFull <T extends Record<string, ImportConfigMeta>> = Record<
+  (keyof T & string) | ImportConfigPredefined,
+  ImportConfigMeta
+>
+
 export interface LibTool <
   VD extends ValueDefination = ValueDefination,
   LinkPath extends Util.LinkPath = Util.LinkPath,
@@ -40,6 +54,7 @@ export interface LibTool <
     string,
     EnumDefination
   > = object,
+  ImportConfig extends Record<string, ImportConfigMeta> = object,
   RootPath extends Util.Path = Util.Path
 > {
   libName: string
@@ -48,6 +63,9 @@ export interface LibTool <
   absolutePath: { root: RootPath } & LinkPathPredefined<LinkPath>
   path: LinkPathPredefined<LinkPath>
   importLib: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyImport>>>
+  optionOrFile: <
+    K extends keyof ImportConfigFull<ImportConfig>
+  > (k: K) => Promise<ReturnType<ImportConfigFull<ImportConfig>[K]['default']>>
   env: ReturnType<Awaited<
     ReturnType<ReturnType<typeof defineRepoTherapyEnv<VD>>>
   >['get']>

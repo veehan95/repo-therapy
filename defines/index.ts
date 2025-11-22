@@ -1,15 +1,14 @@
 import { findUp } from 'find-up'
 import lodash from 'lodash'
 import { dirname, join } from 'node:path'
-import { type PackageJson } from 'type-fest'
-import { NodeEnvOptions, PackageManager, ProjectType } from '../enums'
+import { NodeEnvOptions, PackageManager, ProjectType } from '../statics/enums'
 import { type LibTool } from '../types/lib-tool'
 import { type Util } from '../types/repo-therapy'
 import { defineRepoTherapyCsv, type CsvOption, type RawCsvRow } from './csv'
 import { defineRepoTherapyEnum, EnumDefination } from './enum'
-import { defineRepoTherapyEnv, type EnvCallback } from './env'
-import { defineRepoTherapyGitIgnore, type GitignoreOptions } from './gitignore'
-import { defineRepoTherapyHusky, type HuskyOptions } from './husky'
+import { defineRepoTherapyEnv } from './env'
+import { defineRepoTherapyGitIgnore } from './gitignore'
+import { defineRepoTherapyHusky } from './husky'
 import { defineRepoTherapyImport } from './import'
 import { defineRepoTherapyLint } from './lint'
 import { defineRepoTherapyLogger } from './logger'
@@ -23,7 +22,7 @@ import {
   type ValueDefination,
   type ValueParseOptions
 } from './value-parse'
-import { defineRepoTherapyVsCode, type VSCodeOptions } from './vscode'
+import { defineRepoTherapyVsCode } from './vscode'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
@@ -81,6 +80,11 @@ export interface RepoTherapyOptions<
     string,
     EnumDefination
   > = object & Record<string, EnumDefination>,
+  ImportConfig extends Record<string, {
+    file: string
+    defination: Array<string>
+    default: any
+  }> = {},
   RootPath extends Util.Path = Util.Path
 > {
   libName?: string
@@ -91,18 +95,18 @@ export interface RepoTherapyOptions<
   nodeEnv?: NodeEnvOptions
   linkPath?: LinkPath
   projectType?: ProjectType
-  enumPaths?: Array<Util.Path>
-  enumConfigs?: EnumConfig
-  packageJsonConfig?: Partial<Omit<PackageJson, 'description'>>
-  husky?: HuskyOptions
-  gitignore?: GitignoreOptions
-  vsCode?: VSCodeOptions
-  lint?: any
+  importConfig?: ImportConfig
+  env?: ReturnType<typeof defineRepoTherapyEnv<VD>>
+  logger?: ReturnType<typeof defineRepoTherapyLogger>
+  enum?: ReturnType<typeof defineRepoTherapyEnum<EnumConfig>>
+  husky?: ReturnType<typeof defineRepoTherapyHusky>
+  packageJson?: ReturnType<typeof defineRepoTherapyPackageJson>
+  gitignore?: ReturnType<typeof defineRepoTherapyGitIgnore>
+  vsCode?: ReturnType<typeof defineRepoTherapyVsCode>
+  tsConfig?: ReturnType<typeof defineRepoTherapyTsConfig>
+  lint?: ReturnType<typeof defineRepoTherapyLint>
   // projectType: RepoTherapy.ProjectType
   // framework: Array<RepoTherapy.Framework>
-  logger?: ReturnType<typeof defineRepoTherapyLogger>
-  env?: EnvCallback<VD>
-  envInterfaceName?: string
   // env: Env.Detail
   // serverCode: RepoTherapyUtil.DeepPartial<RepoTherapyUtil.ServerCode>
   // error: Record<string, string | {
@@ -122,8 +126,13 @@ export function defineRepoTherapy <
     string,
     EnumDefination
   > = object & Record<string, EnumDefination>,
+  ImportConfig extends Record<string, {
+    file: string
+    defination: Array<string>
+    default: any
+  }> = {},
   RootPath extends Util.Path = Util.Path
-> (options: RepoTherapyOptions<VD, LinkPath, EnumConfig, RootPath> = {}) {
+> (options: RepoTherapyOptions<VD, LinkPath, EnumConfig, ImportConfig, RootPath> = {}) {
   async function r ({ skipEnv }: {
     skipEnv?: boolean
   } = {}) {
@@ -167,6 +176,23 @@ export function defineRepoTherapy <
       buildCache: optionWithDefault.linkPath!.buildCache || '/.repo-therapy'
     })
 
+    const importConfig: Record<string, {
+      file: string
+      defination: Array<string>
+      default: any
+    }> = {
+      ...(options.importConfig || {}),
+      env: { file: 'env', defination: ['define-repo-therapy-env'], default: defineRepoTherapyEnv<VD> },
+      logger: { file: 'logger', defination: ['define-repo-therapy-logger'], default: defineRepoTherapyLogger },
+      enum: { file: 'enum', defination: ['define-repo-therapy-enum'], default: defineRepoTherapyEnum<EnumConfig> },
+      husky: { file: 'husky', defination: ['define-repo-therapy-husky'], default: defineRepoTherapyHusky },
+      packageJson: { file: 'package-json', defination: ['define-repo-therapy-package-json'], default: defineRepoTherapyPackageJson },
+      gitignore: { file: 'gitignore', defination: ['define-repo-therapy-gitignore'], default: defineRepoTherapyGitIgnore },
+      vsCode: { file: 'vsCode', defination: ['define-repo-therapy-vscode'], default: defineRepoTherapyVsCode },
+      tsConfig: { file: 'tsConfig', defination: ['define-repo-therapy-tsconfig'], default: defineRepoTherapyTsConfig },
+      lint: { file: 'lint', defination: ['define-repo-therapy-lint'], default: defineRepoTherapyLint }
+    }
+
     const libTool = {
       libName: options.libName || 'RepoTherapy',
       projectType: optionWithDefault.projectType,
@@ -184,9 +210,17 @@ export function defineRepoTherapy <
       value,
       string: () => defineRepoTherapyString()()
     // todo fix as
-    } as LibTool<VD, LinkPath, EnumConfig, RootPath>
+    } as LibTool<VD, LinkPath, EnumConfig, ImportConfig, RootPath>
 
     libTool.importLib = await defineRepoTherapyImport()(libTool)
+
+    libTool.optionOrFile = async (k: keyof typeof importConfig) => {
+      const { file, defination, default: defaultFunc } = importConfig[k]
+      return options[k as keyof typeof options] || await libTool.importLib.importScript(
+        `/${file}.ts`,
+        { accept: { default: defination }, soft: true }
+      ).then(x => x.import?.default) || defaultFunc()
+    }
 
     if (
       (await libTool.importLib.importStatic('/yarn.lock', { soft: true }))
@@ -200,19 +234,15 @@ export function defineRepoTherapy <
       (await libTool.importLib.importStatic('/bun.lock', { soft: true })).import
     ) { libTool.packageManager = PackageManager.Bun }
 
-    const envParser = await defineRepoTherapyEnv<VD>(optionWithDefault.env, {
+    const envParser = await (await libTool.optionOrFile('env'))(libTool)({
       project: optionWithDefault.project,
       nodeEnv: optionWithDefault.nodeEnv,
-      interfaceName: optionWithDefault.envInterfaceName,
       skip: skipEnv
-    })(libTool)
+    })
     libTool.env = envParser.get()
     libTool.generateEnv = envParser.generate
 
-    const logger = (
-      optionWithDefault.logger ||
-    defineRepoTherapyLogger()
-    )(libTool)
+    const logger = (await libTool.optionOrFile('logger'))(libTool)
     libTool.logger = logger.logger
     libTool.loggerPrint = logger.printString
 
@@ -224,39 +254,27 @@ export function defineRepoTherapy <
       RawRowType
     >(option)(libTool)
 
-    const enums = await defineRepoTherapyEnum<EnumConfig>(
-      options.enumPaths
-    )(libTool)
-    libTool.enum = enums.enum
-    libTool.enumKeys = enums.availableKey
+    const enumsAwait = await (await libTool.optionOrFile('enum'))(libTool)
+    libTool.enum = enumsAwait.enum
+    libTool.enumKeys = enumsAwait.availableKey
 
-    libTool.husky = () => defineRepoTherapyHusky(
-      options.husky
-    )(libTool)
+    const huskyAwait = await libTool.optionOrFile('husky')
+    libTool.husky = () => huskyAwait(libTool)
 
-    libTool.packageJson = () => defineRepoTherapyPackageJson(
-      libTool.projectType,
-      {
-        ...options.packageJsonConfig
-        // description: options.description
-      }
-    )(libTool)
+    const packageJsonAwait = await libTool.optionOrFile('packageJson')
+    libTool.packageJson = () => packageJsonAwait(libTool)
 
-    libTool.gitignore = () => defineRepoTherapyGitIgnore(
-      options.gitignore
-    )(libTool)
+    const gitignoreAwait = await libTool.optionOrFile('gitignore')
+    libTool.gitignore = () => gitignoreAwait(libTool)
 
-    libTool.vsCode = () => defineRepoTherapyVsCode(
-      options.vsCode
-    )(libTool)
+    const vscodeAwait = await libTool.optionOrFile('vsCode')
+    libTool.vsCode = () => vscodeAwait(libTool)
 
-    libTool.tsConfig = () => defineRepoTherapyTsConfig(
-      options.vsCode
-    )(libTool)
+    const tsConfigAwait = await libTool.optionOrFile('tsConfig')
+    libTool.tsConfig = () => tsConfigAwait(libTool)
 
-    libTool.lint = () => defineRepoTherapyLint(
-      options.lint
-    )(libTool)
+    const lintAwait = await libTool.optionOrFile('lint')
+    libTool.lint = () => lintAwait(libTool)
 
     return libTool
   }

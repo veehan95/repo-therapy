@@ -1,7 +1,7 @@
 import winston, { type transport as Transport } from 'winston'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { ConsolePrefix } from '../enums'
+import { ConsolePrefix } from '../statics/enums'
 import { type Util } from '../types/repo-therapy'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export function defineRepoTherapyLogger ({
   service = 'main',

@@ -48,13 +48,15 @@ node_modules
 .env
 .env.*
 .env.*.*
-.husky/_
+.husky
+.vscode
 
 # ================================
 # General: Logs
 # ================================
 logs
 *.log
+*.log*
 lerna-debug.log*
 
 # ================================
@@ -71,7 +73,6 @@ vitest-report.html
 # ================================
 .cache
 .parcel-cache
-.eslintcache
 .stylelintcache
 .rpt2_cache
 .rts2_cache_cjs
@@ -95,15 +96,6 @@ out
 *.d.ts.map
 
 # ================================
-# General: RepoTherapy
-# ================================
-.husky
-.vscode
-eslint.config.ts
-bin
-.repo-therapy
-
-# ================================
 # Package Manager: Yarn
 # ================================
 .yarn
@@ -116,15 +108,13 @@ yarn-debug.log*
 yarn-error.log*
 
 # ================================
-# Custom: Settings
+# Framework: Repo Therapy
 # ================================
-
-
-# ================================
-# Custom: Not via setting
-# ================================
-types/_*
-
-.vscode
-.husky
 eslint.config.ts
+types/_*
+.repo-therapy
+
+# ================================
+# Custom: Not Configured
+# ================================
+hahaha

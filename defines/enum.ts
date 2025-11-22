@@ -1,6 +1,6 @@
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { Util } from 'types/repo-therapy'
-import * as defaultEnums from '../enums'
+import * as defaultEnums from '../statics/enums'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export type EnumDefination = Record<string, 'string' | 'number'>
 
@@ -40,6 +40,7 @@ export function defineRepoTherapyEnum <
       enumObj = Object.assign(enumObj, enumFs.import)
     }
 
+    // todo allow overwrite
     enumObj = Object.assign(enumObj, defaultEnums)
 
     return {

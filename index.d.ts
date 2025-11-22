@@ -549,7 +549,7 @@ declare global {
     'tool'
   >
 
-  function defineRepoTherapyGitignore <
+  function defineRepoTherapyGitIgnore <
     T extends RepoTherapyEnv.Detail,
     U extends Record<string, string>
   > (handler?: Partial<{
@@ -587,4 +587,5 @@ declare global {
   }>, [RepoTherapy.DefineLibTool<T, U>]>>
 }
 
-export {}
+export { }
+

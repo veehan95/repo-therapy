@@ -8,12 +8,12 @@ import {
 } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
 import { register } from 'ts-node'
+import { GenerateStatus, NodeJavaScriptExt, NodeTypeScriptExt } from '../statics/enums'
+import { type Util } from '../types/repo-therapy'
 import {
   defineRepoTherapyWrapper,
   defineRepoTherapyInternalWrapper as wrapper
 } from './wrapper'
-import { type Util } from '../types/repo-therapy'
-import { GenerateStatus, NodeJavaScriptExt, NodeTypeScriptExt } from '../enums'
 
 interface ImportOptionsbase {
   soft?: boolean
@@ -58,18 +58,8 @@ export function defineRepoTherapyImport () {
         ? path
         : join(libTool.absolutePath.root, path)
 
-      if (!options?.soft) {
-        if (!existsSync(fPath)) { throw new Error(`${path} not found.`) }
-        if (lstatSync(fPath).isDirectory()) {
-          throw new Error(`Can't import directory ${path}.`)
-        }
-        if (/\.d\.ts/.test(fPath)) {
-          throw new Error(`Can't import type declaration ${path}.`)
-        }
-      }
 
       const ext = extname(path)
-
       const base = {
         ext,
         path: `/${path.replace(AbsoluteRegExp, '')}`
@@ -83,8 +73,19 @@ export function defineRepoTherapyImport () {
       }
 
       try {
-        base.import = await callback(fPath, ext)
-      } catch (e) { if (!options.soft) { throw e } }
+        if (!existsSync(fPath)) { throw new Error(`${path} not found.`) }
+        if (lstatSync(fPath).isDirectory()) {
+          throw new Error(`Can't import directory ${path}.`)
+        }
+        if (/\.d\.ts/.test(fPath)) {
+          throw new Error(`Can't import type declaration ${path}.`)
+        }
+      } catch (e) {
+        if (options?.soft) { return base }
+        throw e
+      }
+
+      base.import = await callback(fPath, ext)
       return base
     }
 

@@ -1,5 +1,5 @@
 import { merge } from 'lodash'
-import { RunCondition } from '../enums'
+import { RunCondition } from '../statics/enums'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 // todo with enum
@@ -143,7 +143,7 @@ export interface VSCodeOptions {
     prettierVscode: boolean | 'unwanted'
     gitlens: boolean | 'unwanted'
     vscodeEslint: boolean | 'unwanted'
-    rainbowCsv: boolean | 'unwanted'
+    vscodeEditCsv: boolean | 'unwanted'
     recommendations: Array<string>
     unwantedRecommendations: Array<string>
   }
@@ -155,10 +155,10 @@ export function defineRepoTherapyVsCode (
   return wrapper('vscode', (libTool) => {
     async function getSettings (): Promise<VSCodeSetting> {
       const exclude = Object.fromEntries(
-        await libTool
-          .gitignore()
-          .getAsArray()
-          .then(s => s.map(x => [x, true]))
+        Object
+          .values(await libTool.gitignore().get().then(x => x.config))
+          .flatMap(x => Object.values(x))
+          .flatMap(r => Object.entries(r))
       )
       return merge({
         'editor.tabSize': 2,
@@ -175,7 +175,10 @@ export function defineRepoTherapyVsCode (
         'files.eol': '\n',
         'files.exclude': {
           ...exclude,
-          [libTool.path.build.replace(/^\//, '')]: false
+          [libTool.path.build.replace(/^\//, '')]: false,
+          '.env': false,
+          '.env.*': false,
+          '.env.*.*': false
         },
         'files.watcherExclude': exclude
       }, options.settings)
@@ -186,30 +189,27 @@ export function defineRepoTherapyVsCode (
       const unwantedRecommendations = options.extenstions
         ?.unwantedRecommendations || []
 
-      if (options.extenstions?.vscodeTypescriptNext === 'unwanted') {
-        unwantedRecommendations.push('ms-vscode.vscode-typescript-next')
-      } else if (options.extenstions?.vscodeTypescriptNext !== false) {
-        recommendations.push('ms-vscode.vscode-typescript-next')
-      }
-      if (options.extenstions?.prettierVscode === 'unwanted') {
-        unwantedRecommendations.push('esbenp.prettier-vscode')
-      } else if (options.extenstions?.prettierVscode !== false) {
-        recommendations.push('esbenp.prettier-vscode')
-      }
-      if (options.extenstions?.gitlens === 'unwanted') {
-        unwantedRecommendations.push('eamodio.gitlens')
-      } else if (options.extenstions?.gitlens !== false) {
-        recommendations.push('eamodio.gitlens')
-      }
-      if (options.extenstions?.vscodeEslint === 'unwanted') {
-        unwantedRecommendations.push('dbaeumer.vscode-eslint')
-      } else if (options.extenstions?.vscodeEslint !== false) {
-        recommendations.push('dbaeumer.vscode-eslint')
-      }
-      if (options.extenstions?.rainbowCsv === 'unwanted') {
-        unwantedRecommendations.push('mechatroner.rainbow-csv')
-      } else if (options.extenstions?.rainbowCsv !== false) {
-        recommendations.push('mechatroner.rainbow-csv')
+      if (options.extenstions) {
+        if (options.extenstions?.prettierVscode === 'unwanted') {
+          unwantedRecommendations.push('esbenp.prettier-vscode')
+        } else if (options.extenstions?.prettierVscode !== false) {
+          recommendations.push('esbenp.prettier-vscode')
+        }
+        if (options.extenstions?.gitlens === 'unwanted') {
+          unwantedRecommendations.push('eamodio.gitlens')
+        } else if (options.extenstions?.gitlens !== false) {
+          recommendations.push('eamodio.gitlens')
+        }
+        if (options.extenstions?.vscodeEslint === 'unwanted') {
+          unwantedRecommendations.push('dbaeumer.vscode-eslint')
+        } else if (options.extenstions?.vscodeEslint !== false) {
+          recommendations.push('dbaeumer.vscode-eslint')
+        }
+        if (options.extenstions?.vscodeEditCsv === 'unwanted') {
+          (unwantedRecommendations || recommendations).push('janisdd.vscode-edit-csv')
+        } else if (options.extenstions?.vscodeEditCsv !== false) {
+          recommendations.push('janisdd.vscode-edit-csv')
+        }
       }
 
       return {

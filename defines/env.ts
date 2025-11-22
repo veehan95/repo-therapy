@@ -1,17 +1,17 @@
 import dotenvx, { parse } from '@dotenvx/dotenvx'
 import { kebabCase, startCase } from 'lodash'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { lstatSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import { NodeEnvOptions } from '../statics/enums'
+import { Util } from '../types/repo-therapy'
+import { Content } from './script'
 import { defineRepoTherapyValue } from './value'
 import {
   defineRepoTherapyValueParse,
   ValueCallback,
   ValueDefination
 } from './value-parse'
-import { Util } from '../types/repo-therapy'
-import { lstatSync, readdirSync } from 'node:fs'
-import { join } from 'node:path'
-import { NodeEnvOptions } from '../enums'
-import { Content } from './script'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 function envKey (k: Array<string>) {
   return k.flatMap(s => s.split(/(?=[A-Z\s])/g))
@@ -27,20 +27,19 @@ export type EnvCallback <T extends ValueDefination> = (
 ) => T
 
 export function defineRepoTherapyEnv <T extends ValueDefination> (
-  env?: EnvCallback<T>,
-  {
-    project,
-    nodeEnv,
-    interfaceName = startCase(project).replace(/\s/g, ''),
-    skip = false
-  }: {
-    project?: string
-    nodeEnv?: NodeEnvOptions,
-    interfaceName?: string
-    skip?: boolean
-  } = {}
+  env?: EnvCallback<T>
 ) {
-  return wrapper('env', async (libTool) => {
+  return wrapper('env', (libTool) => {
+    return async ({
+      project,
+      nodeEnv,
+      skip = false
+    }: {
+      project?: string
+      nodeEnv?: NodeEnvOptions,
+      skip?: boolean
+    } = {}) => {
+      const interfaceName = `${startCase(libTool.libName).replace(/\s/g, '')}Env`
     let envValue: Awaited<ReturnType<typeof getEnv>>
     async function getEnv (
       currentProject?: typeof project,
@@ -87,7 +86,7 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       ...(env ? env(libTool.value) : {})
     } as EnvDefinationType, {
       query: (v, k) => v[envKey(k)],
-      interfaceName: `${interfaceName}Env`
+      interfaceName
     })()
 
     let cacheEnv: ReturnType<typeof envParser.get>
@@ -168,5 +167,6 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       },
       generateType
     }
+  }
   })
 }

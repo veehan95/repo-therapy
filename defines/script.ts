@@ -1,9 +1,9 @@
-import { Argv } from 'yargs'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { basename } from 'node:path'
+import { GenerateStatus } from 'statics/enums'
+import { Argv } from 'yargs'
 import { LibTool } from '../types/lib-tool'
 import { Util } from '../types/repo-therapy'
-import { GenerateStatus } from 'enums'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export interface Content {
   status?: GenerateStatus

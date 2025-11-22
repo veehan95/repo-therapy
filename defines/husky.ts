@@ -1,8 +1,8 @@
 import { join } from 'node:path'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { GitHook } from '../enums'
+import { GitHook } from '../statics/enums'
 import { Util } from '../types/repo-therapy'
 import { Content } from './script'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export interface HuskyOptions {
   preCommit?: boolean

@@ -6,7 +6,7 @@ import { hideBin } from 'yargs/helpers'
 import { genericImport } from './defines/import'
 import { defineRepoTherapy } from './defines/index'
 import { defineRepoTherapyScript } from './defines/script'
-import { NodeEnvOptions } from './enums'
+import { NodeEnvOptions } from './statics/enums'
 import { type Util } from './types/repo-therapy'
 
 export { defineRepoTherapyCsv } from './defines/csv'

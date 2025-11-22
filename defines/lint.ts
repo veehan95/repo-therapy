@@ -1,14 +1,14 @@
-import standard from 'eslint-config-standard'
+// import standard from 'eslint-config-standard'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
-const {
-  parserOptions,
-  env,
-  globals
-} = standard
+// const {
+//   parserOptions,
+//   env,
+//   globals
+// } = standard
 // todo
 export function defineRepoTherapyLint (
-  o: any// framework
+  o?: any// framework
 ) {
   return wrapper('lint', (libTool) => {
     // const eslintPath = join(libTool.path.root, 'eslint.config.ts')
