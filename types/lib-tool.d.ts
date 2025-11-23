@@ -28,6 +28,7 @@ import { Util } from './repo-therapy.d'
 type LinkPathPredefined <PO extends Util.LinkPath> = {
   projectRoot: Util.Path
   buildCache: Util.Path
+  log: Util.Path
   build: Util.Path
   typeDeclaration: Util.Path
   project: Util.Path

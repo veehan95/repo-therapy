@@ -1,4 +1,6 @@
 // import standard from 'eslint-config-standard'
+import { join } from 'node:path'
+import { Util } from 'types/repo-therapy'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 // const {
@@ -10,9 +12,9 @@ import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 export function defineRepoTherapyLint (
   o?: any// framework
 ) {
-  return wrapper('lint', (libTool) => {
+  return wrapper('', (libTool) => {
     // const eslintPath = join(libTool.path.root, 'eslint.config.ts')
-    console.log(libTool.path.buildCache)
+    console.log(libTool.path)
     // console.log(eslintPath)
     // const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
     // let lintWrap = (x: Linter.Config) => x
@@ -29,7 +31,7 @@ export function defineRepoTherapyLint (
     return {
       generate: async () => {
         await libTool.importLib.writeStatic(
-          '/eslint.config.ts',
+          join(libTool.path.buildCache, '/eslint.config.ts') as Util.Path,
           () => libTool.string().toScript([
             'import { defineConfig } from \'eslint/config\'',
             `import config from '.${

@@ -32,16 +32,13 @@ class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
 
   private _project = 'unknown'
 
-  private _build: Util.Path
-
-  private _buildCache: Util.Path
-
   get pathList () {
     const r = {
-      projectRoot: '/project' as Util.Path,
+      projectRoot: '/projects' as Util.Path,
+      log: '/.log' as Util.Path,
+      build: '/dist' as Util.Path,
+      buildCache: '/.repo-therapy' as Util.Path,
       ...this._pathList,
-      build: this._build,
-      buildCache: this._buildCache,
       typeDeclaration: '/types' as Util.Path,
       project: '' as Util.Path
     }
@@ -58,14 +55,9 @@ class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
     }
   }
 
-  constructor (rootPath: RootPath, pathList: LinkPath, { build, buildCache }: {
-    build?: Util.Path
-    buildCache?: Util.Path
-  } = {}) {
+  constructor (rootPath: RootPath, pathList: LinkPath) {
     this._rootPath = rootPath
     this._pathList = pathList
-    this._build = build || '/dist'
-    this._buildCache = buildCache || '/.repo-therapy'
   }
 }
 
@@ -156,7 +148,7 @@ export function defineRepoTherapy <
     const optionWithDefault = Object.assign({
     // framework,
       projectType: ProjectType.npmLib,
-      linkPath: {} as LinkPath
+      linkPath: {} as Record<'build', Util.Path> & LinkPath
     // serverCode = {},
     // error = {},
     // silent = false,
@@ -165,16 +157,18 @@ export function defineRepoTherapy <
     }, options)
 
     const defaultRoot = await findUp('package.json')
+    if (!optionWithDefault.linkPath.build) {
+      optionWithDefault.linkPath.build = (
+        optionWithDefault.projectType === ProjectType.npmLib
+          ? '/bin'
+          : '/dist'
+      )
+    }
     const pathObj = new PathObj<RootPath, LinkPath>((
       optionWithDefault.rootPath ||
       (defaultRoot ? dirname(defaultRoot) : undefined) ||
       process.cwd()
-    ) as RootPath, optionWithDefault.linkPath, {
-      build: optionWithDefault.projectType === ProjectType.npmLib
-        ? '/bin'
-        : '/dist',
-      buildCache: optionWithDefault.linkPath!.buildCache || '/.repo-therapy'
-    })
+    ) as RootPath, optionWithDefault.linkPath)
 
     const importConfig: Record<string, {
       file: string

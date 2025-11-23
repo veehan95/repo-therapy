@@ -1,7 +1,7 @@
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { defineRepoTherapyValue } from './value'
 import lodash, { startCase } from 'lodash'
 import { type Util } from '../types/repo-therapy'
+import { defineRepoTherapyValue } from './value'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 type ValueBase = ReturnType<ReturnType<typeof defineRepoTherapyValue>>
 
