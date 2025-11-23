@@ -1,9 +1,11 @@
-import { defineRepoTherapyScript } from '../defines/script'
+import { defineRepoTherapyScript, type ScriptLibTool } from '../defines/script'
 
-export default defineRepoTherapyScript<{
+interface Argv {
   project?: string
   env?: string
-}>('Set default env.', async (a, libTool) => {
+}
+
+export async function generate (a: Argv, libTool: ScriptLibTool) {
   if (!a.project) { throw new Error('Missing project') }
 
   libTool.printList(
@@ -16,6 +18,10 @@ export default defineRepoTherapyScript<{
       { overwrite: true }
     )
   )
-}, {
-  command: 'env:default'
-})
+}
+
+export default defineRepoTherapyScript<Argv>(
+  'Set default env.',
+  async (a, libTool) => { generate(a, libTool) },
+  { command: 'env:default' }
+)

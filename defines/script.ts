@@ -1,5 +1,5 @@
 import { basename } from 'node:path'
-import { GenerateStatus } from 'statics/enums'
+import { GenerateStatus, NodeEnvOptions } from 'statics/enums'
 import { Argv } from 'yargs'
 import { LibTool } from '../types/lib-tool'
 import { Util } from '../types/repo-therapy'
@@ -10,22 +10,27 @@ export interface Content {
   path: string
 }
 
+export interface ScriptLibTool extends LibTool {
+  printList: <C extends Content> (
+    header: string,
+    content: Array<C | string> | C | string,
+    callback?: (x: Content) => string
+  ) => void
+}
+
 // todo scheduler
-export function defineRepoTherapyScript <T extends object> (
+export function defineRepoTherapyScript <
+  T extends object,
+  ScriptArgv extends object = T & {
+    project?: string
+    env?: NodeEnvOptions
+  }
+> (
   describe: string | Array<string>,
-  handler: (
-    args: T,
-    libTool: LibTool & {
-      printList: <C extends Content> (
-        header: string,
-        content: Array<C | string> | C | string,
-        callback?: (x: Content) => string
-      ) => void
-    }
-  ) => void | Promise<void>,
+  handler: (args: ScriptArgv, libTool: ScriptLibTool) => void | Promise<void>,
   { command: c, builder }: {
     command?: string
-    builder?: (argv: Argv<T>, libTool: LibTool) => Argv<T>
+    builder?: (argv: Argv<ScriptArgv>, libTool: LibTool) => Argv<T>
   } = {}
 ) {
   return wrapper('script', async (libTool) => {
@@ -41,10 +46,10 @@ export function defineRepoTherapyScript <T extends object> (
       return {
         command,
         builder: builder
-          ? (argv: Argv<T>) => builder(argv, libTool)
+          ? (argv: Argv<ScriptArgv>) => builder(argv, libTool)
           : undefined,
         describe: typeof describe === 'string' ? describe : describe.join('\n'),
-        handler: async (argv: T) => {
+        handler: async (argv: ScriptArgv) => {
           libTool.logger.info('Executing\t' + (
             scriptType === 'lib'
               ? command

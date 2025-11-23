@@ -1,1 +1,36 @@
-{}
+{
+  "ts-node": {
+    "files": true
+  },
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "nodenext",
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "allowJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./bin",
+    "rootDir": "./",
+    "removeComments": true,
+    "strict": true,
+    "moduleResolution": "nodenext",
+    "baseUrl": "./",
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "**/*.ts",
+    "types/**/*.d.ts",
+    "node_modules/**/types/**/*.d.ts"
+  ]
+}

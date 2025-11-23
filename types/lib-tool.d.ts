@@ -71,7 +71,7 @@ export interface LibTool <
     ReturnType<ReturnType<typeof defineRepoTherapyEnv<VD>>>
   >['get']>
   generateEnv: Awaited<
-    ReturnType<ReturnType<typeof defineRepoTherapyEnv<VD>>>
+    ReturnType<ReturnType<ReturnType<typeof defineRepoTherapyEnv<VD>>>>
   >['generate']
   logger: ReturnType<ReturnType<typeof defineRepoTherapyLogger>>['logger']
   loggerPrint: ReturnType<

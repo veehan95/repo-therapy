@@ -62,6 +62,7 @@ export function defineRepoTherapyImport () {
       const ext = extname(path)
       const base = {
         ext,
+        exist: true,
         path: `/${path.replace(AbsoluteRegExp, '')}`
           .replace(/^\/\//, '/') as Util.Path,
         fullPath: fPath,
@@ -73,8 +74,12 @@ export function defineRepoTherapyImport () {
       }
 
       try {
-        if (!existsSync(fPath)) { throw new Error(`${path} not found.`) }
+        if (!existsSync(fPath)) {
+          base.exist = false
+          throw new Error(`${path} not found.`)
+        }
         if (lstatSync(fPath).isDirectory()) {
+          base.exist = false
           throw new Error(`Can't import directory ${path}.`)
         }
         if (/\.d\.ts/.test(fPath)) {
@@ -196,7 +201,7 @@ export function defineRepoTherapyImport () {
     ) {
       const p = await importStatic(path, { soft: true })
       let status: GenerateStatus = GenerateStatus.noAction
-      if (!p.import) {
+      if (!p.exist) {
         status = GenerateStatus.created
       } else if (overwrite !== false) { status = GenerateStatus.updated }
 

@@ -1,4 +1,5 @@
 import { defineRepoTherapyScript } from '../defines/script'
+import { generate } from './env-default'
 import { NodeEnvOptions } from '../statics/enums'
 
 export default defineRepoTherapyScript<{
@@ -13,6 +14,7 @@ export default defineRepoTherapyScript<{
   libTool.logger.info(`Env: ${a.env}`)
 
   const r = await libTool.generateEnv('/.env', {
+    project: a.project,
     nodeEnv: a.env as NodeEnvOptions,
     defaultValues: a.defaultValues,
     overwrite: a.overwrite
@@ -20,6 +22,12 @@ export default defineRepoTherapyScript<{
 
   libTool.printList('Type declaration', r.typePath)
   libTool.printList('Env', r.envCreation)
+
+  if (!a.project) {
+    a.project = /^\/\.env\.([^.]*)\..*$/.exec(r.envCreation[0].path)![1]
+  }
+
+  await generate(a, libTool)
 }, {
   command: 'env:generate',
   builder: (a) => a

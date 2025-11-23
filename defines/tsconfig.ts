@@ -111,7 +111,9 @@ export function defineRepoTherapyTsConfig (
         path = extendConfig.extends
         delete config.extends
       } else {
-        rmSync(join(libTool.absolutePath.buildCache, path))
+        try {
+          rmSync(join(libTool.absolutePath.buildCache, path))
+        } catch {}
       }
       return await libTool.importLib
         .writeStatic(path, async () => JSON.stringify(config, undefined, 2))

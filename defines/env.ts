@@ -1,6 +1,6 @@
 import dotenvx, { parse } from '@dotenvx/dotenvx'
 import { kebabCase, startCase } from 'lodash'
-import { lstatSync, readdirSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { NodeEnvOptions } from '../statics/enums'
 import { Util } from '../types/repo-therapy'
@@ -127,14 +127,19 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
 
     return {
       get: () => cacheEnv,
-      generate: async (path: Util.Path, { nodeEnv, defaultValues, overwrite }: {
+      generate: async (path: Util.Path, { nodeEnv, defaultValues, overwrite, project }: {
+        project?: string
         nodeEnv?: NodeEnvOptions
         defaultValues?: boolean
         overwrite?: boolean
       } = {}) => {
+        if (!existsSync(libTool.absolutePath.projectRoot)) {
+          mkdirSync(join(libTool.absolutePath.projectRoot, 'app'), { recursive: true })
+        }
         const projectList = readdirSync(libTool.absolutePath.projectRoot)
         const envCreation: Array<Content> = []
         for (const i in projectList) {
+          if (project && projectList[i] !== project) { continue }
           const absoluteP = join(
             libTool.absolutePath.projectRoot,
             projectList[i]
@@ -162,6 +167,7 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
               }, { overwrite })
           )
         }
+        if (envCreation.length === 0) { throw new Error('No relevant project env was created.') }
 
         return { envCreation, typePath: await generateType() }
       },
