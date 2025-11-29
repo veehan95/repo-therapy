@@ -6,7 +6,6 @@ export default defineRepoTherapyScript('Setup project.', async (a, libTool) => {
   libTool.printList('gitignore', await libTool.gitignore().generate())
   libTool.printList('VSCode', await libTool.vsCode().generate())
   libTool.printList('Typescript Config', await libTool.tsConfig().generate())
-  await libTool.lint()
 }, {
   command: 'project:setup'
 })

@@ -1,7 +1,8 @@
 import lodash, { startCase } from 'lodash'
-import { type Util } from '../types/repo-therapy'
+
 import { defineRepoTherapyValue } from './value'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { type Util } from '../types/repo-therapy'
 
 type ValueBase = ReturnType<ReturnType<typeof defineRepoTherapyValue>>
 
@@ -59,6 +60,7 @@ export function defineRepoTherapyValueParse <
           ])
           continue
         }
+        // todo if multiple v() will throw error for no reason
         arr.push([k, v(newKList.join('.'), query(value, newKList))])
       }
       return Object.fromEntries(arr) as ValueDefinationRecursive<T>
@@ -90,7 +92,7 @@ export function defineRepoTherapyValueParse <
           predefine.push(...config.typeDeclaration
             .split(/ \| /g)
             .reduce((acc, cur, i, arr) => {
-              if ((acc[acc.length - 1].length + cur.length) <= 78) {
+              if ((acc[acc.length - 1].length + cur.length) <= 76) {
                 acc[acc.length - 1] += ` ${cur}`
               } else { acc.push('  ' + cur) }
               if ((arr.length - 1) > i) { acc[acc.length - 1] += ' |' }
@@ -115,15 +117,15 @@ export function defineRepoTherapyValueParse <
         .split('\n')
         .map(s => `  ${s}`),
       '}'
-    ].join('\n') + '\n'
-    return (predefine.length > 0 ? predefine.join('\n') + '\n\n' : '') +
+    ].join('\n')
+    return (predefine.length > 0 ? predefine.join('\n') + '\n' : '') +
       interfaceStr
   }
 
   const r = {
     getType,
     generateSample: (sampleValue = {}) => get(sampleValue, true),
-    get: (value: Record<string, Util.GenericType>) => get(value),
+    get,
     isOptional: (kList: Array<string>) => (
         lodash.get(defination, kList) as ValueCallback
     ).getConfig().optional,

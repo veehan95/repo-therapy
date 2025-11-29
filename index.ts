@@ -1,8 +1,10 @@
-import { findUp } from 'find-up'
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+
+import { findUp } from 'find-up'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
+
 import { genericImport } from './defines/import'
 import { defineRepoTherapy } from './defines/index'
 import { defineRepoTherapyScript } from './defines/script'
@@ -24,6 +26,21 @@ interface Option {
     absolute?: boolean
   }>
   commandIgnoreEnv: Array<string>
+}
+
+export async function importRepoTherapy () {
+  const dr = await findUp('package.json')
+  const repoTherapySettingPath = join(
+    dr ? dirname(dr) : process.cwd(),
+    '/repo-therapy.ts'
+  )
+  const rp = existsSync(repoTherapySettingPath)
+    ? await genericImport<ReturnType<typeof defineRepoTherapy>>(
+      repoTherapySettingPath
+    )
+    : defineRepoTherapy()
+  if (!rp) { throw new Error('Misisng /repo-thnerapy.ts configurations') }
+  return rp()
 }
 
 export async function cli ({
@@ -54,18 +71,8 @@ export async function cli ({
   const initArgv = await y.parseAsync()
   const command = initArgv._[0]?.toString()
 
-  const dr = await findUp('package.json')
-  const repoTherapySettingPath = join(
-    dr ? dirname(dr) : process.cwd(),
-    '/repo-therapy.ts'
-  )
-  const rp = existsSync(repoTherapySettingPath)
-    ? await genericImport<ReturnType<typeof defineRepoTherapy>>(
-      repoTherapySettingPath
-    )
-    : defineRepoTherapy()
-  if (!rp) { throw new Error('Misisng /repo-thnerapy.ts configurations') }
-  const libTool = await rp()({ skipEnv: commandIgnoreEnv.includes(command) })
+  const libTool = await importRepoTherapy()
+    .then(x => x({ skipEnv: commandIgnoreEnv.includes(command) }))
 
   y.scriptName(libTool.libName)
 

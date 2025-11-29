@@ -1,7 +1,8 @@
 import winston, { type transport as Transport } from 'winston'
+
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { ConsolePrefix } from '../statics/enums'
 import { type Util } from '../types/repo-therapy'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export function defineRepoTherapyLogger ({
   service = 'main',
@@ -14,7 +15,7 @@ export function defineRepoTherapyLogger ({
   transportConfig?: Array<'file' | 'console' | import('winston').transport>
   transportFormat?: winston.Logform.Format
 } = {}) {
-  return wrapper('logger', ({ env }: { env: Util.BaseEnv }) => {
+  return wrapper('logger', ({ env }) => {
     const _transports: Array<Transport> = []
 
     let serviceName = service

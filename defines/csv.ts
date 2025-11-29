@@ -1,9 +1,11 @@
-import * as csv from 'fast-csv'
 import { existsSync, mkdirSync } from 'node:fs'
-import lodash from 'lodash'
 import { dirname, join } from 'node:path'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+
+import * as csv from 'fast-csv'
+import lodash from 'lodash'
+
 import { defineRepoTherapyStreamSync } from './stream-sync'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export type CsvOption <
   RowType,
@@ -16,7 +18,7 @@ export type CsvOption <
 } | Array<string>
 
 export type RawCsvRow <T = object> = {
-  [P in keyof T]: string
+  [P in keyof T]: T[P] & string
 }
 
 export function defineRepoTherapyCsv <

@@ -1,9 +1,11 @@
-import { defineRepoTherapyLint } from 'defines/lint'
+import { type Transform, type Writable } from 'stream'
+
 import { defineRepoTherapyTsConfig } from 'defines/tsconfig'
 import { defineRepoTherapyVsCode } from 'defines/vscode'
-import { type Transform, type Writable } from 'stream'
 import { type PackageJson } from 'type-fest'
-import { defineRepoTherapyCsv } from '../defines/csv'
+
+import { Util } from './repo-therapy.d'
+import { CsvOption, defineRepoTherapyCsv, RawCsvRow } from '../defines/csv'
 import { defineRepoTherapyEnum, EnumDefination } from '../defines/enum'
 import { defineRepoTherapyEnv } from '../defines/env'
 import { defineRepoTherapyGitIgnore } from '../defines/gitignore'
@@ -23,7 +25,6 @@ import {
   type ValueParseOptions
 } from '../defines/value-parse'
 import { PackageManager, ProjectType } from '../statics/enums'
-import { Util } from './repo-therapy.d'
 
 type LinkPathPredefined <PO extends Util.LinkPath> = {
   projectRoot: Util.Path
@@ -107,6 +108,5 @@ export interface LibTool <
   >>['availableKey']
   gitignore: () => ReturnType<ReturnType<typeof defineRepoTherapyGitIgnore>>
   vsCode: () => ReturnType<ReturnType<typeof defineRepoTherapyVsCode>>
-  lint: () => ReturnType<ReturnType<typeof defineRepoTherapyLint>>
   tsConfig: () => ReturnType<ReturnType<typeof defineRepoTherapyTsConfig>>
 }

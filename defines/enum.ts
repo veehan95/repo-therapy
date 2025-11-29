@@ -1,6 +1,7 @@
 import { Util } from 'types/repo-therapy'
-import * as defaultEnums from '../statics/enums'
+
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import * as defaultEnums from '../statics/enums'
 
 export type EnumDefination = Record<string, 'string' | 'number'>
 
@@ -14,8 +15,8 @@ type ReverseEnumConfig <T extends Record<string, EnumDefination>> = {
 
 export function defineRepoTherapyEnum <
   EnumConfig extends Record<string, EnumDefination>
-> (enumPaths: Array<Util.Path | {
-  path: Util.Path
+> (enumPaths: Array<Util.ScriptPath | {
+  path: Util.ScriptPath
   absolute?: boolean
 }> = [], config: EnumConfig = {} as EnumConfig) {
   const fullConfig = {

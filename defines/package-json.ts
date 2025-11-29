@@ -1,21 +1,9 @@
-import { type PackageJson } from 'type-fest'
-// import { writeFileSync } from 'node:fs'
-import simpleGit from 'simple-git'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-// import { defineRepoTherapyJson } from './json'
-// import { config as packageJsonConfig } from '../configs/package-json'
 import { merge } from 'lodash'
-import { ValueDefination } from './value-parse'
+import simpleGit from 'simple-git'
+import { type PackageJson } from 'type-fest'
 
-// todo
-// 'package-json',
-// [],
-// Promise<{
-//   path: string
-//   json: import('type-fest').PackageJson.PackageJsonStandard
-//   write: () => void
-// }>,
-// 'tool'
+import { ValueDefination } from './value-parse'
+import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export function defineRepoTherapyPackageJson (
   config: Partial<PackageJson> = {}
@@ -31,7 +19,9 @@ export function defineRepoTherapyPackageJson (
         .replace(/^git@/, 'https://')
         .replace(/^(https:\/\/[^.]*\.[^:]*):/, '$1/')
 
-      const projectOrLib = libTool.projectType === libTool.enum.ProjectType.npmLib
+      const projectOrLib = (
+        libTool.projectType === libTool.enum.ProjectType.npmLib
+      )
         ? 'Library'
         : 'project'
       const json: ValueDefination = {

@@ -1,10 +1,12 @@
 // import { defineRepoTherapyJson } from './json'
-import { merge } from 'lodash'
 import { rmSync } from 'node:fs'
 import { join } from 'node:path'
+
+import { merge } from 'lodash'
 import { type TsConfigJson } from 'type-fest'
-import { Util } from '../types/repo-therapy'
+
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { type Util } from '../types/repo-therapy'
 
 interface TsConfigOptions {
   tsNode?: boolean | { compilerOptions: TsConfigJson['compilerOptions'] }
@@ -30,32 +32,37 @@ export function defineRepoTherapyTsConfig (
       }
       const c = merge(
         {
-        ...(tsNode ? { 'ts-node': tsNode } : {}),
-        compilerOptions: {
-          target: 'es2020',
-          module: 'nodenext',
-          lib: [ 'esnext', 'dom' ],
-          allowJs: true,
-          declaration: true,
-          declarationMap: true,
-          sourceMap: true,
-          outDir: `.${libTool.path.build}`,
-          rootDir: './',
-          removeComments: true,
-          strict: true,
-          moduleResolution: 'nodenext',
-          baseUrl: './',
-          typeRoots: [ './types', './node_modules/@types' ],
-          esModuleInterop: true,
-          skipLibCheck: true,
-          forceConsistentCasingInFileNames: true,
-          resolveJsonModule: true
+          ...(tsNode ? { 'ts-node': tsNode } : {}),
+          compilerOptions: {
+            target: 'es2020',
+            module: 'nodenext',
+            lib: ['esnext', 'dom'],
+            allowJs: true,
+            declaration: true,
+            declarationMap: true,
+            sourceMap: true,
+            outDir: `.${libTool.path.build}`,
+            rootDir: './',
+            removeComments: true,
+            strict: true,
+            moduleResolution: 'nodenext',
+            baseUrl: './',
+            typeRoots: ['./types', './node_modules/@types'],
+            esModuleInterop: true,
+            skipLibCheck: true,
+            forceConsistentCasingInFileNames: true,
+            resolveJsonModule: true
+          },
+          include: [
+            '**/*.ts',
+            'types/**/*.d.ts',
+            'node_modules/**/types/**/*.d.ts'
+          ]
         },
-        include: [ '**/*.ts', 'types/**/*.d.ts', 'node_modules/**/types/**/*.d.ts' ]
-      },
-      await libTool.importLib.importJson('/tsconfig.json', { soft: true }).then(x => x.import),
-      options.config
-    ) as {
+        await libTool.importLib
+          .importJson('/tsconfig.json', { soft: true }).then(x => x.import),
+        options.config
+      ) as {
         'ts-node'?: {
           files: boolean
           compilerOptions?: TsConfigJson['compilerOptions']
@@ -65,7 +72,7 @@ export function defineRepoTherapyTsConfig (
         if (c.extends) {
           if (typeof c.extends === 'string') {
             c.extends = fixRelativePath(c.extends)
-          } else { c.extends = c.extends.map(fixRelativePath)}
+          } else { c.extends = c.extends.map(fixRelativePath) }
         }
         ;(['files', 'exclude', 'include'] as const).forEach(x => {
           if (!c[x]) { return }
@@ -101,13 +108,16 @@ export function defineRepoTherapyTsConfig (
       }
       return c
     }
-    
+
     async function generate () {
       let path: Util.Path = '/tsconfig.json'
       const config = await get()
       if (options.extends) {
-        const extendConfig = { extends: '.' + join(libTool.path.buildCache, path) as Util.Path }
-        await libTool.importLib.writeStatic(path, () => JSON.stringify(extendConfig, undefined, 2))
+        const extendConfig = {
+          extends: '.' + join(libTool.path.buildCache, path) as Util.Path
+        }
+        await libTool.importLib
+          .writeStatic(path, () => JSON.stringify(extendConfig, undefined, 2))
         path = extendConfig.extends
         delete config.extends
       } else {

@@ -1,6 +1,6 @@
 import eslint from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import standard from 'eslint-config-standard'
+import tseslint from 'typescript-eslint'
 
 const {
   rules: standarRules

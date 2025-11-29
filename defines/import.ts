@@ -7,13 +7,19 @@ import {
   writeFileSync
 } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
+
 import { register } from 'ts-node'
-import { GenerateStatus, NodeJavaScriptExt, NodeTypeScriptExt } from '../statics/enums'
-import { type Util } from '../types/repo-therapy'
+
 import {
   defineRepoTherapyWrapper,
   defineRepoTherapyInternalWrapper as wrapper
 } from './wrapper'
+import {
+  GenerateStatus,
+  NodeJavaScriptExt,
+  NodeTypeScriptExt
+} from '../statics/enums'
+import { type Util } from '../types/repo-therapy'
 
 interface ImportOptionsbase {
   soft?: boolean
@@ -57,7 +63,6 @@ export function defineRepoTherapyImport () {
       const fPath = options?.absolute
         ? path
         : join(libTool.absolutePath.root, path)
-
 
       const ext = extname(path)
       const base = {

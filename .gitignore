@@ -110,7 +110,6 @@ yarn-error.log*
 # ================================
 # Framework: Repo Therapy
 # ================================
-eslint.config.ts
 types/_*
 .repo-therapy
 
@@ -118,3 +117,4 @@ types/_*
 # Custom: Not Configured
 # ================================
 projects
+studs

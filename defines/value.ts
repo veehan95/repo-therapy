@@ -1,16 +1,15 @@
-import { type Util } from '../types/repo-therapy'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { type Util } from '../types/repo-therapy'
 
 export function defineRepoTherapyValue <T extends Util.GenericType> (
   description: string | Array<string>
 ) {
   function isCustom (
-    validator: (v: Util.GenericType) => void,
+    validator: (v: Util.GenericType) => T,
     { size, sizeUnit, typeDeclaration }: {
       size?: (v: Util.GenericType) => number
       sizeUnit?: string
       typeDeclaration: string
-
     }
   ) {
     const config: {
@@ -24,11 +23,12 @@ export function defineRepoTherapyValue <T extends Util.GenericType> (
 
     function validate (p: string, v?: Util.GenericType): T {
       const value = v || config.defaultValue
+      let returnValue: T
       try {
         if (!config.nullable && value === undefined) {
           throw new Error('must have a value')
         }
-        validator(value)
+        returnValue = validator(value)
         if (size) {
           const s = size(value)
           if (config.max !== undefined && s > config.max) {
@@ -42,8 +42,8 @@ export function defineRepoTherapyValue <T extends Util.GenericType> (
               }must be more than ${config.min}`)
           }
         }
-      } catch (e) { throw new Error(`${p} ${(e as Error).message}.`) }
-      return value as T
+      } catch (e) { throw new Error(`${v} ${(e as Error).message}.`) }
+      return returnValue
     }
     const r = Object.assign(validate, {
       nullable: () => {
@@ -75,7 +75,7 @@ export function defineRepoTherapyValue <T extends Util.GenericType> (
       if (typeof parseV !== 'number' || isNaN(parseV)) {
         throw new Error('not a number')
       }
-      return callback ? callback(parseV) : parseV
+      return (callback ? callback(parseV) : parseV) as T
     }, {
       size (v) { return v as number },
       typeDeclaration: 'number'
@@ -89,22 +89,25 @@ export function defineRepoTherapyValue <T extends Util.GenericType> (
     })
   }
 
-  const r = {
-    isCustom,
-    isString: (
-      match?: RegExp,
-      typeDeclaration = 'string'
-    ) => isCustom((v: Util.GenericType) => {
+  function isString (
+    match?: RegExp,
+    typeDeclaration = 'string'
+  ) {
+    return isCustom((v: Util.GenericType) => {
       if (typeof v !== 'string') { throw new Error('not a string') }
-      if (match && !match.test(v)) {
-        throw new Error(`doesn't match ${match}`)
-      }
-      return v
+      if (match && !match.test(v)) { throw new Error(`doesn't match ${match}`) }
+      return v as T
     }, {
       size (v) { return v!.toString().length },
       sizeUnit: 'length',
       typeDeclaration
-    }),
+    })
+  }
+
+  const r = {
+    isCustom,
+    isString,
+    isSlug: () => isString(/^[a-z0-9-]*$/g),
     isNumber: () => isNumber(),
     isPositiveNumber: () => isNumber((n) => {
       if (n < 0) { throw new Error('not a positive number') }
@@ -125,7 +128,7 @@ export function defineRepoTherapyValue <T extends Util.GenericType> (
     }),
     isBoolean: () => isCustom((v: Util.GenericType) => {
       if (typeof v !== 'boolean') { throw new Error('not a boolean') }
-      return v
+      return v as T
     }, { typeDeclaration: 'boolean' }),
     isOneOf: <Value extends Record<string, string | number | boolean>> (
       enumObj: Value
@@ -135,7 +138,7 @@ export function defineRepoTherapyValue <T extends Util.GenericType> (
             Object.values(enumObj).join(' | ')
           }`)
       }
-      return v
+      return v as T
     }, {
       typeDeclaration: ((
         JSON.stringify(Object.values(enumObj)).match(/^\[(.*)\]$/) || []

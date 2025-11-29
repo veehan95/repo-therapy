@@ -1,6 +1,7 @@
 import { merge } from 'lodash'
-import { RunCondition } from '../statics/enums'
+
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { RunCondition } from '../statics/enums'
 
 // todo with enum
 interface Editor {
@@ -167,7 +168,7 @@ export function defineRepoTherapyVsCode (
         'eslint.format.enable': true,
         'editor.codeActionsOnSave': {
           'source.fixAll': RunCondition.on,
-          'source.organizeImports': RunCondition.on,
+          'source.organizeImports': RunCondition.off,
           'source.fixAll.eslint': RunCondition.on
         },
         'editor.formatOnSave': true,
@@ -206,7 +207,8 @@ export function defineRepoTherapyVsCode (
           recommendations.push('dbaeumer.vscode-eslint')
         }
         if (options.extenstions?.vscodeEditCsv === 'unwanted') {
-          (unwantedRecommendations || recommendations).push('janisdd.vscode-edit-csv')
+          (unwantedRecommendations || recommendations)
+            .push('janisdd.vscode-edit-csv')
         } else if (options.extenstions?.vscodeEditCsv !== false) {
           recommendations.push('janisdd.vscode-edit-csv')
         }

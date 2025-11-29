@@ -1,81 +1,135 @@
 // import standard from 'eslint-config-standard'
-import { join } from 'node:path'
-import { Util } from 'types/repo-therapy'
-import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { type ConfigWithExtends } from '@eslint/config-helpers'
+import eslint from '@eslint/js'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import { type Linter } from 'eslint'
+import { defineConfig } from 'eslint/config'
+import standardJs from 'eslint-config-standard'
+import eslintPluginImport from 'eslint-plugin-import'
+import eslintPluginN from 'eslint-plugin-n'
+import eslintPluginPromise from 'eslint-plugin-promise'
+import tsLint from 'typescript-eslint'
+
+import { type LibTool } from '../types/lib-tool'
+import { importRepoTherapy } from '../index'
 
 // const {
 //   parserOptions,
 //   env,
 //   globals
 // } = standard
-// todo
-export function defineRepoTherapyLint (
-  o?: any// framework
-) {
-  return wrapper('', (libTool) => {
-    // const eslintPath = join(libTool.path.root, 'eslint.config.ts')
-    console.log(libTool.path)
-    // console.log(eslintPath)
-    // const vsCodeSettings = await vsCode(libTool).then(x => x.config.settings)
-    // let lintWrap = (x: Linter.Config) => x
-    // if (framework === 'nuxt-monorepo' || framework === 'nuxt.js') {
-    //   lintWrap = await libTool.import<{
-    //   default(
-    //     x: Linter.Config
-    //   ): Linter.Config
-    // }>()
-    //     .importScript('./.nuxt/eslint.config.mjs', { soft: true })
-    //     .then(x => x.import?.default || ((x: Linter.Config) => x))
-    // }
 
-    return {
-      generate: async () => {
-        await libTool.importLib.writeStatic(
-          join(libTool.path.buildCache, '/eslint.config.ts') as Util.Path,
-          () => libTool.string().toScript([
-            'import { defineConfig } from \'eslint/config\'',
-            `import config from '.${
-              libTool.path.buildCache
-            }/eslint.config'`,
-            '',
-            'export default defineConfig(config)'
-          ])
-        )
-      }
-      // lint: () => lintWrap({
-      //   rules,
-      //   ignores: Object.keys((vsCodeSettings as {
-      //   'files.exclude': Record<string, string>
-      // })['files.exclude']).flatMap(x => [x, `${x}/**/*`]),
-      //   files: [
-      //     ...(presetFiles[projectType] || [])
-      //   ],
-      //   settings: {
-      //     env: {
-      //       ...env,
-      //       browser: ['vue', 'nuxt', 'nuxt-monorepo'].includes(projectType),
-      //       node: true,
-      //       es2024: true
-      //     }
-      //   },
-      //   plugins: {
-      //     import: i,
-      //     n,
-      //     promise: p,
-      //     ...((tseslint.configs.recommended[0] as unknown as {
-      //     plugins: Record<string, string>
-      //   })?.plugins || {})
-      //   },
-      //   languageOptions: {
-      //     parser: (
-      //     tseslint.configs.recommended[0] as unknown as {
-      //       languageOptions?: { parser: Linter.Parser }
-      //     }
-      //     )?.languageOptions?.parser,
-      //     parserOptions,
-      //     globals
-      //   }
-      // })
-    }
+// ;{
+//   'parserOptions': {
+//     'ecmaVersion': 2022,
+//     'ecmaFeatures': {
+//       'jsx': true
+//     },
+//     'sourceType': 'module'
+//   },
+
+//   'env': {
+//     'es2021': true,
+//     'node': true
+//   },
+
+//   'plugins': [
+//     'import',
+//     'n',
+//     'promise'
+//   ],
+
+//   'globals': {
+//     'document': 'readonly',
+//     'navigator': 'readonly',
+//     'window': 'readonly'
+//   },
+
+type EslintConfig = Omit<ConfigWithExtends, 'files'>
+
+interface LintOption {
+  config?: {
+    ts?: EslintConfig
+    json?: EslintConfig
+    md?: EslintConfig
+    markdownLanguage?: EslintConfig
+  },
+  extend?: {
+    ts?: boolean
+    json?: boolean
+    md?: boolean
+    markdownLanguage?: boolean
+  }
+}
+
+function configMerger (
+  fileExtension: Array<string>,
+  base: EslintConfig,
+  parser: typeof tsParser,
+  custom: EslintConfig = {}
+): ConfigWithExtends {
+  const config: ConfigWithExtends = Object.assign(base, custom, {
+    languageOptions: { parser }
   })
+  config.files = fileExtension.map(x => `**/*.${x}`)
+  return config
+}
+
+// todo
+export async function defineRepoTherapyLint (
+  options?: LintOption | ((libTool: LibTool) => LintOption)
+) {
+  const libTool = await importRepoTherapy().then(x => x())
+  const customOptions: LintOption = options
+    ? ( typeof options === 'object' ? options : options(libTool))
+    : {}
+
+  const tsConfig = configMerger(
+    ['ts', 'tsx', 'cts', 'mts', 'js', 'jsx', 'cjs', 'mjs'],
+    {
+      plugins: {
+        import: eslintPluginImport,
+        n: eslintPluginN,
+        promise: eslintPluginPromise,
+        '@typescript-eslint': tsPlugin
+      } as unknown as Linter.Config['plugins'],
+      rules: {
+        ...eslint.configs.recommended.rules,
+        ...standardJs.rules,
+        ...tsLint.configs.recommended
+          .reduce((acc, cur) => ({ ...acc, ...cur.rules }), {}),
+        'max-len': ['error', {
+          ignoreComments: true,
+          ignoreRegExpLiterals: true
+        }],
+        'import/order': [
+          'error',
+          {
+            groups: [
+              'builtin',
+              'external',
+              'internal',
+              ['parent', 'sibling'],
+              'index',
+              'object',
+              'type'
+            ],
+            'newlines-between': 'always',
+            alphabetize: {
+              order: 'asc',
+              caseInsensitive: true
+            }
+          }
+        ]
+      }
+    },
+    tsParser,
+    customOptions.config?.ts
+  )
+
+  // todo html/xml md json
+  return defineConfig([
+    tsConfig
+  ])
 }

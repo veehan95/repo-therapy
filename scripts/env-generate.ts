@@ -1,5 +1,5 @@
-import { defineRepoTherapyScript } from '../defines/script'
 import { generate } from './env-default'
+import { defineRepoTherapyScript } from '../defines/script'
 import { NodeEnvOptions } from '../statics/enums'
 
 export default defineRepoTherapyScript<{

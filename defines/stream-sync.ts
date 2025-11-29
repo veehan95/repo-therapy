@@ -1,4 +1,5 @@
 import { type Transform, type Writable } from 'stream'
+
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 
 export interface StreamSyncOptions {

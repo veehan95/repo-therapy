@@ -1,9 +1,9 @@
-import dotenvx, { parse } from '@dotenvx/dotenvx'
-import { kebabCase, startCase } from 'lodash'
 import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { NodeEnvOptions } from '../statics/enums'
-import { Util } from '../types/repo-therapy'
+
+import { parse } from '@dotenvx/dotenvx'
+import { kebabCase, startCase } from 'lodash'
+
 import { Content } from './script'
 import { defineRepoTherapyValue } from './value'
 import {
@@ -12,6 +12,8 @@ import {
   ValueDefination
 } from './value-parse'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
+import { NodeEnvOptions } from '../statics/enums'
+import { type Util } from '../types/repo-therapy'
 
 function envKey (k: Array<string>) {
   return k.flatMap(s => s.split(/(?=[A-Z\s])/g))
@@ -40,46 +42,46 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
       skip?: boolean
     } = {}) => {
       const interfaceName = `${startCase(libTool.libName).replace(/\s/g, '')}Env`
-    let envValue: Awaited<ReturnType<typeof getEnv>>
-    async function getEnv (
-      currentProject?: typeof project,
-      nodeEnv?: NodeEnvOptions
-    ) {
-      let fileName: Util.Path = '/.env'
-      if (currentProject) {
-        fileName += `.${currentProject}`
-        if (nodeEnv) { fileName += `.${nodeEnv}` }
+      let envValue: Awaited<ReturnType<typeof getEnv>>
+      async function getEnv (
+        currentProject?: typeof project,
+        nodeEnv?: NodeEnvOptions
+      ) {
+        let fileName: Util.Path = '/.env'
+        if (currentProject) {
+          fileName += `.${currentProject}`
+          if (nodeEnv) { fileName += `.${nodeEnv}` }
+        }
+        try {
+          return await libTool.importLib
+            .importStatic(fileName as Util.Path)
+            .then(x => {
+              const v = { ...process.env, ...parse(x.import) }
+              if (!v.PROJECT && project) { v.PROJECT = project }
+              return { ...x, import: v }
+            })
+        } catch { /* todo only target file not found */ }
       }
-      try {
-        return await libTool.importLib
-          .importStatic(fileName as Util.Path)
-          .then(x => {
-            const v = dotenvx.parse(x.import)
-            if (!v.PROJECT && project) { v.PROJECT = project }
-            return { ...x, import: v }
-          })
-      } catch { /* todo only target file not found */ }
-    }
 
-    if (!skip) {
-      if (nodeEnv && !project) {
-        throw new Error(
-          'NodeEnv can only be configured when there is a target project'
-        )
+      if (!skip) {
+        if (nodeEnv && !project) {
+          throw new Error(
+            'NodeEnv can only be configured when there is a target project'
+          )
+        }
+        const projectList = project ? [project, undefined] : [undefined]
+        for (const i in projectList) {
+          envValue = await getEnv(projectList[i], nodeEnv)
+          if (envValue) { break }
+        }
       }
-      const projectList = project ? [project, undefined] : [undefined]
-      for (const i in projectList) {
-        envValue = await getEnv(projectList[i], nodeEnv)
-        if (envValue) { break }
-      }
-    }
 
     type EnvDefinationType = {
       project: ValueCallback
       nodeEnv: ValueCallback
     } & T
     const envParser = defineRepoTherapyValueParse<EnvDefinationType>({
-      project: libTool.value('Project name').isString(/^[a-z0-9-]*$/g),
+      project: libTool.value('Project name').isSlug(),
       nodeEnv: libTool.value('Node environment')
         .isOneOf(NodeEnvOptions)
         .defaultTo(NodeEnvOptions.local),
@@ -121,20 +123,35 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
     async function generateType () {
       return await libTool.importLib.writeStatic(
         join(libTool.path.typeDeclaration, '_env.d.ts') as Util.Path,
-        envParser.getType
+        () => `declare global {\n  ${
+          envParser.getType()
+            .replace(/\n/g, '\n  ')
+            .split(/\n/)
+            .map(x => x.length > 2 ? x : x.trim())
+            .join('\n')
+            .replace(/interface/g, 'export interface')
+        }\n}\nexport {}\n`
       )
     }
 
     return {
       get: () => cacheEnv,
-      generate: async (path: Util.Path, { nodeEnv, defaultValues, overwrite, project }: {
+      generate: async (path: Util.Path, {
+        nodeEnv,
+        defaultValues,
+        overwrite,
+        project
+      }: {
         project?: string
         nodeEnv?: NodeEnvOptions
         defaultValues?: boolean
         overwrite?: boolean
       } = {}) => {
         if (!existsSync(libTool.absolutePath.projectRoot)) {
-          mkdirSync(join(libTool.absolutePath.projectRoot, 'app'), { recursive: true })
+          mkdirSync(
+            join(libTool.absolutePath.projectRoot, 'app'),
+            { recursive: true }
+          )
         }
         const projectList = readdirSync(libTool.absolutePath.projectRoot)
         const envCreation: Array<Content> = []
@@ -151,9 +168,10 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
           }`
           envCreation.push(
             await libTool.importLib
-              .writeStatic(envName, (s) => {
+              .writeStatic(envName, async () => {
                 let str = reverseValue(envParser.generateSample({
-                  ...parse(s || ''),
+                  ...await getEnv(projectList[i], nodeEnv)
+                    .then(x => x?.import || {}),
                   PROJECT: projectName,
                   NODE_ENV: nodeEnv
                 })).join('\n')
@@ -167,12 +185,14 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
               }, { overwrite })
           )
         }
-        if (envCreation.length === 0) { throw new Error('No relevant project env was created.') }
+        if (envCreation.length === 0) {
+          throw new Error('No relevant project env was created.')
+        }
 
         return { envCreation, typePath: await generateType() }
       },
       generateType
     }
-  }
+    }
   })
 }
