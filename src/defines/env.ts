@@ -13,7 +13,7 @@ import {
 } from './value-parse'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { NodeEnvOptions } from '../statics/enums'
-import { type Util } from '../types/repo-therapy'
+import { type Util } from '../../types/repo-therapy'
 
 function envKey (k: Array<string>) {
   return k.flatMap(s => s.split(/(?=[A-Z\s])/g))

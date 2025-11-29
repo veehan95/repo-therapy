@@ -1,3 +1,3 @@
-import { defineRepoTherapyLint } from './defines/lint'
+import { defineRepoTherapyLint } from './src/defines/lint'
 
 export default defineRepoTherapyLint()

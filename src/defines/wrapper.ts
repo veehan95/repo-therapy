@@ -1,5 +1,5 @@
-import { type LibTool } from '../types/lib-tool'
-import { type Util } from '../types/repo-therapy'
+import { type LibTool } from '../../types/lib-tool'
+import { type Util } from '../../types/repo-therapy'
 
 type CallbackReturn = Util.GenericType
 type HandlerArgs = Array<Util.GenericType> | undefined

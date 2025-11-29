@@ -19,7 +19,7 @@ import {
   NodeJavaScriptExt,
   NodeTypeScriptExt
 } from '../statics/enums'
-import { type Util } from '../types/repo-therapy'
+import { type Util } from '../../types/repo-therapy'
 
 interface ImportOptionsbase {
   soft?: boolean

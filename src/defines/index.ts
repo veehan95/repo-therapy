@@ -24,8 +24,8 @@ import {
 import { defineRepoTherapyVsCode } from './vscode'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { NodeEnvOptions, PackageManager, ProjectType } from '../statics/enums'
-import { type LibTool } from '../types/lib-tool'
-import { type Util } from '../types/repo-therapy'
+import { type LibTool } from '../../types/lib-tool'
+import { type Util } from '../../types/repo-therapy'
 
 class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
   private _pathList: LinkPath

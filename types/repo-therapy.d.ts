@@ -1,4 +1,4 @@
-import { NodeJavaScriptExt, NodeTypeScriptExt } from 'statics/enums'
+import { NodeJavaScriptExt, NodeTypeScriptExt } from 'src/statics/enums'
 
 // export namespace Env {
 //   export type NodeEnv = 'production' | 'staging' | 'dev'

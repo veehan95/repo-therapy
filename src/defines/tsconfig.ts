@@ -6,7 +6,7 @@ import { merge } from 'lodash'
 import { type TsConfigJson } from 'type-fest'
 
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { type Util } from '../types/repo-therapy'
+import { type Util } from '../../types/repo-therapy'
 
 interface TsConfigOptions {
   tsNode?: boolean | { compilerOptions: TsConfigJson['compilerOptions'] }

@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { Content } from './script'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { GitHook } from '../statics/enums'
-import { type Util } from '../types/repo-therapy'
+import { type Util } from '../../types/repo-therapy'
 
 export interface HuskyOptions {
   preCommit?: boolean

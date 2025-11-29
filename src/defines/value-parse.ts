@@ -2,7 +2,7 @@ import lodash, { startCase } from 'lodash'
 
 import { defineRepoTherapyValue } from './value'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { type Util } from '../types/repo-therapy'
+import { type Util } from '../../types/repo-therapy'
 
 type ValueBase = ReturnType<ReturnType<typeof defineRepoTherapyValue>>
 

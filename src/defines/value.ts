@@ -1,5 +1,5 @@
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { type Util } from '../types/repo-therapy'
+import { type Util } from '../../types/repo-therapy'
 
 export function defineRepoTherapyValue <T extends Util.GenericType> (
   description: string | Array<string>

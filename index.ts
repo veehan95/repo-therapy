@@ -5,17 +5,17 @@ import { findUp } from 'find-up'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { genericImport } from './defines/import'
-import { defineRepoTherapy } from './defines/index'
-import { defineRepoTherapyScript } from './defines/script'
-import { NodeEnvOptions } from './statics/enums'
+import { genericImport } from './src/defines/import'
+import { defineRepoTherapy } from './src/defines/index'
+import { defineRepoTherapyScript } from './src/defines/script'
+import { NodeEnvOptions } from './src/statics/enums'
 import { type Util } from './types/repo-therapy'
 
-export { defineRepoTherapyCsv } from './defines/csv'
-export { defineRepoTherapyEnv } from './defines/env'
-export { defineRepoTherapyImport } from './defines/import'
-export { defineRepoTherapyLogger } from './defines/logger'
-export { defineRepoTherapyWrapper } from './defines/wrapper'
+export { defineRepoTherapyCsv } from './src/defines/csv'
+export { defineRepoTherapyEnv } from './src/defines/env'
+export { defineRepoTherapyImport } from './src/defines/import'
+export { defineRepoTherapyLogger } from './src/defines/logger'
+export { defineRepoTherapyWrapper } from './src/defines/wrapper'
 export { defineRepoTherapy }
 
 interface Option {
@@ -92,7 +92,7 @@ export async function cli ({
 
   const scriptDirList = [{
     lib: true,
-    path: join(__dirname, './scripts') as Util.Path,
+    path: join(__dirname, './src/scripts') as Util.Path,
     absolute: true
   }, ...scriptDir.map(
     path => typeof path === 'string' ? { path, lib: false } : path

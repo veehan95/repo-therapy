@@ -1,30 +1,30 @@
 import { type Transform, type Writable } from 'stream'
 
-import { defineRepoTherapyTsConfig } from 'defines/tsconfig'
-import { defineRepoTherapyVsCode } from 'defines/vscode'
+import { defineRepoTherapyTsConfig } from 'src/defines/tsconfig'
+import { defineRepoTherapyVsCode } from 'src/defines/vscode'
 import { type PackageJson } from 'type-fest'
 
 import { Util } from './repo-therapy.d'
-import { CsvOption, defineRepoTherapyCsv, RawCsvRow } from '../defines/csv'
-import { defineRepoTherapyEnum, EnumDefination } from '../defines/enum'
-import { defineRepoTherapyEnv } from '../defines/env'
-import { defineRepoTherapyGitIgnore } from '../defines/gitignore'
-import { defineRepoTherapyHusky } from '../defines/husky'
-import { defineRepoTherapyImport } from '../defines/import'
-import { defineRepoTherapyLogger } from '../defines/logger'
-import { defineRepoTherapyPackageJson } from '../defines/package-json'
+import { CsvOption, defineRepoTherapyCsv, RawCsvRow } from '../src/defines/csv'
+import { defineRepoTherapyEnum, EnumDefination } from '../src/defines/enum'
+import { defineRepoTherapyEnv } from '../src/defines/env'
+import { defineRepoTherapyGitIgnore } from '../src/defines/gitignore'
+import { defineRepoTherapyHusky } from '../src/defines/husky'
+import { defineRepoTherapyImport } from '../src/defines/import'
+import { defineRepoTherapyLogger } from '../src/defines/logger'
+import { defineRepoTherapyPackageJson } from '../src/defines/package-json'
 import {
   defineRepoTherapyStreamSync,
   type StreamSyncOptions
-} from '../defines/stream-sync'
-import { defineRepoTherapyString } from '../defines/string'
-import { defineRepoTherapyValue } from '../defines/value'
+} from '../src/defines/stream-sync'
+import { defineRepoTherapyString } from '../src/defines/string'
+import { defineRepoTherapyValue } from '../src/defines/value'
 import {
   defineRepoTherapyValueParse,
   type ValueDefination,
   type ValueParseOptions
-} from '../defines/value-parse'
-import { PackageManager, ProjectType } from '../statics/enums'
+} from '../src/defines/value-parse'
+import { PackageManager, ProjectType } from '../src/statics/enums'
 
 type LinkPathPredefined <PO extends Util.LinkPath> = {
   projectRoot: Util.Path

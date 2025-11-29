@@ -11,8 +11,8 @@ import eslintPluginN from 'eslint-plugin-n'
 import eslintPluginPromise from 'eslint-plugin-promise'
 import tsLint from 'typescript-eslint'
 
-import { type LibTool } from '../types/lib-tool'
-import { importRepoTherapy } from '../index'
+import { type LibTool } from '../../types/lib-tool'
+import { importRepoTherapy } from '../../index'
 
 // const {
 //   parserOptions,

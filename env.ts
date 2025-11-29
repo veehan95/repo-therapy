@@ -1,4 +1,4 @@
-import { defineRepoTherapyEnv } from './defines/env'
+import { defineRepoTherapyEnv } from './src/defines/env'
 
 export default defineRepoTherapyEnv(
   (v) => ({
