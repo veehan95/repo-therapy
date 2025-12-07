@@ -1,4 +1,4 @@
-import { basename, dirname, extname } from 'node:path'
+import { extname } from 'node:path'
 
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
 import { type CallableValue, resolveCallableValue } from '../../src/util'
@@ -85,18 +85,25 @@ export function defineRepoTherapyStud (
       getConfig,
       generate: async () => {
         const studData = await getConfig()
-        return studData.map(row => {
-          if (!row || !row.path || !row.source.import) { return {} }
-          return libTool.importLib
-            .writeStatic(row.path, () => libTool
-              .string()
-              .mustacheReplace(row.source.import, {
+        const result: Array<
+          Awaited<ReturnType<typeof libTool.importLib.writeStatic>>
+        > = []
+        for (let i = 0; i < studData.length; i++) {
+          const stud = studData[i]
+          if (!stud || !stud.path || !stud.source.import) { continue }
+          result.push(
+            await libTool.importLib.writeStatic(
+              stud.path,
+              () => libTool.string()
+                .mustacheReplace(stud.source.import, {
                 // todo generate all not selected projects
-                env: libTool.env,
-                custom: row.values
-              })
+                  env: libTool.env,
+                  custom: stud.values
+                })
             )
-        })
+          )
+        }
+        return result
       }
     }
   })
