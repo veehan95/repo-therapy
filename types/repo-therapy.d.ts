@@ -1,3 +1,4 @@
+import { defineRepoTherapyWrapper } from 'src'
 import { NodeJavaScriptExt, NodeTypeScriptExt } from 'src/statics/enums'
 
 // export namespace Env {
@@ -46,4 +47,27 @@ export namespace Util {
   export type JsonPath = `${Util.Path}.json`
 
   export type LinkPath = Record<string, Path>
+
+  export type ScriptObj = Record<
+    string,
+    ReturnType<typeof defineRepoTherapyWrapper>
+  >
+
+  export interface ImportScript <T, Soft extends Boolean = false> {
+    ext: string
+    exist: boolean
+    path: Util.Path
+    fullPath: Util.Path
+    import: Soft extends true ? undefined | Awaited<T> : Awaited<T>
+  }
+
+  export interface ImportScriptDir <T> extends ImportScript <T> {
+    relativePath: Util.Path
+    dir: Util.Path
+  }
+
+  export interface DirImport {
+    path: Util.Path
+    absolute?: boolean
+  }
 }

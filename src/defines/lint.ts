@@ -11,40 +11,8 @@ import eslintPluginN from 'eslint-plugin-n'
 import eslintPluginPromise from 'eslint-plugin-promise'
 import tsLint from 'typescript-eslint'
 
-import { type LibTool } from '../../types/lib-tool'
-import { importRepoTherapy } from '../../index'
-
-// const {
-//   parserOptions,
-//   env,
-//   globals
-// } = standard
-
-// ;{
-//   'parserOptions': {
-//     'ecmaVersion': 2022,
-//     'ecmaFeatures': {
-//       'jsx': true
-//     },
-//     'sourceType': 'module'
-//   },
-
-//   'env': {
-//     'es2021': true,
-//     'node': true
-//   },
-
-//   'plugins': [
-//     'import',
-//     'n',
-//     'promise'
-//   ],
-
-//   'globals': {
-//     'document': 'readonly',
-//     'navigator': 'readonly',
-//     'window': 'readonly'
-//   },
+import { importRepoTherapy } from '../util'
+import { type CallableValue, resolveCallableValue } from '../../src/util'
 
 type EslintConfig = Omit<ConfigWithExtends, 'files'>
 
@@ -76,14 +44,11 @@ function configMerger (
   return config
 }
 
-// todo
 export async function defineRepoTherapyLint (
-  options?: LintOption | ((libTool: LibTool) => LintOption)
+  options: CallableValue<LintOption> = {}
 ) {
   const libTool = await importRepoTherapy().then(x => x())
-  const customOptions: LintOption = options
-    ? ( typeof options === 'object' ? options : options(libTool))
-    : {}
+  const customOptions = resolveCallableValue<LintOption>(options, libTool)
 
   const tsConfig = configMerger(
     ['ts', 'tsx', 'cts', 'mts', 'js', 'jsx', 'cjs', 'mjs'],

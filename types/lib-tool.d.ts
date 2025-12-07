@@ -1,11 +1,16 @@
 import { type Transform, type Writable } from 'stream'
 
+import { defineRepoTherapyStud } from 'src/defines/stud'
 import { defineRepoTherapyTsConfig } from 'src/defines/tsconfig'
 import { defineRepoTherapyVsCode } from 'src/defines/vscode'
 import { type PackageJson } from 'type-fest'
 
-import { Util } from './repo-therapy.d'
-import { CsvOption, defineRepoTherapyCsv, RawCsvRow } from '../src/defines/csv'
+import { type Util } from './repo-therapy.d'
+import {
+  defineRepoTherapyCsv,
+  type CsvOption,
+  type RawCsvRow
+} from '../src/defines/csv'
 import { defineRepoTherapyEnum, EnumDefination } from '../src/defines/enum'
 import { defineRepoTherapyEnv } from '../src/defines/env'
 import { defineRepoTherapyGitIgnore } from '../src/defines/gitignore'
@@ -61,10 +66,23 @@ export interface LibTool <
 > {
   libName: string
   projectType: ProjectType
+  possibleProject: Array<string>
   packageManager: PackageManager
   absolutePath: { root: RootPath } & LinkPathPredefined<LinkPath>
   path: LinkPathPredefined<LinkPath>
   importLib: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyImport>>>
+  importLibFromArray: <T, U extends Util.DirImport = Util.DirImport> (
+    dir: Array<U | string>,
+    callback: (options: U) => Promise<Array<Util.ImportScriptDir<T>>>
+  ) => {
+    result: Promise<Array<{ options: U } & Util.ImportScriptDir<T>>>
+    loop: <Z = undefined>(
+      loopCallback: (x: { options: U } & Util.ImportScriptDir<T>) => Z
+    ) => Promise<Array<{
+      result: Z
+      options: U
+    } & Util.ImportScriptDir<T>>>
+  }
   optionOrFile: <
     K extends keyof ImportConfigFull<ImportConfig>
   > (k: K) => Promise<ReturnType<ImportConfigFull<ImportConfig>[K]['default']>>
@@ -109,4 +127,5 @@ export interface LibTool <
   gitignore: () => ReturnType<ReturnType<typeof defineRepoTherapyGitIgnore>>
   vsCode: () => ReturnType<ReturnType<typeof defineRepoTherapyVsCode>>
   tsConfig: () => ReturnType<ReturnType<typeof defineRepoTherapyTsConfig>>
+  stud: () => ReturnType<ReturnType<typeof defineRepoTherapyStud>>
 }

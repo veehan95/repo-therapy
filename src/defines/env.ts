@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, mkdirSync, readdirSync } from 'node:fs'
+import { existsSync, lstatSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 import { parse } from '@dotenvx/dotenvx'
@@ -12,8 +12,8 @@ import {
   ValueDefination
 } from './value-parse'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { NodeEnvOptions } from '../statics/enums'
 import { type Util } from '../../types/repo-therapy'
+import { NodeEnvOptions } from '../statics/enums'
 
 function envKey (k: Array<string>) {
   return k.flatMap(s => s.split(/(?=[A-Z\s])/g))
@@ -153,16 +153,15 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
             { recursive: true }
           )
         }
-        const projectList = readdirSync(libTool.absolutePath.projectRoot)
         const envCreation: Array<Content> = []
-        for (const i in projectList) {
-          if (project && projectList[i] !== project) { continue }
+        for (const i in libTool.possibleProject) {
+          if (project && libTool.possibleProject[i] !== project) { continue }
           const absoluteP = join(
             libTool.absolutePath.projectRoot,
-            projectList[i]
+            libTool.possibleProject[i]
           )
           if (!lstatSync(absoluteP).isDirectory()) { continue }
-          const projectName = kebabCase(projectList[i])
+          const projectName = kebabCase(libTool.possibleProject[i])
           const envName: Util.Path = `${path}.${projectName}.${
             nodeEnv || NodeEnvOptions.local
           }`
@@ -170,7 +169,7 @@ export function defineRepoTherapyEnv <T extends ValueDefination> (
             await libTool.importLib
               .writeStatic(envName, async () => {
                 let str = reverseValue(envParser.generateSample({
-                  ...await getEnv(projectList[i], nodeEnv)
+                  ...await getEnv(libTool.possibleProject[i], nodeEnv)
                     .then(x => x?.import || {}),
                   PROJECT: projectName,
                   NODE_ENV: nodeEnv

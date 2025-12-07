@@ -1,3 +1,4 @@
+import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
 import { findUp } from 'find-up'
@@ -23,9 +24,9 @@ import {
 } from './value-parse'
 import { defineRepoTherapyVsCode } from './vscode'
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { NodeEnvOptions, PackageManager, ProjectType } from '../statics/enums'
 import { type LibTool } from '../../types/lib-tool'
 import { type Util } from '../../types/repo-therapy'
+import { NodeEnvOptions, PackageManager, ProjectType } from '../statics/enums'
 
 class PathObj <RootPath extends Util.Path, LinkPath extends Util.LinkPath> {
   private _pathList: LinkPath
@@ -231,12 +232,18 @@ export function defineRepoTherapy <
         file: 'tsConfig',
         defination: ['define-repo-therapy-tsconfig'],
         default: defineRepoTherapyTsConfig
+      },
+      stud: {
+        file: 'stud',
+        defination: ['define-repo-therapy-stud'],
+        default: defineRepoTherapyTsConfig
       }
     }
 
     const libTool = {
       libName: options.libName || 'RepoTherapy',
       projectType: optionWithDefault.projectType,
+      possibleProject: readdirSync(pathObj.absolutePath.projectRoot),
       packageManager: PackageManager.NPM,
       absolutePath: pathObj.absolutePath,
       path: pathObj.pathList,
@@ -254,6 +261,49 @@ export function defineRepoTherapy <
     } as LibTool<VD, LinkPath, EnumConfig, ImportConfig, RootPath>
 
     libTool.importLib = await defineRepoTherapyImport()(libTool)
+
+    libTool.importLibFromArray = <
+      T,
+      U extends Util.DirImport = Util.DirImport
+    > (
+        dir: Array<U| string>,
+        callback: (options: U) => Promise<Array<Util.ImportScriptDir<T>>>
+      ) => {
+      const dirParsed = dir.map(
+        path => typeof path === 'string' ? { path } : path
+      ) as Array<U>
+      async function getResult () {
+        const x = [] as Array<{ options: U } & Util.ImportScriptDir<T>>
+        for (const i in dirParsed) {
+          const p = dirParsed[i].absolute
+            ? dirParsed[i].path
+            : join(libTool.absolutePath.root, dirParsed[i].path)
+          if (existsSync(p)) {
+            x.push(...(await callback(dirParsed[i])).map(
+              x => ({ options: dirParsed[i], ...x })
+            ))
+          }
+        }
+        return x
+      }
+      const result = getResult()
+      return {
+        result,
+        loop: async <Z = undefined> (
+          loopCallback: (x: Awaited<typeof result>[number]) => Z | Promise<Z>
+        ) => {
+          const x = await result
+          const r: Array<{
+            result: Z
+            options: U
+          } & Util.ImportScriptDir<T>> = []
+          for (const i in x) {
+            r.push({ result: await loopCallback(x[i]), ...x[i] })
+          }
+          return r
+        }
+      }
+    }
 
     libTool.optionOrFile = async (k: keyof typeof importConfig) => {
       const { file, defination, default: defaultFunc } = importConfig[k]
@@ -314,6 +364,9 @@ export function defineRepoTherapy <
 
     const tsConfigAwait = await libTool.optionOrFile('tsConfig')
     libTool.tsConfig = () => tsConfigAwait(libTool)
+
+    const studAwait = await libTool.optionOrFile('stud')
+    libTool.stud = () => studAwait(libTool)
 
     return libTool
   }

@@ -32,7 +32,6 @@ export function defineRepoTherapyTsConfig (
       }
       const c = merge(
         {
-          ...(tsNode ? { 'ts-node': tsNode } : {}),
           compilerOptions: {
             target: 'es2020',
             module: 'nodenext',
@@ -62,12 +61,7 @@ export function defineRepoTherapyTsConfig (
         await libTool.importLib
           .importJson('/tsconfig.json', { soft: true }).then(x => x.import),
         options.config
-      ) as {
-        'ts-node'?: {
-          files: boolean
-          compilerOptions?: TsConfigJson['compilerOptions']
-        }
-      } & TsConfigJson
+      ) as TsConfigJson
       if (options.extends) {
         if (c.extends) {
           if (typeof c.extends === 'string') {

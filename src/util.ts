@@ -2,21 +2,17 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 
 import { findUp } from 'find-up'
+import { LibTool } from 'types/lib-tool'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { genericImport } from './src/defines/import'
-import { defineRepoTherapy } from './src/defines/index'
-import { defineRepoTherapyScript } from './src/defines/script'
-import { NodeEnvOptions } from './src/statics/enums'
-import { type Util } from './types/repo-therapy'
+import { genericImport } from './defines/import'
+import { defineRepoTherapy } from './defines/index'
+import { defineRepoTherapyScript } from './defines/script'
+import { NodeEnvOptions } from './statics/enums'
+import { type Util } from '../types/repo-therapy'
 
-export { defineRepoTherapyCsv } from './src/defines/csv'
-export { defineRepoTherapyEnv } from './src/defines/env'
-export { defineRepoTherapyImport } from './src/defines/import'
-export { defineRepoTherapyLogger } from './src/defines/logger'
-export { defineRepoTherapyWrapper } from './src/defines/wrapper'
-export { defineRepoTherapy }
+export type CallableValue <T> = T | ((libTool: LibTool) => T)
 
 interface Option {
   libName: string
@@ -26,6 +22,16 @@ interface Option {
     absolute?: boolean
   }>
   commandIgnoreEnv: Array<string>
+}
+
+export function resolveCallableValue <T> (
+  value: CallableValue<T>,
+  libTool: LibTool
+) {
+  if (typeof value === 'function') {
+    return (value as (libTool: LibTool) => T)(libTool)
+  }
+  return value
 }
 
 export async function importRepoTherapy () {
@@ -90,36 +96,33 @@ export async function cli ({
     libTool.logger.info('')
   }
 
-  const scriptDirList = [{
+  await libTool.importLibFromArray<{
+    default: ReturnType<typeof defineRepoTherapyScript>
+  }, { lib?: boolean } & Util.DirImport>([{
     lib: true,
-    path: join(__dirname, './src/scripts') as Util.Path,
+    path: join(__dirname, './scripts') as Util.Path,
     absolute: true
   }, ...scriptDir.map(
     path => typeof path === 'string' ? { path, lib: false } : path
-  )]
-
-  for (const i in scriptDirList) {
-    const dirScripts = await libTool.importLib.importScriptFromDir<{
-      default: ReturnType<typeof defineRepoTherapyScript>
-    }>(scriptDirList[i].path, {
-      absolute: scriptDirList[i].absolute,
-      accept: { default: ['define-repo-therapy-script'] }
+  )], ({ path, ...o }) => libTool.importLib.importScriptFromDir<{
+    default: ReturnType<typeof defineRepoTherapyScript>
+  }>(
+    path,
+    { ...o, accept: { default: ['define-repo-therapy-script'] } }
+  )).loop(async (row) => {
+    const f = row.import?.default
+    if (!f) { return }
+    const s = await f(libTool).then(x => x(
+      row.path,
+      row.options.lib ? 'lib' : 'custom'
+    ))
+    y.command({
+      command: s.command,
+      describe: s.describe,
+      handler: s.handler,
+      builder: s.builder
     })
-
-    for (const j in dirScripts) {
-      if (!dirScripts[j].import) { continue }
-      const s = (await dirScripts[j].import.default())(
-        dirScripts[j].path,
-        scriptDirList[i].lib ? 'lib' : 'custom'
-      )
-      y.command({
-        command: s.command,
-        describe: s.describe,
-        handler: s.handler,
-        builder: s.builder
-      })
-    }
-  }
+  })
 
   y.help().alias('help', 'h')
   y.demandCommand(1, 'You need at least one valid command')

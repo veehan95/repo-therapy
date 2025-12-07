@@ -8,18 +8,19 @@ import {
 } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
 
+// todo remove ts-node
 import { register } from 'ts-node'
 
 import {
   defineRepoTherapyWrapper,
   defineRepoTherapyInternalWrapper as wrapper
 } from './wrapper'
+import { type Util } from '../../types/repo-therapy'
 import {
   GenerateStatus,
   NodeJavaScriptExt,
   NodeTypeScriptExt
 } from '../statics/enums'
-import { type Util } from '../../types/repo-therapy'
 
 interface ImportOptionsbase {
   soft?: boolean
@@ -42,16 +43,6 @@ export async function genericImport<T> (path: string, ext = extname(path)) {
 }
 
 export function defineRepoTherapyImport () {
-  type ScriptObj = Record<
-    string,
-    Promise<ReturnType<typeof defineRepoTherapyWrapper>> |
-      ReturnType<typeof defineRepoTherapyWrapper>
-  >
-
-  type ScriptObjReturn <T extends ScriptObj> = {
-    [s in keyof T]: () => ReturnType<Awaited<T[s]>>
-  }
-
   return wrapper('import', async (libTool) => {
     const AbsoluteRegExp = new RegExp(`^${libTool.absolutePath.root}`)
 
@@ -59,10 +50,12 @@ export function defineRepoTherapyImport () {
       path: Util.Path,
       callback: (fPath: string, ext: string) => Promise<T> | T,
       options: ImportOptionsbase = {}
-    ) {
-      const fPath = options?.absolute
-        ? path
-        : join(libTool.absolutePath.root, path)
+    ): Promise<Util.ImportScript<T>> {
+      const fPath = (
+        options?.absolute
+          ? path
+          : join(libTool.absolutePath.root, path)
+      ) as Util.Path
 
       const ext = extname(path)
       const base = {
@@ -81,10 +74,9 @@ export function defineRepoTherapyImport () {
       try {
         if (!existsSync(fPath)) {
           base.exist = false
-          throw new Error(`${path} not found.`)
+          throw new Error(`Can't find path ${path}.`)
         }
         if (lstatSync(fPath).isDirectory()) {
-          base.exist = false
           throw new Error(`Can't import directory ${path}.`)
         }
         if (/\.d\.ts/.test(fPath)) {
@@ -99,24 +91,24 @@ export function defineRepoTherapyImport () {
       return base
     }
 
-    function importScript <T extends ScriptObj> (
+    function importScript <T extends Util.ScriptObj> (
       path: Util.ScriptPath,
-      options: ImportOptionsbase & { accept: Record<keyof T, Array<string>> }
+      options: ImportOptionsbase & {
+        accept: Record<keyof T, Array<string>>
+      }
     ) {
-      return importWrapper<
-        ScriptObjReturn<T>
-      >(path, async (fPath, ext) => {
+      return importWrapper<T>(path, async (fPath, ext) => {
         if (
           !(Object.values(NodeJavaScriptExt) as Array<string>).includes(ext) &&
           !(Object.values(NodeTypeScriptExt) as Array<string>).includes(ext)
         ) { throw new Error(`Invalid script import ${path}`) }
 
         const x = await genericImport<T>(fPath)
-        const lib = {} as ScriptObjReturn<T>
+        const lib = {} as T
         for (const k in options.accept) {
           const wrapper = await x[k]
           wrapper.validate(options.accept[k])
-          lib[k] = (() => wrapper(libTool)) as ScriptObjReturn<T>[typeof k]
+          lib[k] = (() => wrapper(libTool)) as T[typeof k]
         }
 
         return lib
@@ -164,8 +156,8 @@ export function defineRepoTherapyImport () {
     > (
       path: Util.Path,
       options: V | undefined,
-      callback: (path: U, options: V) => ReturnType<typeof importWrapper<T>>
-    ) {
+      callback: (path: U, options: V) => Promise<Util.ImportScript<T>>
+    ): Promise<Array<Util.ImportScriptDir<T>>> {
       const d = typeof path === 'string' ? [path] : path
       const acc: Array<{
         relativePath: Util.Path
@@ -182,11 +174,13 @@ export function defineRepoTherapyImport () {
           { recursive: true, encoding: 'utf-8' }
         )
         for (const j in files) {
+          if (lstatSync(join(dirPath, files[j])).isDirectory()) { continue }
           acc.push({
             relativePath: `/${files[j]}`,
             dir,
             ...await callback(join(dir, files[j]) as U, {
               ...(options || {}),
+              soft: true,
               absolute: false
             } as V)
           })
@@ -228,11 +222,13 @@ export function defineRepoTherapyImport () {
       importNodeScript,
       importJson,
       importStatic,
-      importScriptFromDir: <T extends ScriptObj> (
+      importScriptFromDir: <T extends Util.ScriptObj> (
         path: Util.Path,
-        options: ImportOptionsbase & { accept: Record<keyof T, Array<string>> }
+        options: ImportOptionsbase & {
+          accept: Record<keyof T, Array<string>>
+        }
       ) => importDirWrapper<
-        ScriptObjReturn<T>,
+        T,
         Util.ScriptPath,
         ImportOptionsbase & { accept: Record<keyof T, Array<string>> }
       >(

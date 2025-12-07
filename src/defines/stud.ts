@@ -1,76 +1,103 @@
-import winston, { type transport as Transport } from 'winston'
+import { basename, dirname, extname } from 'node:path'
 
 import { defineRepoTherapyInternalWrapper as wrapper } from './wrapper'
-import { ConsolePrefix } from '../statics/enums'
+import { type CallableValue, resolveCallableValue } from '../../src/util'
 import { type Util } from '../../types/repo-therapy'
 
-interface StudOption {
-  values?: object
+interface StudOption <T extends string = string> {
+  variables?: Record<Util.Path, {
+    variant?: Array<T>
+    ignore?: string | false
+    variantFilePath?: (path: Util.Path, variant: T) => {
+      path: Util.Path
+      ignorePattern: string
+    }
+    values: Record<string, Util.GenericType> | (
+      (variant: T) => Record<string, Util.GenericType>
+    )
+  }>
+  dirs?: Array<Util.DirImport | Util.Path>
 }
 
-export function defineRepoTherapyStud ({ values }: StudOption = {}) {
-  console.log(values)
-  return wrapper('logger', ({ env }) => {
-    const _transports: Array<Transport> = []
+export function defineRepoTherapyStud (
+  options: CallableValue<StudOption> = {}
+) {
+  return wrapper('stud', (libTool) => {
+    function getConfig () {
+      const customOptions = resolveCallableValue<StudOption>(options, libTool)
 
-    let serviceName = service
-    if (env) {
-      if (env.project) { serviceName = `${env.project}.${serviceName}` }
-      if (env.nodeEnv) { serviceName += `.${env.nodeEnv}` }
-    }
+      if (!customOptions.dirs) { customOptions.dirs = [] }
+      customOptions.dirs.push('/studs')
 
-    function printString (
-      level: ConsolePrefix,
-      message: Util.GenericType | undefined | unknown
-    ) {
-      return `${level.replace(/<serviceName>/, serviceName)}${
-        (typeof message === 'object' ? JSON.stringify(message) : message) || ''
-      }`
-    }
+      const projectRootRegexp = new RegExp(`^${libTool.path.projectRoot}`)
 
-    const format = transportFormat || winston.format.combine(
-      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      winston.format.printf((params) => {
-        const level = (
-          params[Symbol.for('level')]?.toString() || 'unknown'
-        ) as keyof typeof ConsolePrefix
-        return printString(ConsolePrefix[level], params.message)
-      })
-    )
-
-    if (transportConfig.includes('file')) {
-      _transports.push(...levels.map(
-        // winston.format.json()
-        level => new winston.transports
-          // todo path
-          .File({ filename: `${serviceName}.${level}.log`, level, format })
+      return libTool.importLibFromArray<string>(
+        customOptions.dirs,
+        ({ path, ...o }) => libTool.importLib.importStaticFromDir(path, o)
+      ).loop(source => {
+        if (!/\.stud$/.test(source.relativePath)) { return }
+        const ext = extname(source.relativePath)
+        const basePath = source.relativePath.slice(0, -ext.length) as Util.Path
+        const { variant, variantFilePath, values } = customOptions.variables
+          ?.[basePath] || {}
+        function createFile (variant: string = '') {
+          let path = basePath
+          let ignorePattern: string = basePath
+          if (variant) {
+            if (variantFilePath) {
+              ({ path, ignorePattern } = variantFilePath(path, variant))
+            } else if (
+              projectRootRegexp.test(path) &&
+              libTool.possibleProject.includes(variant)
+            ) {
+              if (variant !== libTool.env.project) { return undefined }
+              path = `${libTool.path.projectRoot}/${variant}${
+                path.replace(projectRootRegexp, '')
+              }`
+              ignorePattern = `${libTool.path.projectRoot}/**${
+                ignorePattern.replace(projectRootRegexp, '')
+              }`
+            } else {
+              const sourceExt = extname(basePath)
+              const sourceBasePath = basePath
+                .slice(0, -sourceExt.length) as Util.Path
+              path = `${sourceBasePath}.${variant}${sourceExt}`
+              ignorePattern = `${sourceBasePath}.*${sourceExt}`
+            }
+          }
+          return {
+            path,
+            ignorePattern,
+            values: typeof values === 'function' ? values(variant) : values
+          }
+        }
+        if (variant) {
+          return variant.map(x => createFile(x))
+        } else { return [createFile()] }
+      }).then(x => x.flatMap(
+        ({ result, ...source }) => result
+          ?.filter(rowResult => rowResult)
+          ?.map(rowResult => ({ ...rowResult, source }))
       ))
     }
-    if (transportConfig.includes('console')) {
-      _transports.push(new winston.transports.Console({
-        format,
-        level: levels.at(-1)
-      }))
-    }
-    transportConfig
-      .filter(x => x && typeof x !== 'string')
-      .forEach(x => { _transports.push(x) })
-
-    const loggerObj = winston.createLogger({
-      levels: Object.fromEntries(levels.map((x, i) => [x, Number(i)])),
-      format: winston.format.json(),
-      defaultMeta: { service: serviceName },
-      transports: _transports
-    })
 
     return {
-      logger: Object.fromEntries(levels.map(x => [
-        x,
-        (str: string, ...meta: Array<string>) => (
-          loggerObj as unknown as Record<string, winston.LeveledLogMethod>
-        )[x](str, ...meta)
-      ])) as Record<typeof levels[number], winston.LeveledLogMethod>,
-      printString
+      getConfig,
+      generate: async () => {
+        const studData = await getConfig()
+        return studData.map(row => {
+          if (!row || !row.path || !row.source.import) { return {} }
+          return libTool.importLib
+            .writeStatic(row.path, () => libTool
+              .string()
+              .mustacheReplace(row.source.import, {
+                // todo generate all not selected projects
+                env: libTool.env,
+                custom: row.values
+              })
+            )
+        })
+      }
     }
   })
 }
