@@ -43,7 +43,7 @@ export async function genericImport<T> (path: string, ext = extname(path)) {
 }
 
 export function defineRepoTherapyImport () {
-  return wrapper('import', async (libTool) => {
+  return wrapper('import', (libTool) => {
     const AbsoluteRegExp = new RegExp(`^${libTool.absolutePath.root}`)
 
     async function importWrapper <T extends Util.GenericType> (

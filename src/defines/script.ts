@@ -35,8 +35,8 @@ export function defineRepoTherapyScript <
     builder?: (argv: Argv<ScriptArgv>, libTool: LibTool) => Argv<T>
   } = {}
 ) {
-  return wrapper('script', async (libTool) => {
-    return (scriptPath: Util.Path, scriptType: 'custom' | 'lib') => {
+  return wrapper('script', (libTool) => {
+    return (scriptPath: Util.Path, scriptType: 'custom' | 'lib' = 'custom') => {
       let command = c
       if (!command) {
         const path = basename(scriptPath).replace(/\.([^].)$/, '')
@@ -45,57 +45,62 @@ export function defineRepoTherapyScript <
         command = (scriptType === 'custom' ? 'exec:' : '') + commandBase
       }
 
+      function handlerWrapper (argv: ScriptArgv) {
+        return handler(argv, {
+          ...libTool,
+          printList: <C extends Content> (
+            header: string,
+            content: Array<C | string> | C | string,
+            callback: (x: C) => string = (x) => x.path || JSON.stringify(x)
+          ) => {
+            const cArr = (Array.isArray(content) ? content : [content])
+              .map(path => typeof path === 'string'
+                ? { path, status: libTool.enum.GenerateStatus.created }
+                : path
+              )
+            if (cArr.length === 0) { return }
+            libTool.logger.info('')
+            libTool.logger.info(header)
+            cArr.sort((a, b) => a.path > b.path ? 1 : -1)
+              .forEach(r => {
+                libTool.logger.info(`  ${(
+                  r.status === libTool.enum.GenerateStatus.updated
+                    ? (
+                      libTool.enum.ConsoleFontColor.yellow +
+                      libTool.enum.EmojiAndUnicode.circle
+                    )
+                      : r.status === libTool.enum.GenerateStatus.created
+                        ? (
+                          libTool.enum.ConsoleFontColor.green +
+                          libTool.enum.EmojiAndUnicode.tick
+                        )
+                        : (
+                          libTool.enum.ConsoleFontColor.red +
+                          libTool.enum.EmojiAndUnicode.cross
+                        )
+                ) + libTool.enum.ConsoleFontColor.close} ${
+                  callback(r as C)
+                }`)
+              })
+          }
+        })
+      }
+
       return {
         command,
         builder: builder
           ? (argv: Argv<ScriptArgv>) => builder(argv, libTool)
           : undefined,
         describe: typeof describe === 'string' ? describe : describe.join('\n'),
-        handler: async (argv: ScriptArgv) => {
+        handler: handlerWrapper,
+        handlerWithLogging: async (argv: ScriptArgv) => {
           libTool.logger.info('Executing\t' + (
             scriptType === 'lib'
               ? command
               : `custom script:${scriptPath}`
           ))
           try {
-            await handler(argv, {
-              ...libTool,
-              printList: <C extends Content> (
-                header: string,
-                content: Array<C | string> | C | string,
-                callback: (x: C) => string = (x) => x.path || JSON.stringify(x)
-              ) => {
-                const cArr = (Array.isArray(content) ? content : [content])
-                  .map(path => typeof path === 'string'
-                    ? { path, status: libTool.enum.GenerateStatus.created }
-                    : path
-                  )
-                if (cArr.length === 0) { return }
-                libTool.logger.info('')
-                libTool.logger.info(header)
-                cArr.sort((a, b) => a.path > b.path ? 1 : -1)
-                  .forEach(r => {
-                    libTool.logger.info(`  ${(
-                      r.status === libTool.enum.GenerateStatus.updated
-                        ? (
-                          libTool.enum.ConsoleFontColor.yellow +
-                          libTool.enum.EmojiAndUnicode.circle
-                        )
-                          : r.status === libTool.enum.GenerateStatus.created
-                            ? (
-                              libTool.enum.ConsoleFontColor.green +
-                              libTool.enum.EmojiAndUnicode.tick
-                            )
-                            : (
-                              libTool.enum.ConsoleFontColor.red +
-                              libTool.enum.EmojiAndUnicode.cross
-                            )
-                    ) + libTool.enum.ConsoleFontColor.close} ${
-                      callback(r as C)
-                    }`)
-                  })
-              }
-            })
+            await handlerWrapper(argv)
           } catch (err) {
             libTool.logger.info('')
             let msg = (err as Error).message.replace(/^\s*/, '')

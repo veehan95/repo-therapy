@@ -112,14 +112,14 @@ export async function cli ({
   )).loop(async (row) => {
     const f = row.import?.default
     if (!f) { return }
-    const s = await f(libTool).then(x => x(
+    const s = await f(libTool)(
       row.path,
       row.options.lib ? 'lib' : 'custom'
-    ))
+    )
     y.command({
       command: s.command,
       describe: s.describe,
-      handler: s.handler,
+      handler: s.handlerWithLogging,
       builder: s.builder
     })
   })

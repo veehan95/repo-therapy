@@ -24,7 +24,7 @@ export function defineRepoTherapyEnum <
     ...defaultEnums
   }
 
-  return wrapper('string', async ({ importLib }) => {
+  return wrapper('enum', async ({ importLib }) => {
     const paths = [
       ...enumPaths.map(path => typeof path === 'string' ? { path } : path)
     ]

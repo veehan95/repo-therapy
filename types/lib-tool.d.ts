@@ -1,5 +1,6 @@
 import { type Transform, type Writable } from 'stream'
 
+import { defineRepoTherapyWrapper } from 'src'
 import { defineRepoTherapyStud } from 'src/defines/stud'
 import { defineRepoTherapyTsConfig } from 'src/defines/tsconfig'
 import { defineRepoTherapyVsCode } from 'src/defines/vscode'
@@ -43,16 +44,52 @@ type LinkPathPredefined <PO extends Util.LinkPath> = {
 type ImportConfigPredefined = 'env' | 'logger' | 'enum' | 'husky' |
   'packageJson' | 'gitignore' | 'vsCode' | 'tsConfig' | 'lint'
 
-interface ImportConfigMeta {
-  file: string
+export interface ImportConfigMeta <
+  K extends (
+    ...args: Array<Util.GenericType>
+  ) => ReturnType<typeof defineRepoTherapyWrapper> = (
+    ...args: Array<Util.GenericType>
+  ) => ReturnType<typeof defineRepoTherapyWrapper>
+> {
   defination: Array<string>
-  default: any
+  default: K
 }
 
-type ImportConfigFull <T extends Record<string, ImportConfigMeta>> = Record<
-  (keyof T & string) | ImportConfigPredefined,
-  ImportConfigMeta
->
+export type ImportConfigKey = 'env' | 'logger' | 'enum' | 'husky' |
+  'packageJson' | 'gitignore' | 'vsCode' | 'tsConfig' | 'stud'
+
+type DefaultImportConfig <
+  VD extends ValueDefination,
+  EnumConfig extends Record<
+    string,
+    EnumDefination
+  > = object & Record<string, EnumDefination>
+> = {
+  env: defineRepoTherapyEnv<VD>
+  logger: defineRepoTherapyLogger
+  enum: defineRepoTherapyEnum<EnumConfig>
+  husky: defineRepoTherapyHusky
+  packageJson: defineRepoTherapyPackageJson
+  gitignore: defineRepoTherapyGitIgnore
+  vsCode: defineRepoTherapyVsCode
+  tsConfig: defineRepoTherapyTsConfig
+  stud: defineRepoTherapyStud
+}
+
+type ImportConfigFull <
+  T extends Record<string, ImportConfigMeta>,
+  VD extends ValueDefination,
+  EnumConfig extends Record<
+    string,
+    EnumDefination
+  > = object & Record<string, EnumDefination>
+> = {
+  [key in keyof T & string]: ImportConfigMeta<T[K]>
+} & {
+  [
+    key in keyof DefaultImportConfig<VD, EnumConfig>
+  ]: ImportConfigMeta<DefaultImportConfig<VD, EnumConfig>[K]>
+}
 
 export interface LibTool <
   VD extends ValueDefination = ValueDefination,
@@ -61,7 +98,10 @@ export interface LibTool <
     string,
     EnumDefination
   > = object,
-  ImportConfig extends Record<string, ImportConfigMeta> = object,
+  ImportConfig extends Record<
+    string,
+    ImportConfigMeta
+  > = Record<string, ImportConfigMeta>,
   RootPath extends Util.Path = Util.Path
 > {
   libName: string
@@ -83,9 +123,12 @@ export interface LibTool <
       options: U
     } & Util.ImportScriptDir<T>>>
   }
+  importConfig: ImportConfigFull<ImportConfig, VD, EnumConfig>
   optionOrFile: <
-    K extends keyof ImportConfigFull<ImportConfig>
-  > (k: K) => Promise<ReturnType<ImportConfigFull<ImportConfig>[K]['default']>>
+    K extends keyof ImportConfigFull<ImportConfig, VD, EnumConfig>
+  > (k: K) => Promise<ReturnType<
+    ImportConfigFull<ImportConfig, VD, EnumConfig>[K]['default']
+  >>
   env: ReturnType<Awaited<
     ReturnType<ReturnType<typeof defineRepoTherapyEnv<VD>>>
   >['get']>

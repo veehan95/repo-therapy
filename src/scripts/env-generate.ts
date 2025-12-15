@@ -1,12 +1,14 @@
-import { generate } from './env-default'
+import envDefault from './env-default'
 import { defineRepoTherapyScript } from '../defines/script'
 import { NodeEnvOptions } from '../statics/enums'
 
-export default defineRepoTherapyScript<{
+export interface Argv {
   env: NodeEnvOptions
   defaultValues?: boolean
   overwrite?: boolean
-}>([
+}
+
+export default defineRepoTherapyScript<Argv>([
   'Generate env file for each project.',
   '* Overwrite all existing env if overwrite flag is true.'
 ], async (a, libTool) => {
@@ -27,7 +29,7 @@ export default defineRepoTherapyScript<{
     a.project = /^\/\.env\.([^.]*)\..*$/.exec(r.envCreation[0].path)![1]
   }
 
-  await generate(a, libTool)
+  await envDefault(libTool)('/', 'custom').handler(a)
 }, {
   command: 'env:generate',
   builder: (a) => a
