@@ -54,7 +54,7 @@ export function defineRepoTherapyImport () {
       const fPath = (
         options?.absolute
           ? path
-          : join(libTool.absolutePath.root, path)
+          : libTool.getChildPath('root', path, { absolute: true })
       ) as Util.Path
 
       const ext = extname(path)
@@ -168,7 +168,7 @@ export function defineRepoTherapyImport () {
         const dir = options?.absolute
           ? (d[i].replace(AbsoluteRegExp, '') as Util.Path)
           : d[i]
-        const dirPath = join(libTool.absolutePath.root, dir)
+        const dirPath = libTool.getChildPath('root', dir, { absolute: true })
         const files = readdirSync(
           dirPath,
           { recursive: true, encoding: 'utf-8' }

@@ -35,10 +35,12 @@ import { PackageManager, ProjectType } from '../src/statics/enums'
 type LinkPathPredefined <PO extends Util.LinkPath> = {
   projectRoot: Util.Path
   buildCache: Util.Path
+  config: Util.Path
   log: Util.Path
   build: Util.Path
   typeDeclaration: Util.Path
   project: Util.Path
+  projectConfig: Util.Path
 } & PO
 
 type ImportConfigPredefined = 'env' | 'logger' | 'enum' | 'husky' |
@@ -55,10 +57,7 @@ export interface ImportConfigMeta <
   default: K
 }
 
-export type ImportConfigKey = 'env' | 'logger' | 'enum' | 'husky' |
-  'packageJson' | 'gitignore' | 'vsCode' | 'tsConfig' | 'stud'
-
-type DefaultImportConfig <
+export type DefaultImportConfig <
   VD extends ValueDefination,
   EnumConfig extends Record<
     string,
@@ -69,23 +68,21 @@ type DefaultImportConfig <
   logger: defineRepoTherapyLogger
   enum: defineRepoTherapyEnum<EnumConfig>
   husky: defineRepoTherapyHusky
-  packageJson: defineRepoTherapyPackageJson
+  'package-json': defineRepoTherapyPackageJson
   gitignore: defineRepoTherapyGitIgnore
-  vsCode: defineRepoTherapyVsCode
-  tsConfig: defineRepoTherapyTsConfig
+  'vs-code': defineRepoTherapyVsCode
+  'ts-config': defineRepoTherapyTsConfig
   stud: defineRepoTherapyStud
 }
 
 type ImportConfigFull <
-  T extends Record<string, ImportConfigMeta>,
+  T extends Record<Util.SlugCase, ImportConfigMeta>,
   VD extends ValueDefination,
   EnumConfig extends Record<
     string,
     EnumDefination
   > = object & Record<string, EnumDefination>
-> = {
-  [key in keyof T & string]: ImportConfigMeta<T[K]>
-} & {
+> = T & {
   [
     key in keyof DefaultImportConfig<VD, EnumConfig>
   ]: ImportConfigMeta<DefaultImportConfig<VD, EnumConfig>[K]>
@@ -99,17 +96,34 @@ export interface LibTool <
     EnumDefination
   > = object,
   ImportConfig extends Record<
-    string,
+    Util.SlugCase,
     ImportConfigMeta
-  > = Record<string, ImportConfigMeta>,
-  RootPath extends Util.Path = Util.Path
+  > = Record<Util.SlugCase, ImportConfigMeta>,
+  RootPath extends Util.Path = Util.Path,
+  LibToolImportConfig extends ImportConfigFull<
+    ImportConfig,
+    VD,
+    EnumConfig
+  > = ImportConfigFull<ImportConfig, VD, EnumConfig>,
+  LibToolLinkPath extends LinkPathPredefined<
+    LinkPath
+  > = LinkPathPredefined<LinkPath>
 > {
   libName: string
   projectType: ProjectType
   possibleProject: Array<string>
   packageManager: PackageManager
-  absolutePath: { root: RootPath } & LinkPathPredefined<LinkPath>
-  path: LinkPathPredefined<LinkPath>
+  absolutePath: { root: RootPath } & LibToolLinkPath
+  path: LibToolLinkPath
+  getChildPath: <T extends `${string}${
+    NodeJavaScriptExt | NodeTypeScriptExt | '.json'
+  }` | string> (
+    parent: keyof LibToolLinkPath | 'root',
+    path: T,
+    options?: { absolute?: boolean }
+  ) => T extends `${string}${NodeJavaScriptExt | NodeTypeScriptExt}`
+    ? Util.ScriptPath
+    : T extends `${string}.json` ? Util.JsonPath : Util.Path
   importLib: Awaited<ReturnType<ReturnType<typeof defineRepoTherapyImport>>>
   importLibFromArray: <T, U extends Util.DirImport = Util.DirImport> (
     dir: Array<U | string>,
@@ -123,12 +137,10 @@ export interface LibTool <
       options: U
     } & Util.ImportScriptDir<T>>>
   }
-  importConfig: ImportConfigFull<ImportConfig, VD, EnumConfig>
-  optionOrFile: <
-    K extends keyof ImportConfigFull<ImportConfig, VD, EnumConfig>
-  > (k: K) => Promise<ReturnType<
-    ImportConfigFull<ImportConfig, VD, EnumConfig>[K]['default']
-  >>
+  importConfig: LibToolImportConfig
+  optionOrFile: (k: keyof LibToolImportConfig) => Promise<
+    ReturnType<LibToolImportConfig[K]['default']>
+  >
   env: ReturnType<Awaited<
     ReturnType<ReturnType<typeof defineRepoTherapyEnv<VD>>>
   >['get']>

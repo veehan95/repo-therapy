@@ -93,8 +93,24 @@ export function defineRepoTherapyStud (
       }))
     }
 
+    async function generateSingle (
+      path: Util.Path,
+      stud: string,
+      values: object = {}
+    ) {
+      return await libTool.importLib.writeStatic(
+        path,
+        () => libTool.string().mustacheReplace(stud, {
+          // todo generate all not selected projects
+          env: libTool.env,
+          custom: values
+        })
+      )
+    }
+
     return {
       getConfig,
+      generateSingle,
       generate: async () => {
         const studData = await getConfig()
         const result: Array<
@@ -104,15 +120,7 @@ export function defineRepoTherapyStud (
           const stud = studData[i]
           if (!stud || !stud.path || !stud.source.import) { continue }
           result.push(
-            await libTool.importLib.writeStatic(
-              stud.path,
-              () => libTool.string()
-                .mustacheReplace(stud.source.import, {
-                  // todo generate all not selected projects
-                  env: libTool.env,
-                  custom: stud.values
-                })
-            )
+            await generateSingle(stud.path, stud.source.import, stud.values)
           )
         }
         return result

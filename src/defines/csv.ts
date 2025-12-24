@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname } from 'node:path'
 
 import * as csv from 'fast-csv'
 import lodash from 'lodash'
@@ -25,7 +25,7 @@ export function defineRepoTherapyCsv <
   RowType,
   RawRowType extends RawCsvRow<object> = RawCsvRow<RowType>
 > (option: CsvOption<RowType, RawRowType> = []) {
-  return wrapper('csv', ({ absolutePath }) => {
+  return wrapper('csv', (libTool) => {
     return async (path: `${string}.csv`) => {
       const {
         headers,
@@ -43,7 +43,7 @@ export function defineRepoTherapyCsv <
         ) as RawRowType
       }
 
-      const csvPath = join(absolutePath.root, path)
+      const csvPath = libTool.getChildPath('root', path, { absolute: true })
 
       function getRaw () {
         return defineRepoTherapyStreamSync<RawRowType>(

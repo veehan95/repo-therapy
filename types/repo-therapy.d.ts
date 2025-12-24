@@ -1,42 +1,22 @@
 import { defineRepoTherapyWrapper } from 'src'
 import { NodeJavaScriptExt, NodeTypeScriptExt } from 'src/statics/enums'
 
-// export namespace Env {
-//   export type NodeEnv = 'production' | 'staging' | 'dev'
-
-//   export type Attribute <T extends keyof AttributeType = keyof AttributeType> = {
-//     type: T
-//     optional?: boolean
-//     generate?: boolean
-//     alias?: Array<string>
-//     force?: AttributeType<T>
-//     default?: AttributeType<T> | (
-//       () => Optional extends true
-//         ? undefined | AttributeType<T>
-//         : AttributeType<T>
-//     )
-//   } | T
-
-//   export interface Detail {
-//     [key: string]: Detail | Attribute;
-//   }
-// }
-
 export namespace Util {
   export type GenericType = string | number | boolean | object | undefined |
     null | Array<GenericType>
 
-  // export type Env <T extends RepoTherapyEnv.Detail> = {
-  //   [P in keyof T]: T[P] extends RepoTherapyEnv.Attribute<infer U>
-  //     ? U
-  //     : Env<T[P]>
-  // }
+  // todo
+  // export type SlugChar = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' |
+  //   'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' |
+  //   'v' | 'w' | 'x' | 'y' | 'z' | '0' | '1' | '2' | '3' | '4' | '5' | '6' |
+  //   '7' | '8' | '9' | '0'
+  // export type SlugSegment <
+  //   T extends string = string
+  // > = T extends `${SlugChar}${infer U}` ? SlugSegment<U> : T
 
-  // export type BaseEnv <T extends RepoTherapyEnv.Detail = object> = Env<{
-  //   // to fix
-  //   nodeEnv: Env.NodeEnv
-  //   project: string
-  // } & T>
+  export type SlugCase<
+    T extends string = string
+  > = T extends `${string}-${infer U}` ? SlugCase<U> : T
 
   export type Path = `/${string}`
 

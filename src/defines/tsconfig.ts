@@ -1,6 +1,5 @@
 // import { defineRepoTherapyJson } from './json'
 import { rmSync } from 'node:fs'
-import { join } from 'node:path'
 
 import { merge } from 'lodash'
 import { type TsConfigJson } from 'type-fest'
@@ -104,19 +103,17 @@ export function defineRepoTherapyTsConfig (
     }
 
     async function generate () {
-      let path: Util.Path = '/tsconfig.json'
-      const config = await get()
+      const path: Util.Path = '/tsconfig.json'
+      let config = await get()
       if (options.extends) {
-        const extendConfig = {
-          extends: '.' + join(libTool.path.buildCache, path) as Util.Path
-        }
         await libTool.importLib
-          .writeStatic(path, () => JSON.stringify(extendConfig, undefined, 2))
-        path = extendConfig.extends
-        delete config.extends
+          .writeStatic(path, () => JSON.stringify(config, undefined, 2))
+        config = {
+          extends: '.' + libTool.getChildPath('buildCache', path)
+        }
       } else {
         try {
-          rmSync(join(libTool.absolutePath.buildCache, path))
+          rmSync(libTool.getChildPath('buildCache', path))
         } catch {}
       }
       return await libTool.importLib
