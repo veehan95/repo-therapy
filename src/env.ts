@@ -1,13 +1,16 @@
 import { parse } from '@dotenvx/dotenvx'
 import _ from 'lodash'
 import { RepoTherapyUtilBase } from './base.js'
-import { RTDocumentedError, type RepoTherapy, type RTLogger, type RTValueTypeBase } from './index.js'
+import RTDocumentedError from './error.js'
+import type RepoTherapy from './repo-therapy.js'
+import type RTLogger from './logger.js'
+import type RTValueTypeBase from './value-type.js'
 import { dirname, join } from 'node:path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import type { FilePath, ObjectDefinition } from './types.js'
-import type ValueTypeObject from '../config/value-types/object.js'
 import type { ValueTypeDefinition } from '../generated/types/value-types.js'
 import type ObjectUtil from './object-util.js'
+import type { RTValueTypeObject } from './value-type-definitions.js'
 import type { ObjectMapper } from '../generated/types/object-util.js'
 import type * as EnvDefinition from '../generated/types/env.js'
 
@@ -36,7 +39,6 @@ export default class RTEnv <
 > extends RepoTherapyUtilBase <
   {
     definition: Options['definition']
-    // ReturnType<ValueTypeObject<FullBaseEnv<BaseEnv>>['chainable']>
     appDefinition?: Options['appDefinition']
     mockWithDefault?: boolean
     app?: string
@@ -46,10 +48,10 @@ export default class RTEnv <
   private _baseEnv: FullBaseEnv<BaseEnv>
   private _baseEnvRaw: object = {}
   protected readonly _baseEnvDefinition: ReturnType<
-    ValueTypeObject<FullBaseEnv<BaseEnv>>['chainable']
+    RTValueTypeObject<FullBaseEnv<BaseEnv>>['chainable']
   >
   protected readonly _appEnvDefinition?: ReturnType<
-    ValueTypeObject<AppEnv>['chainable']
+    RTValueTypeObject<AppEnv>['chainable']
   >
   get baseEnv () { return this._baseEnv }
 
@@ -103,7 +105,7 @@ export default class RTEnv <
         .oneOf(repoTherapy.appEnvOptions)
         .default(repoTherapy.appEnvOptions[0])
     } as ObjectDefinition<FullBaseEnv<BaseEnv>>
-    if (repoTherapy.appOptions.length > 0) {
+    if (repoTherapy.appOptions && repoTherapy.appOptions.length > 0) {
       baseEnvObj.app = repoTherapy.valueType
         .string('application env')
         .oneOf(repoTherapy.appOptions)
@@ -143,7 +145,7 @@ export default class RTEnv <
   protected _load <T extends object> (
     namespace: string,
     path: `${FilePath}/.env` | `${FilePath}/.env.${string}`,
-    definition: ReturnType<ValueTypeObject<T>['chainable']>,
+    definition: ReturnType<RTValueTypeObject<T>['chainable']>,
   ) {
     const l = this.logger.childContext(namespace)
     l.debug(() => [path])
@@ -256,15 +258,17 @@ export default class RTEnv <
       mockWithDefault: true
     })
     if (env.env.app) { env.loadAppEnv() }
+    return env
+  }
+
+  public static async generateTypeDefinition (repoTherapy: RepoTherapy) {
     repoTherapy.generateFile(
       '/types/env.ts',
-      `export type BaseEnv = ${env.typeDefinition}\n\n` + (
-        env.env.app
-          ? `export type AppEnv = ${env.appTypeDefinition}\n\n` +
-            'export type Env = BaseEnv & AppEnv'
-          : 'export type Env = BaseEnv'
-      ) + '\n'
+      `export type BaseEnv = ${
+        repoTherapy.envUtil.typeDefinition
+      }\n\nexport type AppEnv = ${
+        repoTherapy.envUtil.appTypeDefinition
+      }\n\nexport type Env = BaseEnv & AppEnv\n`
     )
-    return env
   }
 }

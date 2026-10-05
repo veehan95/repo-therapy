@@ -1,7 +1,7 @@
 import * as readline from 'node:readline/promises'
 import { stdin, stdout } from 'node:process'
 
-import type { RepoTherapy } from 'repo-therapy'
+import type RepoTherapy from './repo-therapy.js'
 import { RepoTherapyUtilBase } from './base.js'
 
 export type Options = {

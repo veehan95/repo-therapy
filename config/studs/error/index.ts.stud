@@ -1,0 +1,8 @@
+import { RTDocumentedError } from '../src/index.js'
+import type { ErrorMeta } from '../src/types.js'
+
+export class Err <
+  Meta extends ErrorMeta & { code: string }
+> extends RTDocumentedError<Meta> {
+  // ...add codes here
+}

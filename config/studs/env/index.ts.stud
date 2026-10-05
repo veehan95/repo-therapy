@@ -1,0 +1,17 @@
+import { defineEnv } from 'repo-therapy'
+
+export default defineEnv<{
+  apiDomain: string
+}>(({ string }) => ({
+  apiDomain: string('api domain')
+  // ...add codes here
+}))
+
+/* section app-env start */
+export const app = defineEnv<{
+  sample: string
+}>(({ string }) => ({
+  sample: string('sample env')
+  // ...add codes here
+}))
+/* section app-env end */

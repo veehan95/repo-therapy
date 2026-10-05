@@ -332,6 +332,7 @@ export default abstract class RTValueTypeBase <
       ForceReturn
     >
 
+    const wrapperRecord = wrapper as unknown as Record<string, unknown>
     const stopAt = Object.getPrototypeOf(RTValueTypeBase.prototype)
     let proto = Object.getPrototypeOf(this)
     while (proto && proto !== stopAt) {
@@ -339,9 +340,9 @@ export default abstract class RTValueTypeBase <
         if (
           ['constructor', 'parse', 'chainable', 'extend'].includes(name) ||
           /^_/.test(name) ||
-          wrapper[name as keyof typeof wrapper]
+          wrapperRecord[name]
         ) { continue }
-        (wrapper[name as keyof typeof wrapper]) = ((...args: unknown[]) => {
+        wrapperRecord[name] = (...args: unknown[]) => {
           const x = (
             instance[name as keyof typeof instance] as Function
           )(...args)
@@ -350,7 +351,7 @@ export default abstract class RTValueTypeBase <
           >['forceReturn'][number])
             ? x
             : wrapper
-        }) as typeof wrapper[keyof typeof wrapper]
+        }
       }
       proto = Object.getPrototypeOf(proto)
     }
@@ -367,84 +368,26 @@ export class RTValueType {
       await repoTherapy.importScriptDir<{
         default: RTValueTypeClass
       }>(['value-type'], '/config/value-types')
-    ).map(([key, x]) => {
-      const k = key
-      const importName = `V${_.camelCase('alueType_' + k)}`
-      return {
-        import: x.import.default,
-        importPath: x.path.replace(/\.ts$/, '.js'),
-        fn: k,
-        importName,
-        valueDefinition: (
-          x.import.default as unknown as { valueDefinition: string[] }
-        ).valueDefinition
-      }
-    })
+    ).map(([key, x]) => ({ fn: key, import: x.import.default }))
 
     const baseValueTypeImport = await import('./value-type-definitions.js')
-    const baseTypes = [{
-      fn: 'string',
-      importName: 'RTValueTypeString',
-      import: baseValueTypeImport.RTValueTypeString
-    }, {
-      fn: 'number',
-      importName: 'RTValueTypeNumber',
-      import: baseValueTypeImport.RTValueTypeNumber
-    }, {
-      fn: 'boolean',
-      importName: 'RTValueTypeBoolean',
-      import: baseValueTypeImport.RTValueTypeBoolean
-    }, {
-      fn: 'object',
-      importName: 'RTValueTypeObject',
-      import: baseValueTypeImport.RTValueTypeObject
-    }, {
-      fn: 'array',
-      importName: 'RTValueTypeArray',
-      import: baseValueTypeImport.RTValueTypeArray
-    }, {
-      fn: 'pattern',
-      importName: 'RTValueTypePattern',
-      import: baseValueTypeImport.RTValueTypePattern
-    }].filter(x => r.findIndex(y => y.fn === x.fn) < 0)
+    const baseTypes = [
+      { fn: 'string', import: baseValueTypeImport.RTValueTypeString },
+      { fn: 'number', import: baseValueTypeImport.RTValueTypeNumber },
+      { fn: 'boolean', import: baseValueTypeImport.RTValueTypeBoolean },
+      { fn: 'object', import: baseValueTypeImport.RTValueTypeObject },
+      { fn: 'array', import: baseValueTypeImport.RTValueTypeArray },
+      { fn: 'pattern', import: baseValueTypeImport.RTValueTypePattern }
+    ].filter(x => r.findIndex(y => y.fn === x.fn) < 0)
 
     const valueType: Record<
       string,
       (...args: unknown[]) => ReturnType<RTValueTypeBase<unknown>['chainable']>
     > = {}
-    let importsStr = baseTypes.length > 0
-      ? `import {\n  ${
-        baseTypes.map(x => x.importName).join(',\n  ')
-      }\n} from '${resolve(
-        dirname(fileURLToPath(import.meta.url)),
-        './value-type-definitions.js'
-      )}'\n`
-      : ''
-    let objStr: string[] = []
-    let patternDefinition = 'type PatternChain <ExtendedMetadata extends {} ' +
-      '= {}> = '
     ;([...baseTypes, ...r] as {
       import: RTValueTypeClass
-      importPath?: string
       fn: string
-      valueDefinition?: [string, string]
-      importName: string
     }[]).forEach((x) => {
-      if (
-        x.importPath
-      ) { importsStr += `import ${x.importName} from '${x.importPath}'\n` }
-      let fn = ''
-      if (x.valueDefinition?.[0]) { fn += `<${x.valueDefinition[0]}> ` }
-      fn += `(\n    ...args: ParamExtract<ConstructorParameters<typeof ${
-        x.importName
-      }>>\n  ) => ReturnType<${x.importName}<`
-      if (x.valueDefinition?.[1]) { fn += `${x.valueDefinition[1]}, ` }
-      fn += `ExtendedMetadata>['chainable']>`
-      if (x.fn === 'pattern') {
-        patternDefinition += fn
-        objStr.push(`  ${x.fn}: PatternChain<ExtendedMetadata>`)
-      } else { objStr.push(`  ${x.fn}: ${fn}`) }
-
       valueType[x.fn] = ((...args: unknown[]) => new x.import(
         ...[
           repoTherapy,
@@ -467,13 +410,95 @@ export class RTValueType {
           fields: [key]
         })
       }
+      valueType[key] = (
+        ...arg: unknown[]
+      ) => valueType['pattern']!(key, arg[0] || r.description, r.pattern)
+    })
+
+    return valueType as ValueTypeDefinition
+  }
+
+  public static async generateTypeDefinition (repoTherapy: RepoTherapy) {
+    const r = (
+      await repoTherapy.importScriptDir<{
+        default: RTValueTypeClass
+      }>(['value-type'], '/config/value-types')
+    ).map(([key, x]) => ({
+      importPath: x.path.replace(/\.ts$/, '.js'),
+      fn: key,
+      importName: `V${_.camelCase('alueType_' + key)}`,
+      valueDefinition: (
+        x.import.default as unknown as { valueDefinition: string[] }
+      ).valueDefinition
+    }))
+
+    const baseValueTypeImport = await import('./value-type-definitions.js')
+    const baseTypes = [{
+      fn: 'string',
+      importName: 'RTValueTypeString'
+    }, {
+      fn: 'number',
+      importName: 'RTValueTypeNumber'
+    }, {
+      fn: 'boolean',
+      importName: 'RTValueTypeBoolean'
+    }, {
+      fn: 'object',
+      importName: 'RTValueTypeObject',
+      valueDefinition: baseValueTypeImport.RTValueTypeObject.valueDefinition
+    }, {
+      fn: 'array',
+      importName: 'RTValueTypeArray',
+      valueDefinition: baseValueTypeImport.RTValueTypeArray.valueDefinition
+    }, {
+      fn: 'pattern',
+      importName: 'RTValueTypePattern'
+    }].filter(x => r.findIndex(y => y.fn === x.fn) < 0)
+
+    let importsStr = baseTypes.length > 0
+      ? `import {\n  ${
+        baseTypes.map(x => x.importName).join(',\n  ')
+      }\n} from '${resolve(
+        dirname(fileURLToPath(import.meta.url)),
+        './value-type-definitions.js'
+      )}'\n`
+      : ''
+    let objStr: string[] = []
+    let patternDefinition = 'type PatternChain <ExtendedMetadata extends {} ' +
+      '= {}> = '
+    ;([...baseTypes, ...r] as {
+      importPath?: string
+      fn: string
+      valueDefinition?: [string, string]
+      importName: string
+    }[]).forEach((x) => {
+      if (
+        x.importPath
+      ) { importsStr += `import ${x.importName} from '${x.importPath}'\n` }
+      let fn = ''
+      if (x.valueDefinition?.[0]) { fn += `<${x.valueDefinition[0]}> ` }
+      fn += `(\n    ...args: ParamExtract<ConstructorParameters<typeof ${
+        x.importName
+      }>>\n  ) => ReturnType<${x.importName}<`
+      if (x.valueDefinition?.[1]) { fn += `${x.valueDefinition[1]}, ` }
+      fn += `ExtendedMetadata>['chainable']>`
+      if (x.fn === 'pattern') {
+        patternDefinition += fn
+        objStr.push(`  ${x.fn}: PatternChain<ExtendedMetadata>`)
+      } else { objStr.push(`  ${x.fn}: ${fn}`) }
+    })
+
+    const patternList = await repoTherapy
+      .importScript<{
+        default: ReturnType<typeof RTValueTypePattern['define']>
+      }>(['value-type-regexp'], '/config/regexp.ts')
+      .then(x => x?.import.default() || {})
+
+    Object.keys(patternList).forEach((key) => {
       objStr.push(
         `  ${key}: (\n    ...args: ParamExtract<Parameters<PatternChain<` +
         'ExtendedMetadata>>>\n  ) => ReturnType<PatternChain<ExtendedMetadata>>'
       )
-      valueType[key] = (
-        ...arg: unknown[]
-      ) => valueType['pattern']!(key, arg[0] || r.description, r.pattern)
     })
 
     repoTherapy.generateFile(
@@ -490,7 +515,5 @@ export class RTValueType {
         objStr.join('\n')
       }\n}`
     )
-
-    return valueType as ValueTypeDefinition
   }
 }

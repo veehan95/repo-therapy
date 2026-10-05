@@ -1,6 +1,7 @@
 import { dirname, join } from 'node:path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { RepoTherapy, RepoTherapyUtilBase } from 'repo-therapy'
+import { RepoTherapyUtilBase } from './base.js'
+import type RepoTherapy from './repo-therapy.js'
 import type { FilePath, ObjectDefinition } from './types.js'
 import type { ValueTypeDefinition } from '../generated/types/value-types.js'
 

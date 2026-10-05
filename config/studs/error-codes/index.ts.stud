@@ -1,0 +1,10 @@
+import { defineErrorCode } from 'repo-therapy'
+
+export default defineErrorCode({
+  'error_code': {
+    statusCode: 400,
+    internalStatusCode: 1,
+    message: 'Invalid type'
+  }
+  // ...add codes here
+})

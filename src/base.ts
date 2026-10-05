@@ -1,11 +1,8 @@
-import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import _ from 'lodash'
 
 import RTLogger from './logger.js'
 import RepoTherapy from './repo-therapy.js'
-import type { EventCallbacks, EventCallbackMeta, FilePath } from './types.js'
 import type Logger from './logger.js'
-import _ from 'lodash'
 
 // export type Options <
 //   CustomOptions extends object = {}

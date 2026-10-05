@@ -1,0 +1,15 @@
+import { defineObjectMap } from 'repo-therapy';
+
+export type Definition = {
+  mapper: {
+    original: {}
+    final: {}
+  }
+}
+
+export default defineObjectMap({
+  mapper: {
+    keyMap: (value) => value /* add code here */,
+    keyRevert: (value) => value /* add code here */
+  }
+})

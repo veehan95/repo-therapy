@@ -1,25 +1,29 @@
 {
   "name": "repo-therapy",
-  "version": "0.1.0",
+  "version": "0.24.003",
   "description": "A lightweight framework that smartly reads and validates project environment variables.",
   "type": "module",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "bin/src/main.js",
+  "types": "bin/src/index.d.ts",
   "bin": {
-    "rt": "dist/src/cli.js"
+    "repo-therapy": "bin/src/main.js",
+    "rt": "bin/src/main.js"
   },
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
+      "types": "./bin/src/index.d.ts",
+      "default": "./bin/src/index.js"
     }
   },
   "files": [
-    "dist/src"
+    "bin/src",
+    "bin/generated",
+    "bin/scripts",
+    "bin/config"
   ],
   "scripts": {
-    "build": "rm -rf bin clean && tsc",
-    "postinstall": "husky",
+    "build": "rm -rf bin && yarn tsx ./src/main.ts prepare && tsc",
+    "prepare": "husky",
     "lint": "eslint .",
     "prepack": "git push && yarn build",
     "start": "tsx ./src/main.ts"
@@ -27,17 +31,17 @@
   "license": "MIT",
   "dependencies": {
     "@dotenvx/dotenvx": "^2.21.0",
-    "@types/lodash": "^4.17.25",
-    "@types/node": "^26.6.2",
     "dayjs": "^1.11.23",
-    "husky": "^9.1.7",
     "lodash": "^4.18.1",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2",
     "yargs": "^18.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/yargs": "^17.0.35"
+    "@types/lodash": "^4.17.25",
+    "@types/node": "^26.6.2",
+    "@types/yargs": "^17.0.35",
+    "husky": "^9.1.7",
+    "typescript": "^7.0.2"
   }
 }

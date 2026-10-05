@@ -11,8 +11,8 @@ import type RTLogger from './logger.js'
 import { RepoTherapyUtilBase } from './base.js'
 import type RepoTherapy from './repo-therapy.js'
 import type { ValueTypeDefinition } from '../generated/types/value-types.js'
-import type ValueTypeObject from '../config/value-types/object.js'
 import type { FilePath, ObjectDefinition } from './types.js'
+import type { RTValueTypeObject } from './value-type-definitions.js'
 
 export type ScriptArgMeta = {
   alias?: string
@@ -64,7 +64,7 @@ export default class RTScript <
   RTScript<Args, Prompt>
 > {
   protected readonly _args?: (variant?: string) => ReturnType<
-    ValueTypeObject<Args, ScriptArgMeta>['chainable']
+    RTValueTypeObject<Args, ScriptArgMeta>['chainable']
   > | undefined
   protected get _deprecated () {
     if (!this._options.deprecated) { return }

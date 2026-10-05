@@ -2,7 +2,7 @@ import { defineScript } from 'repo-therapy';
 import type RTStud from '../src/stud.js';
 import { join } from 'node:path';
 import type { FilePath } from '../src/types.js';
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import _ from 'lodash';
 
 const studDir = '/config/studs'

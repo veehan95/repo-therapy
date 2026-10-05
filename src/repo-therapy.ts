@@ -4,24 +4,19 @@ import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import '@dotenvx/dotenvx/config.js'
 
-// import { type Options } from './base.js'
 import RTLogger from './logger.js'
-import type { EventCallbackMeta , EventCallbacks, FilePath, ObjectDefinition } from './types.js'
+import type { FilePath } from './types.js'
 import { fileURLToPath } from 'node:url'
 import { existsSync, lstatSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import RTDocumentedError from './error.js'
-import type { CustomErrorCode, ErrorMeta } from "./types.js"
-// import type { BaseCodeName, CodeByName, CodeName } from './errors/types.js'
+import type { ErrorMeta } from "./types.js"
 import type { ErrorCode } from '../generated/types/errors.js'
 import type { ObjectMapper } from '../generated/types/object-util.js'
 import { RepoTherapyBase } from './base.js'
 import { RTValueType } from './value-type.js'
 import type { ValueTypeDefinition } from '../generated/types/value-types.js'
-import type { defineErrorCode, defineObjectMap } from 'repo-therapy'
-import RTObjectUtil, { type Mapper } from './object-util.js'
+import RTObjectUtil from './object-util.js'
 import type { AppEnv, BaseEnv } from '../generated/types/env.js'
-// import ValueTypeObject from '../config/value-types/object.js'
-import S from '../scripts/start.js'
 import type RtScript from './script.js'
 import RTEnv from './env.js'
 
@@ -100,7 +95,7 @@ export default class RepoTherapy <
     return this.env.app || this._options.app || process.env['APP'] || ''
   }
 
-  private _appOptions: string[]
+  private _appOptions: string[] = []
   public get appOptions () { return this._appOptions }
 
   public get appEnvOptions () {
@@ -136,6 +131,7 @@ export default class RepoTherapy <
     this._setUtil('envUtil', RTEnv.loader)
 
     const appRoot = join(this.repoRoot, 'apps')
+    if (!existsSync(appRoot)) { return }
     this._appOptions = readdirSync(appRoot, 'utf8')
       .filter(x => lstatSync(join(appRoot, x)).isDirectory())
   }
@@ -250,6 +246,17 @@ export default class RepoTherapy <
     const dir = dirname(p)
     if (!existsSync(dir)) { mkdirSync(dir, { recursive: true }) }
     writeFileSync(join(this.generatedDir, path), content)
+  }
+
+  public async generateTypeDefinition () {
+    this.logger.debug(() => ['generating type', 'DocumentedError'])
+    await RTDocumentedError.generateTypeDefinition(this)
+    this.logger.debug(() => ['generating type', 'ValueType'])
+    await RTValueType.generateTypeDefinition(this)
+    this.logger.debug(() => ['generating type', 'ObjectUtil'])
+    await RTObjectUtil.generateTypeDefinition(this)
+    this.logger.debug(() => ['generating type', 'Env'])
+    await RTEnv.generateTypeDefinition(this)
   }
 
   async loadCli () {

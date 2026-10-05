@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import _ from 'lodash'
-import { RTDocumentedError, RTValueTypeBase, RepoTherapy } from 'repo-therapy'
+import RTDocumentedError from './error.js'
+import RTValueTypeBase from './value-type.js'
+import type RepoTherapy from './repo-therapy.js'
 import type { Options } from './value-type.js'
 import type { ObjectDefinition } from './types.js'
 

@@ -1,0 +1,17 @@
+import { defineScript } from 'repo-therapy';
+
+export default defineScript<{
+  tableName: string
+  // ...add codes here
+}>('Sample script', {
+  handler: (data, logger) => {
+    logger.info(data)
+    // ...add codes here
+  },
+  args: ({ string }) => ({
+    tableName: string('')
+    // ...add codes here
+  }),
+  params: ['tableName']
+  // ...add codes here
+})

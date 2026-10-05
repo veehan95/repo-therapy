@@ -117,7 +117,7 @@ types/_*
 # Custom: Not Configured
 # ================================
 projects
-studs
+# studs
 configs
 !src/configs
 generated

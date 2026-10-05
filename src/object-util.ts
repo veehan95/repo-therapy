@@ -141,17 +141,24 @@ export default class RTObjectUtil <
   >(mapper: Record<keyof T, Mapper>) { return () => mapper }
 
   public static async loader (repoTherapy: RepoTherapy) {
-    const typeDefinition: string[] = []
     const util = await repoTherapy
       .importScript<{
         default: ReturnType<typeof RTObjectUtil.define>
       }>(['object-util'], '/config/object-util.ts', true)
       .then(x => x.reduce((acc, mapper) => {
-        typeDefinition.push(`import('${mapper.path}').Definition`)
         Object.entries(mapper.import.default())
           .forEach(([code, m]) => { if (!acc[code]) { acc[code] = m } })
         return acc
       }, baseMapper))
+    return new RTObjectUtil(repoTherapy, { util })
+  }
+
+  public static async generateTypeDefinition (repoTherapy: RepoTherapy) {
+    const typeDefinition = await repoTherapy
+      .importScript<{
+        default: ReturnType<typeof RTObjectUtil.define>
+      }>(['object-util'], '/config/object-util.ts', true)
+      .then(x => x.map(mapper => `import('${mapper.path}').Definition`))
 
     const content = typeDefinition.length > 0
       ? typeDefinition.join(' &\n')
@@ -161,6 +168,5 @@ export default class RTObjectUtil <
       `export type ObjectMapper = ${content} & {\n  ` +
       'env: {\n    original: {}\n    final: {}\n  }\n}'
     )
-    return new RTObjectUtil(repoTherapy, { util })
   }
 }

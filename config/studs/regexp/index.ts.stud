@@ -1,0 +1,8 @@
+import { definePattern } from 'repo-therapy'
+
+export default definePattern({
+  regexp: {
+    description: 'RegExp name',
+    pattern: /code-here/
+  }
+})

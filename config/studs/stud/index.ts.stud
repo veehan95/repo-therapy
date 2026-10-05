@@ -1,0 +1,15 @@
+import { defineStud } from 'repo-therapy'
+
+export default defineStud<{
+  sample: string
+  // ...add codes here
+}>([{
+  source: '/{{ fileName }}.md',
+  destination: (name) => `/config/studs/${name}/index.md.stud`
+  // ...add codes here
+}], {
+  variableDefinitions: ({ string }) => ({
+    sample: string('sample variable to replace')
+    // ...add codes here
+  })
+})

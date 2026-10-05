@@ -992,17 +992,6 @@ export default class RTDocumentedError <
         })
         return acc
       }, {} as Record<string, ErrorMeta>))
-    const content = Object.keys(errorMeta).reduce((acc, cur) => {
-      if (
-        !acc[acc.length - 1] || acc[acc.length - 1]!.length >= 80
-      ) { acc.push('') }
-      acc[acc.length - 1] += ` | '${cur}'`
-      return acc
-    }, [] as string[]).join('\n ').trim()
-    repoTherapy.generateFile(
-      '/types/errors.ts',
-      `export type ErrorCode =${!content ? ' string' : `\n  ${content}`}`
-    )
 
     const DocumentedError = (await repoTherapy.importScript<
       { default: typeof RTDocumentedError }
@@ -1021,5 +1010,27 @@ export default class RTDocumentedError <
         } as unknown as ErrorMeta & { code: T }, input, fn)
       }
     }
+  }
+
+  public static async generateTypeDefinition (repoTherapy: RepoTherapy) {
+    const errorCodes = await repoTherapy
+      .importScript<{
+        default: () => Record<string, ErrorMeta>
+      }>(['error-codes'], '/config/error-codes.ts', true)
+      .then(x => _.uniq([
+        baseErrorCode,
+        ...x.map(meta => meta.import.default())
+      ].flatMap(meta => Object.keys(meta).map(code => _.snakeCase(code)))))
+    const content = errorCodes.reduce((acc, cur) => {
+      if (
+        !acc[acc.length - 1] || acc[acc.length - 1]!.length >= 80
+      ) { acc.push('') }
+      acc[acc.length - 1] += ` | '${cur}'`
+      return acc
+    }, [] as string[]).join('\n ').trim()
+    repoTherapy.generateFile(
+      '/types/errors.ts',
+      `export type ErrorCode =${!content ? ' string' : `\n  ${content}`}`
+    )
   }
 }
