@@ -1,68 +1,43 @@
 {
   "name": "repo-therapy",
-  "version": "0.23.15",
-  "scripts": {
-    "lint": "eslint .",
-    "postinstall": "husky",
-    "build": "yarn clean && tsc",
-    "clean": "rm -rf bin",
-    "prepack": "git push && yarn build",
-    "start": "node index.js",
-    "test": "jest",
-    "dev": "nodemon index.js"
-  },
-  "main": "./bin/index.js",
-  "types": "./bin/index.d.ts",
-  "files": [
-    "bin",
-    "types"
-  ],
+  "version": "0.1.0",
+  "description": "A lightweight framework that smartly reads and validates project environment variables.",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "bin": {
-    "repo-therapy": "./bin/cli.js"
+    "rt": "dist/src/cli.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/veehan95/repo-therapy"
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
   },
-  "dependencies": {
-    "@dotenvx/dotenvx": "^1.51.0",
-    "@eslint/js": "^9.39.1",
-    "@types/lodash": "^4.17.18",
-    "@types/node": "^24.3.0",
-    "@types/yargs": "^17.0.33",
-    "@typescript-eslint/eslint-plugin": "^8.48.0",
-    "eslint": "^9.39.1",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^17.23.1",
-    "eslint-plugin-promise": "^7.2.1",
-    "fast-csv": "^5.0.5",
-    "find-up": "^7.0.0",
-    "husky": "^9.1.7",
-    "jiti": "^2.6.1",
-    "lodash": "^4.17.21",
-    "simple-git": "^3.30.0",
-    "sort-package-json": "^3.2.1",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
-    "type-fest": "^4.41.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.0",
-    "winston": "^3.17.0",
-    "yargs": "^18.0.0"
-  },
-  "engines": {
-    "node": ">=v22.18.0",
-    "yarn": ">=1.22.22"
-  },
-  "private": false,
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public",
-    "strict-ssl": false
+  "files": [
+    "dist/src"
+  ],
+  "scripts": {
+    "build": "rm -rf bin clean && tsc",
+    "postinstall": "husky",
+    "lint": "eslint .",
+    "prepack": "git push && yarn build",
+    "start": "tsx ./src/main.ts"
   },
   "license": "MIT",
-  "description": "test",
-  "author": "Tan Vee Han <veehan95@gmail.com>",
-  "homepage": "https://github.com/veehan95/repo-therapy/#readme"
+  "dependencies": {
+    "@dotenvx/dotenvx": "^2.21.0",
+    "@types/lodash": "^4.17.25",
+    "@types/node": "^26.6.2",
+    "dayjs": "^1.11.23",
+    "husky": "^9.1.7",
+    "lodash": "^4.18.1",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2",
+    "yargs": "^18.1.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.35"
+  }
 }

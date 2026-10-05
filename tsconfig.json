@@ -1,33 +1,39 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "rootDir": ".",
+    "outDir": "./bin",
+    "paths": {
+      "repo-therapy": ["./src/index.ts"]
+    },
     "module": "nodenext",
-    "lib": [
-      "esnext",
-      "dom"
-    ],
-    "allowJs": true,
+    "target": "esnext",
+    "lib": ["esnext"],
+    "types": ["node"],
+    "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./bin",
-    "rootDir": "./",
-    "removeComments": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
     "strict": true,
-    "moduleResolution": "nodenext",
-    "baseUrl": "./",
-    "typeRoots": [
-      "./types",
-      "./node_modules/@types"
-    ],
-    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
   },
   "include": [
-    "**/*.ts",
-    "types/**/*.d.ts",
-    "node_modules/**/types/**/*.d.ts"
+    "src/**/*",
+    "scripts/**/*",
+    "config/**/*",
+    "generated/**/*"
   ]
 }

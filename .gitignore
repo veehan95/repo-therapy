@@ -119,3 +119,5 @@ types/_*
 projects
 studs
 configs
+!src/configs
+generated
